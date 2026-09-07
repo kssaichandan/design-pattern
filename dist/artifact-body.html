@@ -1,0 +1,2636 @@
+<title>RideFlow Pattern Lab</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+/* ============================================================
+   RideFlow - Design Patterns Lab
+   Palette : cool transit paper + taxi amber + signage blue
+   Type    : Archivo (display) / IBM Plex Sans (body) / IBM Plex Mono (data)
+   ============================================================ */
+
+:root {
+  /* --- light palette (complete, always defined here) --- */
+  --ground:      #E9EDF2;
+  --surface:     #FFFFFF;
+  --surface-2:   #F3F6FA;
+  --surface-3:   #E7ECF3;
+  --ink:         #0F1620;
+  --ink-2:       #46566C;
+  --ink-3:       #7B8A9E;
+  --line:        #D3DBE5;
+  --line-2:      #E4EAF1;
+
+  --amber:       #D9860A;
+  --amber-hi:    #F0A423;
+  --amber-soft:  #FBEFD8;
+  --blue:        #1E4FD8;
+  --blue-soft:   #E1E9FD;
+  --green:       #0E7A55;
+  --green-soft:  #DDF1E8;
+  --red:         #C0392E;
+  --red-soft:    #FBE4E1;
+  --violet:      #6B3FBF;
+  --violet-soft: #EDE5FB;
+  --orange:      #B4501F;
+  --orange-soft: #FBE6DA;
+  --sand:        #7E6A18;
+  --sand-soft:   #F4EFD6;
+
+  --shadow-sm: 0 1px 2px rgba(15,22,32,.06), 0 2px 8px rgba(15,22,32,.05);
+  --shadow-md: 0 2px 4px rgba(15,22,32,.06), 0 12px 30px rgba(15,22,32,.10);
+
+  /* --- console tokens: deliberately dark in BOTH themes (an ops terminal) --- */
+  --con-bg:    #0E1621;
+  --con-bg-2:  #16212F;
+  --con-line:  #24313F;
+  --con-text:  #C7D3E1;
+  --con-dim:   #6C7E93;
+
+  --f-display: "Archivo", "Helvetica Neue", Arial, sans-serif;
+  --f-body:    "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+  --f-mono:    "IBM Plex Mono", ui-monospace, "Cascadia Mono", Consolas, monospace;
+
+  --r-sm: 4px;
+  --r-md: 8px;
+  --r-lg: 14px;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --ground:      #0B111A;
+    --surface:     #141D28;
+    --surface-2:   #1A2431;
+    --surface-3:   #212D3C;
+    --ink:         #E9EEF5;
+    --ink-2:       #9EADC0;
+    --ink-3:       #6C7C90;
+    --line:        #263340;
+    --line-2:      #1F2A36;
+
+    --amber:       #F5AC33;
+    --amber-hi:    #FFC257;
+    --amber-soft:  #2E2415;
+    --blue:        #79A0FF;
+    --blue-soft:   #17223A;
+    --green:       #43C39A;
+    --green-soft:  #10291F;
+    --red:         #F0776A;
+    --red-soft:    #2E1815;
+    --violet:      #A98BF0;
+    --violet-soft: #211A33;
+    --orange:      #FF9D7A;
+    --orange-soft: #33201A;
+    --sand:        #E4E0A0;
+    --sand-soft:   #2B2818;
+
+    --shadow-sm: 0 1px 2px rgba(0,0,0,.4);
+    --shadow-md: 0 2px 4px rgba(0,0,0,.4), 0 14px 32px rgba(0,0,0,.45);
+  }
+}
+
+:root[data-theme="dark"] {
+  --ground:      #0B111A;
+  --surface:     #141D28;
+  --surface-2:   #1A2431;
+  --surface-3:   #212D3C;
+  --ink:         #E9EEF5;
+  --ink-2:       #9EADC0;
+  --ink-3:       #6C7C90;
+  --line:        #263340;
+  --line-2:      #1F2A36;
+
+  --amber:       #F5AC33;
+  --amber-hi:    #FFC257;
+  --amber-soft:  #2E2415;
+  --blue:        #79A0FF;
+  --blue-soft:   #17223A;
+  --green:       #43C39A;
+  --green-soft:  #10291F;
+  --red:         #F0776A;
+  --red-soft:    #2E1815;
+  --violet:      #A98BF0;
+  --violet-soft: #211A33;
+  --orange:      #FF9D7A;
+  --orange-soft: #33201A;
+  --sand:        #E4E0A0;
+  --sand-soft:   #2B2818;
+
+  --shadow-sm: 0 1px 2px rgba(0,0,0,.4);
+  --shadow-md: 0 2px 4px rgba(0,0,0,.4), 0 14px 32px rgba(0,0,0,.45);
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--ground);
+  color: var(--ink);
+  font-family: var(--f-body);
+  font-size: 15px;
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3, h4 {
+  font-family: var(--f-display);
+  text-wrap: balance;
+  margin: 0;
+  letter-spacing: -0.02em;
+}
+
+.wrap { max-width: 1320px; margin: 0 auto; padding: 0 28px; }
+
+/* ---------------- masthead ---------------- */
+
+.masthead { border-bottom: 1px solid var(--line); background: var(--surface); }
+
+.masthead__in {
+  display: flex; align-items: flex-end; justify-content: space-between;
+  gap: 32px; flex-wrap: wrap; padding-block: 22px 20px;
+}
+
+.brand { display: flex; align-items: center; gap: 13px; }
+
+.brand__lamp {
+  width: 38px; height: 38px; flex: none; border-radius: var(--r-sm);
+  background: var(--amber); display: grid; place-items: center;
+  box-shadow: 0 0 0 1px rgba(0,0,0,.08) inset, 0 4px 14px -4px var(--amber);
+}
+.brand__lamp svg { width: 22px; height: 22px; display: block; }
+
+.brand__name {
+  font-family: var(--f-display); font-weight: 700; font-size: 25px;
+  letter-spacing: -0.035em; line-height: 1;
+}
+.brand__sub {
+  display: block;
+  font-family: var(--f-mono); font-size: 10.5px; letter-spacing: .11em;
+  text-transform: uppercase; color: var(--ink-3); margin-top: 5px;
+}
+
+.chiprack { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+.chiprack__label {
+  font-family: var(--f-mono); font-size: 10px; letter-spacing: .1em;
+  text-transform: uppercase; color: var(--ink-3); margin-right: 4px;
+}
+.pchip {
+  font-family: var(--f-mono); font-size: 10.5px; font-weight: 500;
+  letter-spacing: .06em; text-transform: uppercase;
+  padding: 5px 9px; border-radius: var(--r-sm);
+  border: 1px solid var(--line); background: var(--surface-2); color: var(--ink-2);
+  transition: background .18s, color .18s, border-color .18s, transform .18s;
+}
+.pchip.is-hot {
+  background: var(--amber); border-color: var(--amber);
+  color: #14100A; transform: translateY(-2px);
+}
+
+/* ---------------- main grid ---------------- */
+
+.console {
+  display: grid;
+  grid-template-columns: minmax(0, 400px) minmax(0, 1fr);
+  gap: 22px; padding-block: 24px 40px; align-items: start;
+}
+@media (max-width: 1040px) { .console { grid-template-columns: minmax(0, 1fr); } }
+
+.panel {
+  background: var(--surface); border: 1px solid var(--line);
+  border-radius: var(--r-lg); box-shadow: var(--shadow-sm); overflow: hidden;
+}
+.panel__hd {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  padding: 13px 16px; border-bottom: 1px solid var(--line-2);
+}
+.panel__title {
+  font-family: var(--f-mono); font-size: 10.5px; letter-spacing: .12em;
+  text-transform: uppercase; color: var(--ink-3); font-weight: 500;
+}
+.panel__body { padding: 16px; display: grid; gap: 16px; }
+
+/* ---------------- form controls ---------------- */
+
+.field { display: grid; gap: 6px; }
+.field__label {
+  font-family: var(--f-mono); font-size: 10px; letter-spacing: .11em;
+  text-transform: uppercase; color: var(--ink-3);
+}
+
+select, .btn {
+  font-family: var(--f-body); font-size: 14px;
+  border-radius: var(--r-md); border: 1px solid var(--line);
+  background: var(--surface-2); color: var(--ink);
+  padding: 9px 11px; width: 100%;
+}
+
+select:focus-visible, .btn:focus-visible, .vcard:focus-visible,
+.toggle:focus-within, .filter:focus-visible, .swap:focus-visible {
+  outline: 2px solid var(--blue); outline-offset: 2px;
+}
+
+.route-row { display: grid; grid-template-columns: 1fr auto 1fr; gap: 10px; align-items: end; }
+
+.swap {
+  width: 34px; height: 34px; flex: none; padding: 0; margin-bottom: 2px;
+  display: grid; place-items: center; cursor: pointer;
+  border: 1px solid var(--line); border-radius: var(--r-md);
+  background: var(--surface-2); color: var(--ink-2);
+}
+.swap:hover { background: var(--surface-3); }
+.swap svg { width: 15px; height: 15px; }
+
+/* vehicle tiles - Factory output */
+.vgrid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 7px; }
+.vcard {
+  cursor: pointer; text-align: left; font-family: var(--f-body);
+  border: 1px solid var(--line); border-radius: var(--r-md);
+  background: var(--surface-2); color: var(--ink);
+  padding: 9px 8px 8px; display: grid; gap: 3px;
+  transition: border-color .15s, background .15s, box-shadow .15s;
+}
+.vcard:hover { border-color: var(--ink-3); }
+.vcard[aria-pressed="true"] {
+  border-color: var(--amber); background: var(--amber-soft);
+  box-shadow: 0 0 0 1px var(--amber) inset;
+}
+.vcard__ico { height: 22px; color: var(--ink-2); }
+.vcard[aria-pressed="true"] .vcard__ico { color: var(--amber); }
+.vcard__ico svg { height: 22px; width: auto; display: block; }
+.vcard__name { font-size: 12.5px; font-weight: 600; letter-spacing: -0.01em; }
+.vcard__meta {
+  font-family: var(--f-mono); font-size: 10px; color: var(--ink-3);
+  line-height: 1.35; white-space: nowrap;
+}
+
+/* fare receipt - Strategy output */
+.receipt {
+  border: 1px solid var(--line); border-radius: var(--r-md);
+  background: var(--surface-2); overflow: hidden;
+}
+.receipt__strategy {
+  padding: 8px 12px; border-bottom: 1px dashed var(--line);
+  font-family: var(--f-mono); font-size: 10.5px; color: var(--ink-2);
+  display: flex; justify-content: space-between; gap: 10px;
+}
+.receipt__strategy b { color: var(--blue); font-weight: 500; }
+.receipt__lines { padding: 9px 12px; display: grid; gap: 5px; }
+
+.rline {
+  display: flex; justify-content: space-between; gap: 12px;
+  font-size: 13px; color: var(--ink-2);
+}
+.rline span:last-child {
+  font-family: var(--f-mono); font-variant-numeric: tabular-nums; color: var(--ink);
+}
+.rline--add span:last-child { color: var(--red); }
+.rline--cut span:last-child { color: var(--green); }
+.rline--total {
+  border-top: 1px solid var(--line); margin-top: 3px; padding-top: 8px;
+  font-family: var(--f-display); font-weight: 600; font-size: 16px; color: var(--ink);
+}
+.rline--total span:last-child {
+  font-family: var(--f-display); font-size: 22px; letter-spacing: -0.03em;
+}
+
+.btn {
+  cursor: pointer; font-weight: 600; text-align: center;
+  border: 1px solid transparent; padding: 12px;
+  transition: filter .15s, background .15s;
+}
+.btn--go { background: var(--amber); color: #17120A; border-color: var(--amber); font-size: 15px; }
+.btn--go:hover:not(:disabled) { filter: brightness(1.07); }
+.btn--ghost {
+  background: transparent; border-color: var(--line); color: var(--ink-2);
+  padding: 9px; font-size: 13px;
+}
+.btn--ghost:hover:not(:disabled) { border-color: var(--red); color: var(--red); }
+.btn:disabled { opacity: .42; cursor: not-allowed; }
+
+/* ---------------- ride lifecycle - State ---------------- */
+
+.lifecycle { display: grid; }
+
+.step {
+  display: grid; grid-template-columns: 26px 1fr auto; gap: 10px;
+  align-items: start; padding: 7px 0; position: relative;
+}
+.step:not(:last-child)::before {
+  content: ""; position: absolute; left: 12.5px; top: 26px; bottom: -3px;
+  width: 1px; background: var(--line);
+}
+.step__dot {
+  width: 26px; height: 26px; border-radius: 50%; display: grid; place-items: center;
+  font-family: var(--f-mono); font-size: 11px; font-weight: 500;
+  border: 1px solid var(--line); background: var(--surface); color: var(--ink-3);
+  position: relative; z-index: 1;
+}
+.step__name { font-size: 13.5px; color: var(--ink-3); padding-top: 3px; }
+.step__note {
+  font-family: var(--f-mono); font-size: 10px; color: var(--ink-3);
+  padding-top: 5px; text-align: right;
+}
+.step.is-done .step__dot { background: var(--green-soft); border-color: var(--green); color: var(--green); }
+.step.is-done .step__name { color: var(--ink-2); }
+.step.is-active .step__dot {
+  background: var(--amber); border-color: var(--amber); color: #17120A;
+  box-shadow: 0 0 0 4px var(--amber-soft);
+}
+.step.is-active .step__name { color: var(--ink); font-weight: 600; }
+.step.is-dead .step__dot { background: var(--red-soft); border-color: var(--red); color: var(--red); }
+
+.statebar {
+  display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+  padding: 9px 12px; border-radius: var(--r-md);
+  background: var(--surface-2); border: 1px solid var(--line);
+}
+.statebar__k {
+  font-family: var(--f-mono); font-size: 10px; letter-spacing: .1em;
+  text-transform: uppercase; color: var(--ink-3);
+}
+.statebar__v { font-family: var(--f-mono); font-size: 12px; color: var(--violet); font-weight: 500; }
+
+/* ---------------- map + observers ---------------- */
+
+.rightcol { display: grid; gap: 22px; }
+
+.mapwrap { position: relative; background: var(--surface-2); }
+.mapwrap svg { display: block; width: 100%; height: auto; }
+
+.hud { position: absolute; left: 14px; top: 14px; display: flex; gap: 7px; flex-wrap: wrap; }
+
+.hudchip {
+  background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-md);
+  padding: 5px 9px; box-shadow: var(--shadow-sm);
+  display: flex; align-items: baseline; gap: 6px;
+}
+.hudchip__k {
+  font-family: var(--f-mono); font-size: 9.5px; letter-spacing: .1em;
+  text-transform: uppercase; color: var(--ink-3);
+}
+.hudchip__v {
+  font-family: var(--f-mono); font-size: 14px; font-weight: 500;
+  font-variant-numeric: tabular-nums; color: var(--ink);
+}
+
+.toasts {
+  position: absolute; right: 14px; top: 14px; display: grid; gap: 6px;
+  width: min(255px, 55%); justify-items: end;
+}
+.toast {
+  background: var(--con-bg); color: var(--con-text);
+  border-radius: var(--r-md); padding: 8px 11px; font-size: 12.5px;
+  box-shadow: var(--shadow-md); animation: toastin .28s ease-out;
+  border-left: 3px solid var(--amber);
+}
+.toast b { color: #fff; font-weight: 600; }
+@keyframes toastin { from { opacity: 0; transform: translateX(14px); } }
+
+.obsgrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(168px, 1fr)); gap: 8px; }
+
+.toggle {
+  display: flex; gap: 9px; align-items: flex-start; cursor: pointer;
+  border: 1px solid var(--line); border-radius: var(--r-md);
+  background: var(--surface-2); padding: 9px 10px;
+  transition: border-color .15s, background .15s;
+}
+.toggle:hover { border-color: var(--ink-3); }
+.toggle input { margin: 2px 0 0; accent-color: var(--blue); width: 15px; height: 15px; flex: none; }
+.toggle__name {
+  font-family: var(--f-mono); font-size: 11.5px; color: var(--ink);
+  display: block; overflow-wrap: anywhere;
+}
+.toggle__desc { font-size: 11.5px; color: var(--ink-3); line-height: 1.35; }
+.toggle:has(input:checked) { border-color: var(--blue); background: var(--blue-soft); }
+.toggle:has(input:checked) .toggle__name { color: var(--blue); font-weight: 500; }
+
+/* ---------------- dispatch console ---------------- */
+
+.term { background: var(--con-bg); border: 1px solid var(--con-line); border-radius: var(--r-lg); overflow: hidden; }
+
+.term__hd {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  padding: 10px 14px; border-bottom: 1px solid var(--con-line); background: var(--con-bg-2);
+}
+.term__title {
+  font-family: var(--f-mono); font-size: 10.5px; letter-spacing: .12em;
+  text-transform: uppercase; color: var(--con-dim);
+}
+.term__live { display: flex; align-items: center; gap: 6px; font-family: var(--f-mono); font-size: 10px; color: var(--con-dim); }
+.term__led {
+  width: 7px; height: 7px; border-radius: 50%; background: #35C88F;
+  box-shadow: 0 0 8px #35C88F; animation: blip 1.6s infinite;
+}
+@keyframes blip { 50% { opacity: .3; } }
+
+.term__body {
+  height: 268px; overflow-y: auto; padding: 10px 14px;
+  font-family: var(--f-mono); font-size: 12px; line-height: 1.65;
+  scrollbar-width: thin; scrollbar-color: var(--con-line) transparent;
+}
+.logline {
+  display: grid; grid-template-columns: 64px 78px 1fr; gap: 9px;
+  padding: 1px 0; animation: fadein .2s;
+}
+@keyframes fadein { from { opacity: 0; } }
+.logline__t { color: var(--con-dim); }
+.logline__tag { font-weight: 500; letter-spacing: .04em; }
+.logline__msg { color: var(--con-text); word-break: break-word; }
+.logline__msg em { color: #fff; font-style: normal; }
+
+.tag-FACTORY   { color: #F5AC33; }
+.tag-STRATEGY  { color: #79A0FF; }
+.tag-OBSERVER  { color: #43C39A; }
+.tag-STATE     { color: #B79BF5; }
+.tag-FACADE    { color: #FF9D7A; }
+.tag-SINGLETON { color: #E4E0A0; }
+.tag-SYSTEM    { color: #6C7E93; }
+
+.term__ft {
+  display: flex; gap: 5px; flex-wrap: wrap; padding: 9px 14px;
+  border-top: 1px solid var(--con-line); background: var(--con-bg-2);
+}
+.filter {
+  font-family: var(--f-mono); font-size: 10px; letter-spacing: .05em;
+  padding: 3px 8px; border-radius: 999px; cursor: pointer;
+  border: 1px solid var(--con-line); background: transparent; color: var(--con-dim);
+}
+.filter[aria-pressed="true"] { background: var(--con-line); color: #fff; }
+
+/* ---------------- pattern reference ---------------- */
+
+.ref { border-top: 1px solid var(--line); background: var(--surface); }
+.ref__in { padding-block: 46px 60px; display: grid; gap: 34px; }
+.ref__lede { max-width: 62ch; display: grid; gap: 10px; }
+.ref__lede h2 { font-size: 30px; letter-spacing: -0.035em; }
+.ref__lede p { margin: 0; color: var(--ink-2); font-size: 15.5px; }
+
+.eyebrow {
+  font-family: var(--f-mono); font-size: 10.5px; letter-spacing: .13em;
+  text-transform: uppercase; color: var(--amber);
+}
+
+.pat {
+  display: grid; grid-template-columns: minmax(0, 340px) minmax(0, 1fr);
+  gap: 26px; padding-top: 28px; border-top: 1px solid var(--line-2);
+}
+@media (max-width: 900px) { .pat { grid-template-columns: minmax(0, 1fr); gap: 16px; } }
+
+.pat__head { display: grid; gap: 11px; align-content: start; }
+.pat__tag {
+  font-family: var(--f-mono); font-size: 10px; letter-spacing: .1em; text-transform: uppercase;
+  padding: 4px 8px; border-radius: var(--r-sm); justify-self: start;
+}
+.pt-factory   { background: var(--amber-soft);  color: var(--amber);  }
+.pt-strategy  { background: var(--blue-soft);   color: var(--blue);   }
+.pt-observer  { background: var(--green-soft);  color: var(--green);  }
+.pt-state     { background: var(--violet-soft); color: var(--violet); }
+.pt-facade    { background: var(--orange-soft); color: var(--orange); }
+.pt-singleton { background: var(--sand-soft);   color: var(--sand);   }
+
+.pat__name { font-size: 23px; letter-spacing: -0.035em; }
+.pat__name small {
+  display: block; font-family: var(--f-mono); font-size: 11px; font-weight: 400;
+  letter-spacing: .04em; color: var(--ink-3); margin-top: 4px; text-transform: none;
+}
+.pat__body { margin: 0; color: var(--ink-2); font-size: 14px; }
+
+.qa { display: grid; gap: 3px; }
+.qa__q {
+  font-family: var(--f-mono); font-size: 10px; letter-spacing: .1em;
+  text-transform: uppercase; color: var(--ink-3);
+}
+.qa__a { font-size: 14px; color: var(--ink-2); margin: 0; }
+.qa__a code {
+  font-family: var(--f-mono); font-size: 12.5px;
+  background: var(--surface-3); padding: 1px 4px; border-radius: 3px; color: var(--ink);
+}
+
+.code { background: var(--con-bg); border: 1px solid var(--con-line); border-radius: var(--r-md); overflow: hidden; }
+.code__hd {
+  padding: 8px 14px; border-bottom: 1px solid var(--con-line); background: var(--con-bg-2);
+  font-family: var(--f-mono); font-size: 10.5px; color: var(--con-dim); letter-spacing: .06em;
+}
+.code pre {
+  margin: 0; padding: 14px; overflow-x: auto;
+  font-family: var(--f-mono); font-size: 12.3px; line-height: 1.62; color: var(--con-text);
+}
+.tk-key { color: #F5AC33; }
+.tk-str { color: #43C39A; }
+.tk-com { color: #5E738C; font-style: italic; }
+.tk-num { color: #B79BF5; }
+.tk-cls { color: #79A0FF; }
+
+.foot {
+  padding-block: 22px 34px; color: var(--ink-3); font-size: 12.5px;
+  display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap;
+  border-top: 1px solid var(--line);
+}
+.foot code { font-family: var(--f-mono); }
+
+/* ---------------- the SVG map ---------------- */
+
+.mp-bg     { fill: var(--surface-2); }
+.mp-block  { fill: var(--surface-3); }
+.mp-street { stroke: var(--line); stroke-width: 1.5; }
+
+.mp-route {
+  fill: none; stroke: var(--ink-3); stroke-width: 3;
+  stroke-dasharray: 6 7; stroke-linecap: round; opacity: .55;
+}
+.mp-route-done {
+  fill: none; stroke: var(--amber); stroke-width: 4;
+  stroke-linecap: round; stroke-linejoin: round;
+  transition: stroke-dashoffset .12s linear;
+}
+
+.mp-pin-a  { fill: var(--blue); }
+.mp-pin-b  { fill: var(--amber); }
+.mp-halo   { opacity: .2; }
+
+.mp-label {
+  fill: var(--ink-2); font-family: var(--f-mono); font-size: 12px;
+  paint-order: stroke; stroke: var(--surface-2); stroke-width: 3.5px; stroke-linejoin: round;
+}
+
+#car { transition: transform .1s linear; opacity: 0; }
+#car .body   { fill: var(--ink); }
+#car .glass  { fill: var(--amber); }
+#car .pulse  { fill: var(--amber); opacity: .22; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: .001s !important;
+    transition-duration: .001s !important;
+  }
+}
+
+</style>
+
+
+<!-- ============================ MASTHEAD ============================ -->
+<header class="masthead">
+  <div class="wrap masthead__in">
+    <div class="brand">
+      <span class="brand__lamp">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#17120A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M3 17v-4l2-1 2-4h10l2 4 2 1v4h-2"/><path d="M9 17h6"/>
+          <circle cx="7" cy="17" r="2"/><circle cx="17" cy="17" r="2"/>
+        </svg>
+      </span>
+      <span>
+        <span class="brand__name">RideFlow</span>
+        <span class="brand__sub">Design Patterns Lab &middot; live instrumentation</span>
+      </span>
+    </div>
+
+    <div class="chiprack">
+      <span class="chiprack__label">Patterns wired in</span>
+      <span class="pchip" data-tag="FACTORY">Factory</span>
+      <span class="pchip" data-tag="STRATEGY">Strategy</span>
+      <span class="pchip" data-tag="OBSERVER">Observer</span>
+      <span class="pchip" data-tag="STATE">State</span>
+      <span class="pchip" data-tag="FACADE">Facade</span>
+      <span class="pchip" data-tag="SINGLETON">Singleton</span>
+    </div>
+  </div>
+</header>
+
+<!-- ============================ THE APP ============================ -->
+<main class="wrap console">
+
+  <!-- ---------- left column: the rider app ---------- -->
+  <div class="rightcol">
+
+    <section class="panel">
+      <div class="panel__hd">
+        <h2 class="panel__title">Book a ride</h2>
+        <span class="panel__title" id="stateNow">no active ride</span>
+      </div>
+      <div class="panel__body">
+
+        <div class="route-row">
+          <div class="field">
+            <label class="field__label" for="pickup">Pickup</label>
+            <select id="pickup"></select>
+          </div>
+          <button class="swap" id="swap" type="button" title="Swap pickup and drop" aria-label="Swap pickup and drop">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M7 4v16M7 20l-3-3M7 20l3-3M17 20V4M17 4l-3 3M17 4l3 3"/>
+            </svg>
+          </button>
+          <div class="field">
+            <label class="field__label" for="drop">Drop</label>
+            <select id="drop"></select>
+          </div>
+        </div>
+
+        <div class="field">
+          <span class="field__label">Vehicle &middot; built by VehicleFactory</span>
+          <div class="vgrid" id="vehicles"></div>
+        </div>
+
+        <div class="field">
+          <label class="field__label" for="strategy">Pricing rule &middot; swap the Strategy live</label>
+          <select id="strategy">
+            <option value="STANDARD">Standard fare</option>
+            <option value="SURGE">Surge pricing &times;1.8 (peak hour)</option>
+            <option value="NIGHT">Night fare (+25%)</option>
+            <option value="PASS">RidePass subscriber (-20%)</option>
+            <option value="POOL">Shared pool (split fare)</option>
+          </select>
+        </div>
+
+        <div class="receipt">
+          <div class="receipt__strategy" id="receiptStrategy"></div>
+          <div class="receipt__lines" id="receiptLines"></div>
+        </div>
+
+        <button class="btn btn--go" id="btnBook" type="button">Book ride</button>
+      </div>
+    </section>
+
+    <section class="panel">
+      <div class="panel__hd">
+        <h2 class="panel__title">Ride lifecycle &middot; State pattern</h2>
+      </div>
+      <div class="panel__body">
+        <div class="statebar">
+          <span class="statebar__k">now</span>
+          <span class="statebar__v" id="stateLabel">Pick a route and book</span>
+        </div>
+        <div class="lifecycle" id="lifecycle"></div>
+        <button class="btn btn--ghost" id="btnCancel" type="button" disabled>Cancel ride</button>
+      </div>
+    </section>
+
+  </div>
+
+  <!-- ---------- right column: instrumentation ---------- -->
+  <div class="rightcol">
+
+    <section class="panel">
+      <div class="panel__hd">
+        <h2 class="panel__title">Live map &middot; Observer subject broadcasting</h2>
+        <span class="panel__title">Hyderabad</span>
+      </div>
+      <div class="mapwrap">
+        <svg id="map" viewBox="0 0 720 420" role="img" aria-label="Simulated city map showing the driver moving along the route">
+          <g id="streets"></g>
+          <g id="routelayer"></g>
+          <g id="car">
+            <circle class="pulse" r="14"></circle>
+            <rect class="body" x="-9" y="-6" width="18" height="12" rx="3"></rect>
+            <rect class="glass" x="1" y="-4" width="6" height="8" rx="1.5"></rect>
+          </g>
+        </svg>
+        <div class="hud">
+          <div class="hudchip"><span class="hudchip__k">ETA</span><span class="hudchip__v" id="hudEta">--</span></div>
+          <div class="hudchip"><span class="hudchip__k">Dist</span><span class="hudchip__v" id="hudKm">--</span></div>
+          <div class="hudchip"><span class="hudchip__k">Speed</span><span class="hudchip__v" id="hudSpeed">0 km/h</span></div>
+        </div>
+        <div class="toasts" id="toasts"></div>
+      </div>
+      <div class="panel__body">
+        <div class="field">
+          <span class="field__label">Subscribers &middot; untick one to unsubscribe it mid-ride</span>
+          <div class="obsgrid" id="observers"></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="term">
+      <div class="term__hd">
+        <span class="term__title">Dispatch console &middot; every line is a pattern doing its job</span>
+        <span class="term__live"><span class="term__led"></span>streaming</span>
+      </div>
+      <div class="term__body" id="terminal"></div>
+      <div class="term__ft" id="filters">
+        <button class="filter" id="btnClear" type="button" style="margin-left:auto">CLEAR</button>
+      </div>
+    </section>
+
+  </div>
+</main>
+
+<!-- ============================ REFERENCE ============================ -->
+<section class="ref">
+  <div class="wrap ref__in">
+
+    <div class="ref__lede">
+      <span class="eyebrow">How the app is built</span>
+      <h2>Five patterns, one booking flow</h2>
+      <p>Each pattern below solves a specific problem this app would otherwise have. The
+         code is the real code running above &mdash; open the dispatch console and you can
+         watch each one announce itself as you click.</p>
+    </div>
+
+    <!-- ---------- FACTORY ---------- -->
+    <article class="pat">
+      <div class="pat__head">
+        <span class="pat__tag pt-factory">Creational</span>
+        <h3 class="pat__name">Factory<small>js/patterns/factory.js</small></h3>
+        <p class="pat__body">One class owns object creation. Callers name <em>what</em> they want;
+           they never learn <em>how</em> it is built.</p>
+        <div class="qa">
+          <span class="qa__q">Where it runs</span>
+          <p class="qa__a">Every vehicle tile in the picker was produced by
+             <code>VehicleFactory.available()</code>, and booking calls
+             <code>VehicleFactory.create("SUV")</code>.</p>
+        </div>
+        <div class="qa">
+          <span class="qa__q">What it replaces</span>
+          <p class="qa__a">A chain of <code>if (type === "BIKE") new Bike()</code> repeated in
+             every screen that needs a vehicle.</p>
+        </div>
+        <div class="qa">
+          <span class="qa__q">See it live</span>
+          <p class="qa__a">Click a different vehicle. The console prints the exact class the
+             factory built and the fare rates it carries.</p>
+        </div>
+      </div>
+      <div class="code">
+        <div class="code__hd">factory.js &mdash; abstract product, concrete products, factory</div>
+        <pre data-src="src-factory"></pre>
+      </div>
+    </article>
+
+    <!-- ---------- STRATEGY ---------- -->
+    <article class="pat">
+      <div class="pat__head">
+        <span class="pat__tag pt-strategy">Behavioural</span>
+        <h3 class="pat__name">Strategy<small>js/patterns/strategy.js</small></h3>
+        <p class="pat__body">Interchangeable algorithms behind one method. The object using them
+           can be handed a different one while the program is running.</p>
+        <div class="qa">
+          <span class="qa__q">Where it runs</span>
+          <p class="qa__a">The pricing dropdown. <code>FareCalculator</code> holds one
+             <code>FareStrategy</code> and asks it to <code>calculate()</code>.</p>
+        </div>
+        <div class="qa">
+          <span class="qa__q">What it replaces</span>
+          <p class="qa__a">A single <code>calculateFare()</code> that grows a new
+             <code>if</code> branch for every festival offer and never shrinks.</p>
+        </div>
+        <div class="qa">
+          <span class="qa__q">See it live</span>
+          <p class="qa__a">Switch to <em>Surge pricing</em>. Same trip, same vehicle &mdash; the
+             receipt rebuilds itself with different line items, and no calling code changed.</p>
+        </div>
+      </div>
+      <div class="code">
+        <div class="code__hd">strategy.js &mdash; the interface, two of the five rules, the context</div>
+        <pre data-src="src-strategy"></pre>
+      </div>
+    </article>
+
+    <!-- ---------- OBSERVER ---------- -->
+    <article class="pat">
+      <div class="pat__head">
+        <span class="pat__tag pt-observer">Behavioural</span>
+        <h3 class="pat__name">Observer<small>js/patterns/observer.js</small></h3>
+        <p class="pat__body">A subject announces that something changed; any number of subscribers
+           react. The subject never learns who they are.</p>
+        <div class="qa">
+          <span class="qa__q">Where it runs</span>
+          <p class="qa__a">The driver's GPS. <code>DriverLocationPublisher</code> emits a fix about
+             eleven times a second; four observers act on it.</p>
+        </div>
+        <div class="qa">
+          <span class="qa__q">What it replaces</span>
+          <p class="qa__a">GPS code that directly calls the map, the ETA label, the logger and the
+             push service &mdash; and breaks if any of them is removed.</p>
+        </div>
+        <div class="qa">
+          <span class="qa__q">See it live</span>
+          <p class="qa__a">Book a ride, then untick <em>EtaPanelObserver</em> while the car is
+             moving. The ETA freezes; the car keeps driving. That is the decoupling, visible.</p>
+        </div>
+      </div>
+      <div class="code">
+        <div class="code__hd">observer.js &mdash; subject, observer, and the wiring</div>
+        <pre data-src="src-observer"></pre>
+      </div>
+    </article>
+
+    <!-- ---------- STATE ---------- -->
+    <article class="pat">
+      <div class="pat__head">
+        <span class="pat__tag pt-state">Behavioural</span>
+        <h3 class="pat__name">State<small>js/patterns/state.js</small></h3>
+        <p class="pat__body">Each stage of the ride is its own class holding the behaviour that is
+           legal at that stage. The ride delegates instead of deciding.</p>
+        <div class="qa">
+          <span class="qa__q">Where it runs</span>
+          <p class="qa__a">The lifecycle panel. The label on the right of each row is the actual
+             class the ride is holding at that moment.</p>
+        </div>
+        <div class="qa">
+          <span class="qa__q">What it replaces</span>
+          <p class="qa__a">The same <code>if (status === ...)</code> ladder copy-pasted into
+             <code>cancel()</code>, <code>next()</code>, <code>canRate()</code> and every other method.</p>
+        </div>
+        <div class="qa">
+          <span class="qa__q">See it live</span>
+          <p class="qa__a">Cancel during <em>Driver arriving</em> &mdash; allowed, with a fee. Wait
+             for <em>Ride in progress</em> and the button disables itself, because
+             <code>InProgressState.canCancel</code> is false.</p>
+        </div>
+      </div>
+      <div class="code">
+        <div class="code__hd">state.js &mdash; the state interface, two states, and the context</div>
+        <pre data-src="src-state"></pre>
+      </div>
+    </article>
+
+    <!-- ---------- FACADE ---------- -->
+    <article class="pat">
+      <div class="pat__head">
+        <span class="pat__tag pt-facade">Structural</span>
+        <h3 class="pat__name">Facade<small>js/patterns/facade.js</small></h3>
+        <p class="pat__body">One simple door in front of a complicated building. The button says
+           <code>bookRide()</code> and knows nothing about what happens behind it.</p>
+        <div class="qa">
+          <span class="qa__q">Where it runs</span>
+          <p class="qa__a">The Book ride button. One call fans out to seven steps across the geo,
+             matching, pricing, tracking and payment subsystems.</p>
+        </div>
+        <div class="qa">
+          <span class="qa__q">What it replaces</span>
+          <p class="qa__a">A click handler that has to know all five subsystems <em>and</em> the
+             correct order to call them in.</p>
+        </div>
+        <div class="qa">
+          <span class="qa__q">See it live</span>
+          <p class="qa__a">Filter the console to <em>FACADE</em> and book. Two lines. Then clear the
+             filter to see everything those two lines set in motion.</p>
+        </div>
+      </div>
+      <div class="code">
+        <div class="code__hd">facade.js &mdash; the one method the interface calls</div>
+        <pre data-src="src-facade"></pre>
+      </div>
+    </article>
+
+    <!-- ---------- SINGLETON ---------- -->
+    <article class="pat">
+      <div class="pat__head">
+        <span class="pat__tag pt-singleton">Creational &middot; bonus</span>
+        <h3 class="pat__name">Singleton<small>js/core/dispatchLog.js</small></h3>
+        <p class="pat__body">Exactly one instance, shared by everything. Ask for it a hundred
+           times and you get the same object back every time.</p>
+        <div class="qa">
+          <span class="qa__q">Where it runs</span>
+          <p class="qa__a">The dispatch console itself. Five pattern files write to it and the UI
+             reads from it &mdash; they must all be pointing at one log.</p>
+        </div>
+        <div class="qa">
+          <span class="qa__q">What it replaces</span>
+          <p class="qa__a">Each module quietly making its own log, so the console shows a fraction
+             of what actually happened.</p>
+        </div>
+        <div class="qa">
+          <span class="qa__q">See it live</span>
+          <p class="qa__a">Every line in the console is proof &mdash; five separate files wrote
+             into one shared list.</p>
+        </div>
+      </div>
+      <div class="code">
+        <div class="code__hd">dispatchLog.js &mdash; the instance guard</div>
+        <pre data-src="src-singleton"></pre>
+      </div>
+    </article>
+
+  </div>
+</section>
+
+<footer class="wrap foot">
+  <span>RideFlow &mdash; ride-booking app built for a Design Patterns course.</span>
+  <span>Open <code>index.html</code> in any browser. No build step, no dependencies.</span>
+</footer>
+
+<!-- ================= code samples shown in the reference ================= -->
+
+<script type="text/plain" id="src-factory">
+// 1. The product interface. Every vehicle promises the same methods,
+//    so the rest of the app never needs to know which subclass it holds.
+class Vehicle {
+  get label()    { throw new Error("not implemented"); }
+  get baseFare() { throw new Error("not implemented"); }
+  get perKm()    { throw new Error("not implemented"); }
+
+  tripMinutes(km) { return Math.max(3, Math.round(km / this.speedKmph * 60)); }
+}
+
+// 2. Concrete products - only the numbers differ.
+class Bike extends Vehicle {
+  get label() { return "Bike"; }  get baseFare() { return 20; }  get perKm() { return 6; }
+}
+class SuvCab extends Vehicle {
+  get label() { return "SUV"; }   get baseFare() { return 90; }  get perKm() { return 22; }
+}
+
+// 3. The factory: the ONLY place in the app where a vehicle is constructed.
+class VehicleFactory {
+  static registry = { BIKE: Bike, AUTO: Auto, SEDAN: SedanCab, SUV: SuvCab };
+
+  static create(type) {
+    const VehicleClass = VehicleFactory.registry[type];
+    if (!VehicleClass) throw new Error("VehicleFactory cannot build " + type);
+    return new VehicleClass();
+  }
+}
+
+// 4. Callers look like this. Launching an e-rickshaw tomorrow adds one
+//    class and one registry line - this call site never changes.
+const vehicle = VehicleFactory.create("SUV");
+</script>
+
+<script type="text/plain" id="src-strategy">
+// 1. The interface every pricing rule implements.
+class FareStrategy {
+  calculate(trip) { throw new Error("not implemented"); }
+
+  rideCost(trip) {                       // shared by all rules
+    return trip.vehicle.baseFare
+         + trip.vehicle.perKm  * trip.km
+         + trip.vehicle.perMin * trip.minutes;
+  }
+}
+
+// 2. Two of the five rules. Each is closed, testable, and independent.
+class StandardFare extends FareStrategy {
+  calculate(trip) {
+    return this.finalise([{ label: "Ride cost", amount: this.rideCost(trip) }]);
+  }
+}
+
+class SurgePricingFare extends FareStrategy {
+  constructor(multiplier = 1.8) { super(); this.multiplier = multiplier; }
+
+  calculate(trip) {
+    const base = this.rideCost(trip);
+    return this.finalise([
+      { label: "Ride cost", amount: base },
+      { label: "Surge x" + this.multiplier, amount: base * (this.multiplier - 1) },
+    ]);
+  }
+}
+
+// 3. The context. Note there is no if-else about pricing anywhere in it.
+class FareCalculator {
+  constructor(strategy) { this.strategy = strategy; }
+
+  setStrategy(strategy) { this.strategy = strategy; }   // swapped at runtime
+
+  calculate(trip) { return this.strategy.calculate(trip); }
+}
+
+// 4. What the pricing dropdown does when you change it:
+calculator.setStrategy(new SurgePricingFare(1.8));
+</script>
+
+<script type="text/plain" id="src-observer">
+// 1. The subject holds a list of subscribers and nothing else about them.
+class DriverLocationPublisher {
+  constructor() { this.observers = []; }
+
+  subscribe(observer)   { this.observers.push(observer); }
+  unsubscribe(observer) { this.observers = this.observers.filter(o => o !== observer); }
+
+  notify(fix) {
+    this.observers.forEach(observer => observer.update(fix));
+  }
+}
+
+// 2. The observer interface: one method, update().
+class LocationObserver {
+  update(fix) { throw new Error("not implemented"); }
+}
+
+// 3. Concrete observers. None of them knows the others exist.
+class MapMarkerObserver extends LocationObserver {
+  update(fix) { this.moveMarker(fix.point, fix.heading); }
+}
+
+class EtaPanelObserver extends LocationObserver {
+  update(fix) { this.showEta(fix.etaMin, fix.remainingKm, fix.speedKmph); }
+}
+
+// 4. Wiring - and the checkboxes above call exactly these two methods.
+publisher.subscribe(new MapMarkerObserver(moveCar));
+publisher.subscribe(new EtaPanelObserver(showEta));
+
+// 5. Every GPS fix, one line reaches all of them:
+publisher.notify({ point, heading, etaMin, remainingKm, speedKmph });
+</script>
+
+<script type="text/plain" id="src-state">
+// 1. The interface. Default behaviour for cancel() is to refuse.
+class RideState {
+  get canCancel() { return false; }
+  onEnter(ride)   { }
+  next(ride)      { }
+  cancel(ride)    { ride.notifyUi({ toast: "This ride can no longer be cancelled." }); }
+}
+
+// 2. A state that allows cancelling, and knows what happens next.
+class ArrivingState extends RideState {
+  get label()     { return "Driver on the way to you"; }
+  get canCancel() { return true; }
+
+  onEnter(ride) {                       // starts the pickup GPS leg
+    ride.publisher.startTracking({ path: ride.legs.toPickup, leg: "TO_PICKUP",
+                                   onArrive: () => this.next(ride) });
+  }
+  next(ride)   { ride.transitionTo(new InProgressState()); }
+  cancel(ride) { ride.transitionTo(new CancelledState("Rs.35 cancellation fee.")); }
+}
+
+// 3. A state that refuses - it simply does not override cancel().
+class InProgressState extends RideState {
+  get canCancel() { return false; }
+  next(ride) { ride.transitionTo(new CompletedState()); }
+}
+
+// 4. The context. No if-else, no status string - it swaps the object.
+class Ride {
+  transitionTo(state) {
+    this.state = state;
+    this.notifyUi({});
+    state.onEnter(this);
+  }
+
+  cancel() { this.state.cancel(this); }        // delegation, not decision
+  next()   { this.state.next(this); }
+
+  get canCancel() { return this.state.canCancel; }
+}
+</script>
+
+<script type="text/plain" id="src-facade">
+// The five subsystems are built once, inside the facade, and never
+// escape it. The UI holds a reference to the facade and nothing else.
+class RideBookingFacade {
+  constructor({ pushToast, onRideUpdate }) {
+    this.geo           = new GeoService();
+    this.matching      = new DriverMatchingService(this.geo);
+    this.payments      = new PaymentGateway();
+    this.notifications = new NotificationService(pushToast);
+    this.calculator    = new FareCalculator(FARE_STRATEGIES.STANDARD());
+    this.publisher     = new DriverLocationPublisher();
+  }
+
+  bookRide({ pickupId, dropId, vehicleType }) {
+    const pickup  = findLocation(pickupId);
+    const drop    = findLocation(dropId);
+
+    const vehicle = VehicleFactory.create(vehicleType);            // FACTORY
+    const trip    = this.geo.route(pickup, drop, vehicle);
+    const quote   = this.calculator.calculate({ vehicle, ...trip }); // STRATEGY
+
+    const ride = new Ride({
+      id: "RIDE-" + Date.now(), pickup, drop, vehicle, quote,
+      publisher: this.publisher,                                   // OBSERVER
+      services:  { matching: this.matching, payments: this.payments },
+    });
+
+    this.notifications.send("Looking for a driver near you...");
+    ride.transitionTo(new RequestedState());                       // STATE
+    return ride;
+  }
+}
+
+// The entire user interface talks to the app through this one line.
+facade.bookRide({ pickupId, dropId, vehicleType });
+</script>
+
+<script type="text/plain" id="src-singleton">
+class DispatchLog {
+  constructor() {
+    // The guard: hand back the existing instance rather than build a second.
+    if (DispatchLog._instance) return DispatchLog._instance;
+
+    this.entries   = [];
+    this.listeners = [];
+    DispatchLog._instance = this;
+  }
+
+  static getInstance() {
+    if (!DispatchLog._instance) DispatchLog._instance = new DispatchLog();
+    return DispatchLog._instance;
+  }
+
+  write(tag, message) {
+    const entry = { tag, message, time: new Date() };
+    this.entries.push(entry);
+    this.listeners.forEach(fn => fn(entry));      // the console redraws
+  }
+}
+
+DispatchLog._instance = null;
+
+// Proof that it works:
+DispatchLog.getInstance() === DispatchLog.getInstance();   // true
+new DispatchLog()         === DispatchLog.getInstance();   // also true
+</script>
+
+<!-- ================= application scripts, in dependency order ================= -->
+
+<script>
+/* ===== js/core/dispatchLog.js ===== */
+/* ============================================================
+   BONUS PATTERN - SINGLETON
+   ------------------------------------------------------------
+   The dispatch log must be ONE shared object. Every pattern in
+   the app writes to it, and the UI reads from it. If each module
+   made its own log with "new DispatchLog()", the console panel
+   would only ever show a fraction of what happened.
+
+   Singleton guarantees: however many times you ask for it, you
+   get back the exact same instance.
+   ============================================================ */
+
+class DispatchLog {
+  constructor() {
+    // The Singleton guard: hand back the existing instance instead
+    // of building a second one.
+    if (DispatchLog._instance) return DispatchLog._instance;
+
+    this.entries = [];
+    this.listeners = [];
+    DispatchLog._instance = this;
+  }
+
+  /** The one official way to reach the log. */
+  static getInstance() {
+    if (!DispatchLog._instance) DispatchLog._instance = new DispatchLog();
+    return DispatchLog._instance;
+  }
+
+  /**
+   * @param {string} tag  FACTORY | STRATEGY | OBSERVER | STATE | FACADE | SINGLETON | SYSTEM
+   * @param {string} message  wrap important words in {{ }} to highlight them
+   */
+  write(tag, message) {
+    const entry = { tag, message, time: new Date() };
+    this.entries.push(entry);
+    if (this.entries.length > 400) this.entries.shift();
+    this.listeners.forEach((fn) => fn(entry));
+    return entry;
+  }
+
+  onWrite(fn) {
+    this.listeners.push(fn);
+  }
+
+  clear() {
+    this.entries = [];
+    this.listeners.forEach((fn) => fn(null));
+  }
+}
+
+DispatchLog._instance = null;
+
+/** Shorthand used by every other file in the project. */
+const log = (tag, message) => DispatchLog.getInstance().write(tag, message);
+
+
+/* ===== js/core/geo.js ===== */
+/* ============================================================
+   Map geometry - plain helper code, not a design pattern.
+   The map is an SVG with a 720 x 420 coordinate space; every
+   location below is a point in that space, so distances in the
+   app are derived from the map rather than made up.
+   ============================================================ */
+
+/** 1 map pixel = 0.05 km, i.e. 200 px across the map = 10 km. */
+const KM_PER_PX = 0.05;
+
+const LOCATIONS = [
+  { id: "kukatpally",   name: "Kukatpally",        x:  95, y:  95 },
+  { id: "hitech",       name: "Hitech City",       x: 250, y: 175 },
+  { id: "gachibowli",   name: "Gachibowli",        x: 170, y: 300 },
+  { id: "jubilee",      name: "Jubilee Hills",     x: 395, y: 120 },
+  { id: "secunderabad", name: "Secunderabad Stn",  x: 560, y:  95 },
+  { id: "charminar",    name: "Charminar",         x: 470, y: 330 },
+  { id: "airport",      name: "RGIA Airport",      x: 630, y: 375 },
+];
+
+const findLocation = (id) => LOCATIONS.find((l) => l.id === id);
+
+/**
+ * A polyline route with the two things the Observer pattern needs
+ * from it: where the car is at progress t, and which way it faces.
+ */
+class RoutePath {
+  constructor(points) {
+    this.points = points;
+    this.segments = [];
+    this.lengthPx = 0;
+
+    for (let i = 0; i < points.length - 1; i++) {
+      const a = points[i];
+      const b = points[i + 1];
+      const len = Math.hypot(b.x - a.x, b.y - a.y);
+      this.segments.push({ a, b, len, start: this.lengthPx });
+      this.lengthPx += len;
+    }
+  }
+
+  /** @param {number} t 0 = start of route, 1 = destination */
+  pointAt(t) {
+    const target = Math.max(0, Math.min(1, t)) * this.lengthPx;
+    for (const s of this.segments) {
+      if (target <= s.start + s.len || s === this.segments[this.segments.length - 1]) {
+        const local = s.len === 0 ? 0 : (target - s.start) / s.len;
+        return {
+          x: s.a.x + (s.b.x - s.a.x) * local,
+          y: s.a.y + (s.b.y - s.a.y) * local,
+        };
+      }
+    }
+    return this.points[this.points.length - 1];
+  }
+
+  /** Degrees of rotation for the car marker. */
+  headingAt(t) {
+    const p1 = this.pointAt(Math.max(0, t - 0.01));
+    const p2 = this.pointAt(Math.min(1, t + 0.01));
+    return (Math.atan2(p2.y - p1.y, p2.x - p1.x) * 180) / Math.PI;
+  }
+
+  toSvgPath() {
+    return this.points.map((p, i) => `${i === 0 ? "M" : "L"} ${p.x.toFixed(1)} ${p.y.toFixed(1)}`).join(" ");
+  }
+}
+
+/**
+ * Cars follow streets, not straight lines, so a route bends twice:
+ * across, then down, then across again.
+ */
+function buildRoute(from, to) {
+  const bendX = from.x + (to.x - from.x) * 0.62;
+  const points = [
+    { x: from.x, y: from.y },
+    { x: bendX,  y: from.y },
+    { x: bendX,  y: to.y   },
+    { x: to.x,   y: to.y   },
+  ];
+  return new RoutePath(points);
+}
+
+/** Road distance (following the bends), rounded to one decimal. */
+function roadKm(path) {
+  return +(path.lengthPx * KM_PER_PX).toFixed(1);
+}
+
+
+/* ===== js/core/services.js ===== */
+/* ============================================================
+   THE SUBSYSTEMS
+   ------------------------------------------------------------
+   Four independent services with nothing to do with each other.
+   Booking a ride needs all four, in the right order, with the
+   right arguments - which is exactly the mess the Facade pattern
+   in facade.js exists to hide from the UI.
+   ============================================================ */
+
+/** 1. Works out routes, road distance and travel time. */
+class GeoService {
+  route(from, to, vehicle) {
+    const path = buildRoute(from, to);
+    const km = roadKm(path);
+    const minutes = vehicle.tripMinutes(km);
+    log("SYSTEM", `GeoService: ${from.name} -> ${to.name} = ${km} km, about ${minutes} min by ${vehicle.label}`);
+    return { path, km, minutes };
+  }
+
+  /** Where the nearest free driver happens to be sitting right now. */
+  randomPointNear(location, spread = 130) {
+    const angle = Math.random() * Math.PI * 2;
+    const dist = spread * (0.55 + Math.random() * 0.45);
+    return {
+      x: Math.max(40, Math.min(680, location.x + Math.cos(angle) * dist)),
+      y: Math.max(40, Math.min(380, location.y + Math.sin(angle) * dist)),
+    };
+  }
+}
+
+/** 2. Finds a nearby driver who owns the right kind of vehicle. */
+class DriverMatchingService {
+  constructor(geo) {
+    this.geo = geo;
+    this.pool = [
+      { name: "Ramesh K.",  rating: 4.9 },
+      { name: "Sunitha R.", rating: 4.8 },
+      { name: "Imran S.",   rating: 4.7 },
+      { name: "Vijay M.",   rating: 4.9 },
+      { name: "Priya N.",   rating: 5.0 },
+    ];
+  }
+
+  findDriver(vehicle, pickup) {
+    const person = this.pool[Math.floor(Math.random() * this.pool.length)];
+    const driver = {
+      ...person,
+      vehicle,
+      plate: `TS ${9 + Math.floor(Math.random() * 3)}${String.fromCharCode(65 + Math.floor(Math.random() * 26))}A ${1000 + Math.floor(Math.random() * 8999)}`,
+      at: this.geo.randomPointNear(pickup),
+    };
+    log("SYSTEM", `DriverMatchingService: matched {{${driver.name}}} (${driver.rating}*) driving a ${vehicle.label} - ${driver.plate}`);
+    return driver;
+  }
+}
+
+/** 3. Takes the money when the trip ends. */
+class PaymentGateway {
+  charge(amount, rideId) {
+    const receipt = {
+      txnId: `TXN${Date.now().toString().slice(-8)}`,
+      method: "UPI - default account",
+      amount,
+    };
+    log("SYSTEM", `PaymentGateway: charged Rs.${amount} for ${rideId} - ${receipt.txnId}`);
+    return receipt;
+  }
+}
+
+/** 4. Sends the rider messages. */
+class NotificationService {
+  constructor(pushToast) {
+    this.pushToast = pushToast;
+  }
+  send(text) {
+    this.pushToast(text);
+    log("SYSTEM", `NotificationService: "${text.replace(/<[^>]+>/g, "")}"`);
+  }
+}
+
+
+/* ===== js/patterns/factory.js ===== */
+/* ============================================================
+   PATTERN 1 - FACTORY  (creational)
+   ------------------------------------------------------------
+   PROBLEM: a ride app supports Bike, Auto, Sedan and SUV, and
+   more get added later (e-rickshaw, XL, rentals...). If the
+   booking code says:
+
+       if (type === "BIKE")      vehicle = new Bike();
+       else if (type === "AUTO") vehicle = new Auto();
+       else if (type === "SUV")  vehicle = new SUV();
+
+   then every screen that creates a vehicle has to be edited
+   whenever a new category launches.
+
+   SOLUTION: one class owns creation. Callers say WHAT they want
+   ("SUV"), never HOW it is built. Adding a category = registering
+   one new class in the factory; no other file changes.
+   ============================================================ */
+
+/* ---------- the product interface (abstract base class) ---------- */
+
+class Vehicle {
+  constructor() {
+    if (new.target === Vehicle) {
+      throw new Error("Vehicle is abstract - create a concrete vehicle instead.");
+    }
+  }
+
+  // Subclasses must supply these. They are the contract the rest
+  // of the app relies on, so the app never needs to know the subclass.
+  get code()     { throw new Error("not implemented"); }
+  get label()    { throw new Error("not implemented"); }
+  get capacity() { throw new Error("not implemented"); }
+  get baseFare() { throw new Error("not implemented"); }
+  get perKm()    { throw new Error("not implemented"); }
+  get perMin()   { throw new Error("not implemented"); }
+  get speedKmph(){ throw new Error("not implemented"); }
+  get iconId()   { return this.code.toLowerCase(); }
+
+  /** Shared behaviour every vehicle inherits for free. */
+  tripMinutes(km) {
+    return Math.max(3, Math.round((km / this.speedKmph) * 60));
+  }
+
+  describe() {
+    return `${this.label} - up to ${this.capacity} seat(s), Rs.${this.perKm}/km`;
+  }
+}
+
+/* ---------- concrete products ---------- */
+
+class Bike extends Vehicle {
+  get code()      { return "BIKE"; }
+  get label()     { return "Bike"; }
+  get capacity()  { return 1; }
+  get baseFare()  { return 20; }
+  get perKm()     { return 6; }
+  get perMin()    { return 0.8; }
+  get speedKmph() { return 32; }   // weaves through traffic - fastest
+}
+
+class Auto extends Vehicle {
+  get code()      { return "AUTO"; }
+  get label()     { return "Auto"; }
+  get capacity()  { return 3; }
+  get baseFare()  { return 30; }
+  get perKm()     { return 11; }
+  get perMin()    { return 1.0; }
+  get speedKmph() { return 24; }
+}
+
+class SedanCab extends Vehicle {
+  get code()      { return "SEDAN"; }
+  get label()     { return "Sedan"; }
+  get capacity()  { return 4; }
+  get baseFare()  { return 55; }
+  get perKm()     { return 16; }
+  get perMin()    { return 1.5; }
+  get speedKmph() { return 27; }
+}
+
+class SuvCab extends Vehicle {
+  get code()      { return "SUV"; }
+  get label()     { return "SUV"; }
+  get capacity()  { return 6; }
+  get baseFare()  { return 90; }
+  get perKm()     { return 22; }
+  get perMin()    { return 2.0; }
+  get speedKmph() { return 26; }
+}
+
+/* ---------- the factory ---------- */
+
+class VehicleFactory {
+  /**
+   * Registry of type-code -> class. Adding "E-Rickshaw" tomorrow is
+   * one new class plus one line here. Nothing else in the app changes.
+   */
+  static registry = {
+    BIKE:  Bike,
+    AUTO:  Auto,
+    SEDAN: SedanCab,
+    SUV:   SuvCab,
+  };
+
+  /** The single place in the whole app where a vehicle is constructed. */
+  static create(type) {
+    const VehicleClass = VehicleFactory.registry[type];
+
+    if (!VehicleClass) {
+      log("FACTORY", `Unknown vehicle type {{${type}}} - refusing to build.`);
+      throw new Error(`VehicleFactory cannot build "${type}"`);
+    }
+
+    const vehicle = new VehicleClass();
+    log("FACTORY", `VehicleFactory.create("${type}") -> new {{${VehicleClass.name}}}  |  ${vehicle.describe()}`);
+    return vehicle;
+  }
+
+  /** Lets the UI draw the vehicle picker without hard-coding the list. */
+  static available() {
+    return Object.keys(VehicleFactory.registry).map((t) => VehicleFactory.create(t));
+  }
+}
+
+
+/* ===== js/patterns/strategy.js ===== */
+/* ============================================================
+   PATTERN 2 - STRATEGY  (behavioural)
+   ------------------------------------------------------------
+   PROBLEM: the same ride costs different amounts depending on the
+   pricing rule in force - normal, peak-hour surge, night charge,
+   a RidePass subscription, or a shared pool ride. Written the
+   obvious way, one method grows into a monster:
+
+       calculateFare() {
+         let fare = base + km * rate;
+         if (isPeakHour)        fare *= 1.8;
+         else if (isNight)      fare *= 1.25;
+         if (user.hasPass)      fare *= 0.8;
+         if (isPool)            fare *= 0.6;
+         ... 200 more lines every festival season ...
+       }
+
+   Every new offer edits (and risks breaking) working pricing code.
+
+   SOLUTION: make each pricing rule its own class behind one common
+   method, calculate(). The FareCalculator holds whichever strategy
+   is active and can be handed a different one at runtime - which is
+   exactly what the dropdown in the UI does.
+   ============================================================ */
+
+/* ---------- the strategy interface ---------- */
+
+class FareStrategy {
+  get name()  { throw new Error("not implemented"); }
+  get note()  { return ""; }
+
+  /**
+   * @param {{vehicle: Vehicle, km: number, minutes: number}} trip
+   * @returns {{lines: Array, total: number}}
+   */
+  calculate(trip) { throw new Error("not implemented"); }
+
+  /** Shared helper: the raw distance+time cost before any offer. */
+  rideCost(trip) {
+    return trip.vehicle.baseFare
+         + trip.vehicle.perKm  * trip.km
+         + trip.vehicle.perMin * trip.minutes;
+  }
+
+  /** Shared helper: fees and 5% GST, applied the same way by every strategy. */
+  finalise(lines, platformFee = 9) {
+    if (platformFee > 0) lines.push({ label: "Platform fee", amount: platformFee, kind: "add" });
+
+    const subtotal = lines.reduce((sum, l) => sum + l.amount, 0);
+    const gst = subtotal * 0.05;
+    lines.push({ label: "GST 5%", amount: gst, kind: "add" });
+
+    return { lines, total: Math.round(subtotal + gst) };
+  }
+}
+
+/* ---------- concrete strategies ---------- */
+
+class StandardFare extends FareStrategy {
+  get name() { return "StandardFare"; }
+  get note() { return "off-peak, regular rider"; }
+
+  calculate(trip) {
+    const lines = [
+      { label: "Base fare",                       amount: trip.vehicle.baseFare },
+      { label: `Distance ${trip.km} km`,          amount: trip.vehicle.perKm * trip.km },
+      { label: `Ride time ${trip.minutes} min`,   amount: trip.vehicle.perMin * trip.minutes },
+    ];
+    return this.finalise(lines);
+  }
+}
+
+class SurgePricingFare extends FareStrategy {
+  constructor(multiplier = 1.8) {
+    super();
+    this.multiplier = multiplier;
+  }
+  get name() { return `SurgePricingFare x${this.multiplier}`; }
+  get note() { return "high demand in this area"; }
+
+  calculate(trip) {
+    const base = this.rideCost(trip);
+    const lines = [
+      { label: "Ride cost",                          amount: base },
+      { label: `Surge x${this.multiplier} (peak hour)`, amount: base * (this.multiplier - 1), kind: "add" },
+    ];
+    return this.finalise(lines);
+  }
+}
+
+class NightFare extends FareStrategy {
+  get name() { return "NightFare"; }
+  get note() { return "between 10 PM and 5 AM"; }
+
+  calculate(trip) {
+    const base = this.rideCost(trip);
+    const lines = [
+      { label: "Ride cost",             amount: base },
+      { label: "Night charge +25%",     amount: base * 0.25, kind: "add" },
+    ];
+    return this.finalise(lines);
+  }
+}
+
+class RidePassFare extends FareStrategy {
+  get name() { return "RidePassFare"; }
+  get note() { return "subscriber - surge locked out"; }
+
+  calculate(trip) {
+    const base = this.rideCost(trip);
+    const lines = [
+      { label: "Ride cost",                  amount: base },
+      { label: "RidePass discount -20%",     amount: -base * 0.20, kind: "cut" },
+    ];
+    // Subscribers pay no platform fee - so this strategy passes 0.
+    return this.finalise(lines, 0);
+  }
+}
+
+class SharedPoolFare extends FareStrategy {
+  get name() { return "SharedPoolFare"; }
+  get note() { return "cost split with co-riders"; }
+
+  calculate(trip) {
+    const base = this.rideCost(trip);
+    const lines = [
+      { label: "Ride cost",                    amount: base },
+      { label: "Pool split (2 riders) -40%",   amount: -base * 0.40, kind: "cut" },
+    ];
+    return this.finalise(lines, 5);
+  }
+}
+
+/* ---------- the context that USES a strategy ---------- */
+
+class FareCalculator {
+  constructor(strategy) {
+    this.strategy = strategy;
+  }
+
+  /** Swap the pricing rule while the app is running. */
+  setStrategy(strategy) {
+    const from = this.strategy ? this.strategy.name : "none";
+    this.strategy = strategy;
+    log("STRATEGY", `Pricing rule swapped: ${from} -> {{${strategy.name}}} (${strategy.note})`);
+  }
+
+  /**
+   * Notice: no if / else about pricing anywhere in here. The context
+   * does not know or care which rule it is holding.
+   */
+  calculate(trip) {
+    const quote = this.strategy.calculate(trip);
+    log("STRATEGY", `${this.strategy.name}.calculate(${trip.km} km, ${trip.vehicle.label}) -> {{Rs.${quote.total}}}`);
+    return quote;
+  }
+}
+
+/** Named lookup so the UI dropdown never uses "new" directly. */
+const FARE_STRATEGIES = {
+  STANDARD: () => new StandardFare(),
+  SURGE:    () => new SurgePricingFare(1.8),
+  NIGHT:    () => new NightFare(),
+  PASS:     () => new RidePassFare(),
+  POOL:     () => new SharedPoolFare(),
+};
+
+
+/* ===== js/patterns/observer.js ===== */
+/* ============================================================
+   PATTERN 3 - OBSERVER  (behavioural)
+   ------------------------------------------------------------
+   PROBLEM: while a driver approaches, ONE fact - "the driver moved"
+   - has to reach several unrelated parts of the app: the map marker,
+   the ETA display, the trip log, and push notifications. The naive
+   version wires them all into the GPS code:
+
+       onGpsFix(point) {
+         mapMarker.moveTo(point);
+         etaLabel.textContent = ...;
+         tripLog.append(...);
+         pushService.send(...);       // and one more every release
+       }
+
+   Now the GPS code depends on the map, the label, the log and the
+   notification service. Delete any one of them and GPS breaks.
+
+   SOLUTION: the driver's phone (the Subject) keeps a list of
+   subscribers and just announces "here is my new position".
+   Whoever cares has registered itself. The Subject never learns
+   their names. In the running app the checkboxes subscribe and
+   unsubscribe observers live - untick one and it goes silent while
+   every other observer keeps updating.
+   ============================================================ */
+
+/* ---------- the observer interface ---------- */
+
+class LocationObserver {
+  constructor(id, label, description) {
+    this.id = id;
+    this.label = label;
+    this.description = description;
+  }
+  /** Called by the subject on every position update. */
+  update(fix) { throw new Error("not implemented"); }
+}
+
+/* ---------- the subject (publisher) ---------- */
+
+class DriverLocationPublisher {
+  constructor() {
+    this.observers = [];
+    this.timer = null;
+    this.lastFix = null;
+  }
+
+  subscribe(observer) {
+    if (this.observers.includes(observer)) return;
+    this.observers.push(observer);
+    log("OBSERVER", `subscribe({{${observer.label}}}) - now ${this.observers.length} subscriber(s)`);
+  }
+
+  unsubscribe(observer) {
+    this.observers = this.observers.filter((o) => o !== observer);
+    log("OBSERVER", `unsubscribe({{${observer.label}}}) - now ${this.observers.length} subscriber(s)`);
+  }
+
+  /**
+   * The heart of the pattern: one loop, no knowledge of who is listening.
+   */
+  notify(fix) {
+    this.lastFix = fix;
+    this.observers.forEach((observer) => observer.update(fix));
+  }
+
+  /**
+   * Simulates the driver's phone emitting a GPS fix a few times a
+   * second while it travels from `route[0]` to the end of the route.
+   *
+   * @param {object} opts  { path, distanceKm, seconds, leg, onArrive }
+   */
+  startTracking(opts) {
+    this.stopTracking();
+
+    const { path, distanceKm, seconds, leg, onArrive } = opts;
+    const tickMs = 90;
+    const totalTicks = Math.max(1, Math.round((seconds * 1000) / tickMs));
+    let tick = 0;
+
+    log("OBSERVER", `Driver GPS stream opened for leg {{${leg}}} - broadcasting to ${this.observers.length} subscriber(s)`);
+
+    this.timer = setInterval(() => {
+      tick += 1;
+      const progress = Math.min(1, tick / totalTicks);
+      const remainingKm = +(distanceKm * (1 - progress)).toFixed(1);
+      const remainingSec = seconds * (1 - progress);
+
+      this.notify({
+        leg,
+        progress,
+        point: path.pointAt(progress),
+        heading: path.headingAt(progress),
+        remainingKm,
+        etaMin: Math.max(0, Math.ceil(remainingSec / 60)),
+        speedKmph: Math.round(28 + Math.sin(tick / 6) * 9),
+      });
+
+      if (progress >= 1) {
+        this.stopTracking();
+        if (onArrive) onArrive();
+      }
+    }, tickMs);
+  }
+
+  stopTracking() {
+    if (this.timer) clearInterval(this.timer);
+    this.timer = null;
+  }
+}
+
+/* ---------- concrete observers ----------
+   Each one receives the small set of UI functions it needs, so the
+   pattern code stays free of document.getElementById calls.        */
+
+class MapMarkerObserver extends LocationObserver {
+  constructor(moveMarker) {
+    super("map", "MapMarkerObserver", "Slides the car marker along the route.");
+    this.moveMarker = moveMarker;
+  }
+  update(fix) {
+    this.moveMarker(fix.point, fix.heading, fix.progress);
+  }
+}
+
+class EtaPanelObserver extends LocationObserver {
+  constructor(showEta) {
+    super("eta", "EtaPanelObserver", "Refreshes the ETA, distance and speed readouts.");
+    this.showEta = showEta;
+  }
+  update(fix) {
+    this.showEta(fix.etaMin, fix.remainingKm, fix.speedKmph);
+  }
+}
+
+class TripLogObserver extends LocationObserver {
+  constructor() {
+    super("log", "TripLogObserver", "Records position fixes into the dispatch log.");
+    this.count = 0;
+  }
+  update(fix) {
+    this.count += 1;
+    // A real fleet logger samples; printing every 90 ms would drown the console.
+    if (this.count % 18 !== 0) return;
+    log("OBSERVER", `fix #${this.count} - ${fix.remainingKm} km out, ETA ${fix.etaMin} min, ${fix.speedKmph} km/h`);
+  }
+}
+
+class PushNotificationObserver extends LocationObserver {
+  constructor(pushToast) {
+    super("push", "PushNotificationObserver", "Fires the arrival alerts a rider actually sees.");
+    this.pushToast = pushToast;
+    this.sent = new Set();
+  }
+  update(fix) {
+    const alerts = [
+      { at: 0.55, key: "half",    text: "Driver is halfway to you." },
+      { at: 0.88, key: "close",   text: "Driver is arriving in a minute." },
+    ];
+    alerts.forEach((a) => {
+      if (fix.leg === "TO_PICKUP" && fix.progress >= a.at && !this.sent.has(a.key)) {
+        this.sent.add(a.key);
+        this.pushToast(a.text);
+        log("OBSERVER", `PushNotificationObserver -> {{"${a.text}"}}`);
+      }
+    });
+  }
+  reset() { this.sent.clear(); }
+}
+
+
+/* ===== js/patterns/state.js ===== */
+/* ============================================================
+   PATTERN 4 - STATE  (behavioural)
+   ------------------------------------------------------------
+   PROBLEM: a ride passes through Requested -> Driver assigned ->
+   Arriving -> In progress -> Completed, and can be Cancelled from
+   some of those but not all. Coded with flags it becomes:
+
+       cancelRide() {
+         if (status === "REQUESTED")            refund(100);
+         else if (status === "ASSIGNED")        refund(100);
+         else if (status === "ARRIVING")        refund(80);
+         else if (status === "IN_PROGRESS")     alert("too late");
+         else if (status === "COMPLETED")       alert("already over");
+         ...same ladder repeated in every other method...
+       }
+
+   The same if-else ladder gets copy-pasted into cancel(), next(),
+   canRate(), showButtons()... and one missed branch is a live bug.
+
+   SOLUTION: turn each status into its own class holding the
+   behaviour legal in that status. The Ride just forwards the call
+   to whichever state object it currently holds. Adding a
+   "Driver waiting" state means writing one class, not hunting
+   through ten if-else ladders.
+
+   Watch it in the app: the Cancel button disables itself the moment
+   the ride enters InProgressState - because the state says so, not
+   because the button has rules of its own.
+   ============================================================ */
+
+/* ---------- the state interface ---------- */
+
+class RideState {
+  get key()       { throw new Error("not implemented"); }
+  get label()     { throw new Error("not implemented"); }
+  get step()      { return 0; }      // position on the lifecycle timeline
+  get canCancel() { return false; }
+  get isFinal()   { return false; }
+
+  /** Runs the moment the ride enters this state. */
+  onEnter(ride) {}
+
+  /** Legal forward transition out of this state. */
+  next(ride) {}
+
+  /** Default behaviour: refuse. States that allow it override this. */
+  cancel(ride) {
+    log("STATE", `{{${this.key}}} refuses cancel() - not allowed once the ride reaches this stage.`);
+    ride.notifyUi({ toast: "This ride can no longer be cancelled." });
+  }
+}
+
+/* ---------- concrete states ---------- */
+
+class RequestedState extends RideState {
+  get key()       { return "RequestedState"; }
+  get label()     { return "Searching for a driver"; }
+  get step()      { return 0; }
+  get canCancel() { return true; }
+
+  onEnter(ride) {
+    ride.after(1100, () => this.next(ride));
+  }
+
+  next(ride) {
+    const driver = ride.services.matching.findDriver(ride.vehicle, ride.pickup);
+    ride.driver = driver;
+    ride.transitionTo(new DriverAssignedState());
+  }
+
+  cancel(ride) {
+    log("STATE", `{{RequestedState}} allows cancel() - no driver committed yet, nothing to charge.`);
+    ride.transitionTo(new CancelledState("Cancelled before a driver was assigned - no fee."));
+  }
+}
+
+class DriverAssignedState extends RideState {
+  get key()       { return "DriverAssignedState"; }
+  get label()     { return "Driver assigned"; }
+  get step()      { return 1; }
+  get canCancel() { return true; }
+
+  onEnter(ride) {
+    ride.notifyUi({ toast: `<b>${ride.driver.name}</b> accepted - ${ride.driver.plate}` });
+    ride.after(1200, () => this.next(ride));
+  }
+
+  next(ride) {
+    ride.transitionTo(new ArrivingState());
+  }
+
+  cancel(ride) {
+    log("STATE", `{{DriverAssignedState}} allows cancel() - driver released back to the pool, Rs.20 fee.`);
+    ride.transitionTo(new CancelledState("Cancelled after assignment - Rs.20 cancellation fee."));
+  }
+}
+
+class ArrivingState extends RideState {
+  get key()       { return "ArrivingState"; }
+  get label()     { return "Driver on the way to you"; }
+  get step()      { return 2; }
+  get canCancel() { return true; }
+
+  onEnter(ride) {
+    // The state decides which GPS leg is streaming right now.
+    ride.publisher.startTracking({
+      path: ride.legs.toPickup,
+      distanceKm: ride.legs.toPickupKm,
+      seconds: ride.legs.toPickupSeconds,
+      leg: "TO_PICKUP",
+      onArrive: () => this.next(ride),
+    });
+  }
+
+  next(ride) {
+    ride.notifyUi({ toast: "Driver has arrived at pickup." });
+    ride.transitionTo(new InProgressState());
+  }
+
+  cancel(ride) {
+    ride.publisher.stopTracking();
+    log("STATE", `{{ArrivingState}} allows cancel() - driver already en route, Rs.35 fee.`);
+    ride.transitionTo(new CancelledState("Cancelled while the driver was en route - Rs.35 fee."));
+  }
+}
+
+class InProgressState extends RideState {
+  get key()       { return "InProgressState"; }
+  get label()     { return "Ride in progress"; }
+  get step()      { return 3; }
+  get canCancel() { return false; }   // you cannot cancel a moving ride
+
+  onEnter(ride) {
+    ride.publisher.startTracking({
+      path: ride.legs.toDrop,
+      distanceKm: ride.legs.toDropKm,
+      seconds: ride.legs.toDropSeconds,
+      leg: "TO_DROP",
+      onArrive: () => this.next(ride),
+    });
+  }
+
+  next(ride) {
+    ride.transitionTo(new CompletedState());
+  }
+}
+
+class CompletedState extends RideState {
+  get key()     { return "CompletedState"; }
+  get label()   { return "Trip completed"; }
+  get step()    { return 4; }
+  get isFinal() { return true; }
+
+  onEnter(ride) {
+    const receipt = ride.services.payments.charge(ride.quote.total, ride.id);
+    ride.notifyUi({ toast: `Trip complete. <b>Rs.${ride.quote.total}</b> charged - ${receipt.method}` });
+  }
+}
+
+class CancelledState extends RideState {
+  constructor(reason) {
+    super();
+    this.reason = reason;
+  }
+  get key()     { return "CancelledState"; }
+  get label()   { return "Ride cancelled"; }
+  get step()    { return -1; }
+  get isFinal() { return true; }
+
+  onEnter(ride) {
+    ride.publisher.stopTracking();
+    ride.notifyUi({ toast: this.reason });
+  }
+}
+
+/* ---------- the context ---------- */
+
+class Ride {
+  constructor(config) {
+    Object.assign(this, config);   // id, pickup, drop, vehicle, quote, legs, services, publisher
+    this.state = null;
+    this.timers = [];
+    this.history = [];
+  }
+
+  /**
+   * The whole point of the pattern lives in these five lines: the Ride
+   * never asks "what status am I in?". It swaps the object and lets
+   * that object decide what happens next.
+   */
+  transitionTo(state) {
+    const from = this.state ? this.state.key : "(new ride)";
+    this.state = state;
+    this.history.push(state.key);
+
+    log("STATE", `${from} -> {{${state.key}}}  |  cancellable: ${state.canCancel ? "yes" : "no"}`);
+    this.notifyUi({});
+    state.onEnter(this);
+  }
+
+  /** Delegation, not decision-making. */
+  cancel() { this.state.cancel(this); }
+  next()   { this.state.next(this); }
+
+  get canCancel() { return this.state ? this.state.canCancel : false; }
+
+  after(ms, fn) {
+    const t = setTimeout(() => {
+      if (!this.state.isFinal) fn();
+    }, ms);
+    this.timers.push(t);
+  }
+
+  dispose() {
+    this.timers.forEach(clearTimeout);
+    this.timers = [];
+    this.publisher.stopTracking();
+  }
+
+  notifyUi(payload) {
+    if (this.onUpdate) this.onUpdate(this, payload);
+  }
+}
+
+
+/* ===== js/patterns/facade.js ===== */
+/* ============================================================
+   PATTERN 5 - FACADE  (structural)
+   ------------------------------------------------------------
+   PROBLEM: "book a ride" is one button, but underneath it is
+   seven steps across five subsystems. Without a facade, the click
+   handler itself has to know all of them:
+
+       btn.onclick = () => {
+         const v      = VehicleFactory.create(type);
+         const route  = geoService.route(from, to, v);
+         const driver = matching.findDriver(v, from);
+         const quote  = calculator.calculate({ vehicle: v, km, minutes });
+         const ride   = new Ride({ ...eleven fields... });
+         publisher.subscribe(...); publisher.subscribe(...);
+         ride.transitionTo(new RequestedState());
+         notifications.send("Looking for a driver");
+       };
+
+   The button now depends on five subsystems and their correct
+   ORDER. Change any subsystem and the button breaks.
+
+   SOLUTION: one class in front of the whole booking subsystem,
+   with one simple method. The UI says bookRide(request) and knows
+   nothing else. Note the payoff: the facade is where the other
+   four patterns are wired together, so the UI never touches them.
+   ============================================================ */
+
+class RideBookingFacade {
+  constructor({ pushToast, onRideUpdate }) {
+    // The complicated parts live in here, hidden from every caller.
+    this.geo           = new GeoService();
+    this.matching      = new DriverMatchingService(this.geo);
+    this.payments      = new PaymentGateway();
+    this.notifications = new NotificationService(pushToast);
+
+    this.calculator = new FareCalculator(FARE_STRATEGIES.STANDARD());
+    this.publisher  = new DriverLocationPublisher();   // the Observer subject
+
+    this.onRideUpdate = onRideUpdate;
+    this.activeRide   = null;
+  }
+
+  /* ---------- simple pass-throughs so the UI has ONE contact point ---------- */
+
+  useFareStrategy(key) {
+    this.calculator.setStrategy(FARE_STRATEGIES[key]());
+  }
+
+  attachObserver(observer)  { this.publisher.subscribe(observer); }
+  detachObserver(observer)  { this.publisher.unsubscribe(observer); }
+
+  /**
+   * Price a trip without booking it - used to keep the fare receipt
+   * live while the rider is still choosing. Uses the FACTORY to make
+   * the vehicle and the STRATEGY to price it.
+   */
+  quote({ pickupId, dropId, vehicleType }) {
+    const pickup  = findLocation(pickupId);
+    const drop    = findLocation(dropId);
+    const vehicle = VehicleFactory.create(vehicleType);          // <- FACTORY
+    const trip    = this.geo.route(pickup, drop, vehicle);
+    const quote   = this.calculator.calculate({                   // <- STRATEGY
+      vehicle,
+      km: trip.km,
+      minutes: trip.minutes,
+    });
+
+    return { pickup, drop, vehicle, quote, ...trip };
+  }
+
+  /**
+   * THE FACADE METHOD. Everything the UI needs, behind one call.
+   */
+  bookRide({ pickupId, dropId, vehicleType }) {
+    log("FACADE", "RideBookingFacade.bookRide() - taking over, 7 steps across 5 subsystems");
+
+    if (this.activeRide) this.activeRide.dispose();
+
+    // 1 + 2 + 3. Vehicle, route and price (Factory + Strategy inside quote()).
+    const priced = this.quote({ pickupId, dropId, vehicleType });
+
+    // 4. Work out the two legs the driver will drive: to you, then to your drop.
+    const driverStart = this.geo.randomPointNear(priced.pickup);
+    const toPickup    = buildRoute(driverStart, priced.pickup);
+    const toPickupKm  = roadKm(toPickup);
+
+    // Demo timing: a real 29 km airport run takes an hour. Compressed so
+    // the whole lifecycle plays out in about half a minute on screen.
+    const legs = {
+      toPickup,
+      toPickupKm,
+      toPickupSeconds: Math.min(9, Math.max(5, toPickupKm * 1.2)),
+      toDrop: priced.path,
+      toDropKm: priced.km,
+      toDropSeconds: Math.min(20, Math.max(8, priced.km * 0.7)),
+    };
+
+    // 5. Build the ride and give it the services its STATES will need.
+    const ride = new Ride({
+      id: `RIDE-${Math.random().toString(36).slice(2, 6).toUpperCase()}`,
+      pickup: priced.pickup,
+      drop: priced.drop,
+      vehicle: priced.vehicle,
+      quote: priced.quote,
+      km: priced.km,
+      minutes: priced.minutes,
+      legs,
+      publisher: this.publisher,                                   // <- OBSERVER subject
+      services: { matching: this.matching, payments: this.payments, geo: this.geo },
+      onUpdate: this.onRideUpdate,
+    });
+
+    // 6. Tell the rider something is happening.
+    this.notifications.send("Looking for a driver near you...");
+
+    // 7. Start the STATE machine. Every stage after this drives itself.
+    ride.transitionTo(new RequestedState());                       // <- STATE
+
+    this.activeRide = ride;
+    log("FACADE", `bookRide() finished - returned {{${ride.id}}}. The UI never touched a subsystem.`);
+    return ride;
+  }
+
+  cancelRide() {
+    if (this.activeRide) {
+      log("FACADE", "RideBookingFacade.cancelRide() -> delegating to the ride's current state");
+      this.activeRide.cancel();
+    }
+  }
+}
+
+
+/* ===== js/app.js ===== */
+/* ============================================================
+   app.js - THE USER INTERFACE ONLY
+   ------------------------------------------------------------
+   Read this file to see the payoff of the five patterns. It draws
+   things and handles clicks. It never prices a ride, never decides
+   what a ride is allowed to do next, never constructs a vehicle,
+   and never talks to a subsystem. It calls the Facade and renders
+   whatever comes back.
+   ============================================================ */
+
+const $ = (id) => document.getElementById(id);
+
+/* ---------------- vehicle icons (presentation detail) ---------------- */
+
+const VEHICLE_ICONS = {
+  bike: '<svg viewBox="0 0 40 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="17" r="5"/><circle cx="32" cy="17" r="5"/><path d="M8 17l6-9h7l4 9M21 8l-2-4h-4M25 8h6"/></svg>',
+  auto: '<svg viewBox="0 0 40 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="18" r="3.5"/><circle cx="30" cy="18" r="3.5"/><path d="M7 18H5v-6c0-5 4-9 9-9h4c5 0 9 4 9 9v6h-3M15 18h11M28 12H8"/></svg>',
+  sedan: '<svg viewBox="0 0 40 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="17" r="3.5"/><circle cx="29" cy="17" r="3.5"/><path d="M4 17v-4l4-1 4-5h13l5 5 5 1v4h-3M15 17h10"/></svg>',
+  suv: '<svg viewBox="0 0 40 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="17" r="3.5"/><circle cx="30" cy="17" r="3.5"/><path d="M4 17v-6l3-6h24l4 6h1v6h-3M15 17h11M9 11h24"/></svg>',
+};
+
+/* ---------------- the lifecycle timeline (labels only) ---------------- */
+
+const STEPS = [
+  { label: "Ride requested",   cls: "RequestedState" },
+  { label: "Driver assigned",  cls: "DriverAssignedState" },
+  { label: "Driver arriving",  cls: "ArrivingState" },
+  { label: "Ride in progress", cls: "InProgressState" },
+  { label: "Trip completed",   cls: "CompletedState" },
+];
+
+/* ---------------- local UI state ---------------- */
+
+const ui = {
+  pickupId: "hitech",
+  dropId: "charminar",
+  vehicleType: "SEDAN",
+  strategyKey: "STANDARD",
+  ride: null,
+  filter: "ALL",
+};
+
+let facade;
+let observerList = [];
+
+/* ============================================================
+   MAP RENDERING
+   ============================================================ */
+
+const SVG_NS = "http://www.w3.org/2000/svg";
+const mk = (tag, attrs) => {
+  const node = document.createElementNS(SVG_NS, tag);
+  Object.entries(attrs).forEach(([k, v]) => node.setAttribute(k, v));
+  return node;
+};
+
+function drawStreets() {
+  const g = $("streets");
+  g.innerHTML = "";
+  g.appendChild(mk("rect", { x: 0, y: 0, width: 720, height: 420, class: "mp-bg" }));
+
+  [[60, 250, 120, 90], [430, 60, 150, 70], [300, 300, 130, 80]].forEach(([x, y, w, h]) => {
+    g.appendChild(mk("rect", { x, y, width: w, height: h, rx: 6, class: "mp-block" }));
+  });
+
+  [60, 140, 220, 300, 380].forEach((y) =>
+    g.appendChild(mk("line", { x1: 0, y1: y, x2: 720, y2: y, class: "mp-street" })));
+  [80, 190, 300, 410, 520, 630].forEach((x) =>
+    g.appendChild(mk("line", { x1: x, y1: 0, x2: x, y2: 420, class: "mp-street" })));
+}
+
+function drawRoute(pickup, drop, path) {
+  const g = $("routelayer");
+  g.innerHTML = "";
+
+  g.appendChild(mk("path", { d: path.toSvgPath(), class: "mp-route", id: "routebase" }));
+  const done = mk("path", { d: path.toSvgPath(), class: "mp-route-done", id: "routedone" });
+  g.appendChild(done);
+  const len = done.getTotalLength();
+  done.style.strokeDasharray = len;
+  done.style.strokeDashoffset = len;
+
+  const pins = [
+    { p: pickup, cls: "mp-pin-a", text: pickup.name },
+    { p: drop,   cls: "mp-pin-b", text: drop.name },
+  ];
+  pins.forEach(({ p, cls, text }) => {
+    g.appendChild(mk("circle", { cx: p.x, cy: p.y, r: 10, class: cls + " mp-halo" }));
+    g.appendChild(mk("circle", { cx: p.x, cy: p.y, r: 5, class: cls }));
+    const label = mk("text", { x: p.x + 14, y: p.y + 4, class: "mp-label" });
+    label.textContent = text;
+    g.appendChild(label);
+  });
+}
+
+function moveCar(point, heading, progress) {
+  const car = $("car");
+  car.setAttribute("transform", `translate(${point.x.toFixed(1)} ${point.y.toFixed(1)}) rotate(${heading.toFixed(0)})`);
+  car.style.opacity = 1;
+
+  const done = $("routedone");
+  if (done) {
+    const len = done.getTotalLength();
+    done.style.strokeDashoffset = len * (1 - progress);
+  }
+}
+
+/* ============================================================
+   OBSERVER WIRING - the four subscribers and their checkboxes
+   ============================================================ */
+
+function buildObservers() {
+  observerList = [
+    new MapMarkerObserver(moveCar),
+    new EtaPanelObserver((etaMin, km, speed) => {
+      $("hudEta").textContent = etaMin + " min";
+      $("hudKm").textContent = km.toFixed(1) + " km";
+      $("hudSpeed").textContent = speed + " km/h";
+    }),
+    new TripLogObserver(),
+    new PushNotificationObserver(pushToast),
+  ];
+
+  const box = $("observers");
+  box.innerHTML = "";
+  observerList.forEach((observer) => {
+    const label = document.createElement("label");
+    label.className = "toggle";
+    label.innerHTML =
+      '<input type="checkbox" checked>' +
+      '<span><span class="toggle__name">' + observer.label + "</span>" +
+      '<span class="toggle__desc">' + observer.description + "</span></span>";
+
+    label.querySelector("input").addEventListener("change", (e) => {
+      if (e.target.checked) facade.attachObserver(observer);
+      else facade.detachObserver(observer);
+    });
+    box.appendChild(label);
+  });
+}
+
+/* ============================================================
+   TOASTS
+   ============================================================ */
+
+function pushToast(html) {
+  const wrap = $("toasts");
+  const t = document.createElement("div");
+  t.className = "toast";
+  t.innerHTML = html;
+  wrap.appendChild(t);
+  while (wrap.children.length > 3) wrap.removeChild(wrap.firstChild);
+  setTimeout(() => t.remove(), 5200);
+}
+
+/* ============================================================
+   THE DISPATCH CONSOLE  (renders whatever the Singleton log holds)
+   ============================================================ */
+
+const TAGS = ["ALL", "FACTORY", "STRATEGY", "OBSERVER", "STATE", "FACADE"];
+
+function appendLogLine(entry) {
+  const body = $("terminal");
+  const row = document.createElement("div");
+  row.className = "logline";
+  row.dataset.tag = entry.tag;
+  if (ui.filter !== "ALL" && ui.filter !== entry.tag) row.style.display = "none";
+
+  const time = entry.time.toTimeString().slice(0, 8);
+  const msg = entry.message
+    .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
+    .replace(/\{\{(.+?)\}\}/g, "<em>$1</em>");
+
+  row.innerHTML =
+    '<span class="logline__t">' + time + "</span>" +
+    '<span class="logline__tag tag-' + entry.tag + '">' + entry.tag + "</span>" +
+    '<span class="logline__msg">' + msg + "</span>";
+
+  body.appendChild(row);
+  while (body.children.length > 300) body.removeChild(body.firstChild);
+  body.scrollTop = body.scrollHeight;
+
+  pulseChip(entry.tag);
+}
+
+let pulseTimers = {};
+function pulseChip(tag) {
+  const chip = document.querySelector('.pchip[data-tag="' + tag + '"]');
+  if (!chip) return;
+  chip.classList.add("is-hot");
+  clearTimeout(pulseTimers[tag]);
+  pulseTimers[tag] = setTimeout(() => chip.classList.remove("is-hot"), 700);
+}
+
+function applyFilter(tag) {
+  ui.filter = tag;
+  document.querySelectorAll(".filter").forEach((b) =>
+    b.setAttribute("aria-pressed", String(b.dataset.tag === tag)));
+  document.querySelectorAll(".logline").forEach((row) => {
+    row.style.display = tag === "ALL" || row.dataset.tag === tag ? "" : "none";
+  });
+}
+
+function buildConsole() {
+  const ft = $("filters");
+  TAGS.forEach((tag) => {
+    const b = document.createElement("button");
+    b.className = "filter";
+    b.dataset.tag = tag;
+    b.textContent = tag;
+    b.setAttribute("aria-pressed", String(tag === "ALL"));
+    b.addEventListener("click", () => applyFilter(tag));
+    ft.insertBefore(b, $("btnClear"));
+  });
+
+  const dispatchLog = DispatchLog.getInstance();
+  dispatchLog.entries.forEach(appendLogLine);     // whatever happened before the UI was ready
+  dispatchLog.onWrite((entry) => { if (entry) appendLogLine(entry); });
+}
+
+/* ============================================================
+   FORM + FARE RECEIPT
+   ============================================================ */
+
+function buildLocationSelects() {
+  [["pickup", "pickupId"], ["drop", "dropId"]].forEach(([id, key]) => {
+    const sel = $(id);
+    LOCATIONS.forEach((loc) => {
+      const o = document.createElement("option");
+      o.value = loc.id;
+      o.textContent = loc.name;
+      sel.appendChild(o);
+    });
+    sel.value = ui[key];
+    sel.addEventListener("change", () => {
+      ui[key] = sel.value;
+      if (ui.pickupId === ui.dropId) {
+        const other = LOCATIONS.find((l) => l.id !== sel.value);
+        const otherKey = key === "pickupId" ? "dropId" : "pickupId";
+        ui[otherKey] = other.id;
+        $(key === "pickupId" ? "drop" : "pickup").value = other.id;
+      }
+      refreshQuote();
+    });
+  });
+
+  $("swap").addEventListener("click", () => {
+    [ui.pickupId, ui.dropId] = [ui.dropId, ui.pickupId];
+    $("pickup").value = ui.pickupId;
+    $("drop").value = ui.dropId;
+    refreshQuote();
+  });
+}
+
+function buildVehiclePicker() {
+  const grid = $("vehicles");
+  grid.innerHTML = "";
+
+  // The UI asks the FACTORY what exists. It never lists vehicle classes itself.
+  VehicleFactory.available().forEach((vehicle) => {
+    const b = document.createElement("button");
+    b.className = "vcard";
+    b.type = "button";
+    b.setAttribute("aria-pressed", String(vehicle.code === ui.vehicleType));
+    b.innerHTML =
+      '<span class="vcard__ico">' + VEHICLE_ICONS[vehicle.iconId] + "</span>" +
+      '<span class="vcard__name">' + vehicle.label + "</span>" +
+      '<span class="vcard__meta">' + vehicle.capacity + " seat</span>" +
+      '<span class="vcard__meta">Rs.' + vehicle.perKm + "/km</span>";
+
+    b.addEventListener("click", () => {
+      ui.vehicleType = vehicle.code;
+      grid.querySelectorAll(".vcard").forEach((c) => c.setAttribute("aria-pressed", "false"));
+      b.setAttribute("aria-pressed", "true");
+      refreshQuote();
+    });
+    grid.appendChild(b);
+  });
+}
+
+function buildStrategySelect() {
+  $("strategy").addEventListener("change", (e) => {
+    ui.strategyKey = e.target.value;
+    facade.useFareStrategy(ui.strategyKey);      // <- the Strategy swap, live
+    refreshQuote();
+  });
+}
+
+function refreshQuote() {
+  const priced = facade.quote({
+    pickupId: ui.pickupId,
+    dropId: ui.dropId,
+    vehicleType: ui.vehicleType,
+  });
+
+  const active = facade.calculator.strategy;
+  $("receiptStrategy").innerHTML =
+    "<span>" + active.note + "</span><b>" + active.name + "</b>";
+
+  $("receiptLines").innerHTML =
+    priced.quote.lines.map((l) =>
+      '<div class="rline' + (l.kind ? " rline--" + l.kind : "") + '"><span>' + l.label +
+      "</span><span>" + (l.amount < 0 ? "-" : "") + "Rs." + Math.abs(l.amount).toFixed(0) + "</span></div>"
+    ).join("") +
+    '<div class="rline rline--total"><span>Total</span><span>Rs.' + priced.quote.total + "</span></div>";
+
+  $("hudKm").textContent = priced.km.toFixed(1) + " km";
+  $("hudEta").textContent = priced.minutes + " min";
+
+  if (!ui.ride || ui.ride.state.isFinal) {
+    drawRoute(priced.pickup, priced.drop, priced.path);
+    $("car").style.opacity = 0;
+  }
+  return priced;
+}
+
+/* ============================================================
+   LIFECYCLE PANEL  (pure reflection of the current State object)
+   ============================================================ */
+
+function renderLifecycle(ride) {
+  const wrap = $("lifecycle");
+  const cancelled = ride && ride.state.key === "CancelledState";
+  const current = ride ? ride.state.step : -99;
+
+  wrap.innerHTML = STEPS.map((s, i) => {
+    let cls = "step";
+    if (ride && !cancelled && i < current) cls += " is-done";
+    if (ride && !cancelled && i === current) cls += " is-active";
+    return '<div class="' + cls + '">' +
+      '<span class="step__dot">' + (i + 1) + "</span>" +
+      '<span class="step__name">' + s.label + "</span>" +
+      '<span class="step__note">' + s.cls + "</span></div>";
+  }).join("") +
+  (cancelled
+    ? '<div class="step is-dead"><span class="step__dot">&times;</span>' +
+      '<span class="step__name">Ride cancelled</span>' +
+      '<span class="step__note">CancelledState</span></div>'
+    : "");
+
+  $("stateNow").textContent = ride ? ride.state.key : "no active ride";
+  $("stateLabel").textContent = ride ? ride.state.label : "Pick a route and book";
+  $("btnCancel").disabled = !ride || !ride.canCancel;
+
+  const done = !ride || ride.state.isFinal;
+  $("btnBook").disabled = !done;
+  $("btnBook").textContent = ride && ride.state.isFinal ? "Book another ride" : "Book ride";
+}
+
+/* ============================================================
+   CODE SAMPLES in the reference section
+   ============================================================ */
+
+function esc(s) {
+  return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+}
+
+function highlight(src) {
+  const re = /(\/\*[\s\S]*?\*\/|\/\/[^\n]*)|("(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*'|`(?:[^`\\]|\\.)*`)|\b(class|extends|constructor|new|return|const|let|var|if|else|for|get|set|static|throw|super|this|function|null|true|false|of|in|forEach)\b|\b(\d+(?:\.\d+)?)\b/g;
+  let out = "", last = 0, m;
+  while ((m = re.exec(src)) !== null) {
+    out += esc(src.slice(last, m.index));
+    const cls = m[1] ? "tk-com" : m[2] ? "tk-str" : m[3] ? "tk-key" : "tk-num";
+    out += '<span class="' + cls + '">' + esc(m[0]) + "</span>";
+    last = m.index + m[0].length;
+  }
+  return out + esc(src.slice(last));
+}
+
+function renderCodeSamples() {
+  document.querySelectorAll("pre[data-src]").forEach((pre) => {
+    const src = $(pre.dataset.src);
+    if (src) pre.innerHTML = highlight(src.textContent.trim());
+  });
+}
+
+/* ============================================================
+   BOOT
+   ============================================================ */
+
+function onRideUpdate(ride, payload) {
+  ui.ride = ride;
+  renderLifecycle(ride);
+  if (payload && payload.toast) pushToast(payload.toast);
+
+  if (ride.state.key === "ArrivingState") {
+    drawRoute({ ...ride.legs.toPickup.points[0], name: ride.driver.name }, ride.pickup, ride.legs.toPickup);
+  }
+  if (ride.state.key === "InProgressState") {
+    drawRoute(ride.pickup, ride.drop, ride.legs.toDrop);
+    observerList.forEach((o) => { if (o.reset) o.reset(); });
+  }
+  if (ride.state.isFinal) {
+    $("hudEta").textContent = "--";
+    $("hudSpeed").textContent = "0 km/h";
+  }
+}
+
+function init() {
+  log("SINGLETON", "DispatchLog.getInstance() - one shared log for the whole app.");
+
+  facade = new RideBookingFacade({ pushToast, onRideUpdate });
+
+  drawStreets();
+  buildLocationSelects();
+  buildVehiclePicker();
+  buildStrategySelect();
+  buildObservers();
+  buildConsole();
+  renderCodeSamples();
+
+  // Every observer starts subscribed.
+  observerList.forEach((o) => facade.attachObserver(o));
+
+  $("btnBook").addEventListener("click", () => {
+    $("toasts").innerHTML = "";
+    observerList.forEach((o) => { if (o.reset) o.reset(); });
+    facade.bookRide({
+      pickupId: ui.pickupId,
+      dropId: ui.dropId,
+      vehicleType: ui.vehicleType,
+    });
+  });
+
+  $("btnCancel").addEventListener("click", () => facade.cancelRide());
+
+  $("btnClear").addEventListener("click", () => {
+    $("terminal").innerHTML = "";
+    DispatchLog.getInstance().entries = [];
+    log("SYSTEM", "Console cleared.");
+  });
+
+  refreshQuote();
+  renderLifecycle(null);
+  log("SYSTEM", "RideFlow ready. Press Book ride and watch the tags on the left of each line.");
+}
+
+document.addEventListener("DOMContentLoaded", init);
+
+</script>
