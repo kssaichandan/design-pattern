@@ -32,6 +32,28 @@
   --sand:        #7E6A18;
   --sand-soft:   #F4EFD6;
 
+  /* --- map: a warm paper city, roads drawn casing-then-surface --- */
+  --mp-land:       #F2F0EA;
+  --mp-block:      #E7E4DB;
+  --mp-block-dense:#DEDACE;
+  --mp-park:       #D5E5CD;
+  --mp-park-ink:   #4C7B4E;
+  --mp-water:      #ABD4E9;
+  --mp-water-ink:  #33708F;
+  --mp-hw:         #F3D9A4;
+  --mp-hw-case:    #D8B771;
+  --mp-route:      #1E5BE0;
+  --mp-route-case: #FFFFFF;
+  --mp-pin-a:      #0E7A55;
+  --mp-pin-b:      #C0392E;
+  --mp-art:        #FFFFFF;
+  --mp-art-case:   #D6D1C4;
+  --mp-st:         #FAF8F3;
+  --mp-st-case:    #E3DFD3;
+  --mp-road-ink:   #8A8272;
+  --mp-halo:       #F2F0EA;
+
+
   --shadow-sm: 0 1px 2px rgba(15,22,32,.06), 0 2px 8px rgba(15,22,32,.05);
   --shadow-md: 0 2px 4px rgba(15,22,32,.06), 0 12px 30px rgba(15,22,32,.10);
 
@@ -79,6 +101,28 @@
     --sand:        #E4E0A0;
     --sand-soft:   #2B2818;
 
+  /* --- map: night tiles, same casing-then-surface build --- */
+  --mp-land:       #171E27;
+  --mp-block:      #1E2732;
+  --mp-block-dense:#25303D;
+  --mp-park:       #1B3125;
+  --mp-park-ink:   #5C9B6C;
+  --mp-water:      #143247;
+  --mp-water-ink:  #6EADCC;
+  --mp-hw:         #6A5A33;
+  --mp-hw-case:    #4A3E22;
+  --mp-route:      #5B8DEF;
+  --mp-route-case: #0B111A;
+  --mp-pin-a:      #43C39A;
+  --mp-pin-b:      #F0776A;
+  --mp-art:        #2E3A48;
+  --mp-art-case:   #3A4757;
+  --mp-st:         #232C38;
+  --mp-st-case:    #2B3542;
+  --mp-road-ink:   #8494A6;
+  --mp-halo:       #171E27;
+
+
     --shadow-sm: 0 1px 2px rgba(0,0,0,.4);
     --shadow-md: 0 2px 4px rgba(0,0,0,.4), 0 14px 32px rgba(0,0,0,.45);
   }
@@ -110,6 +154,24 @@
   --orange-soft: #33201A;
   --sand:        #E4E0A0;
   --sand-soft:   #2B2818;
+
+  /* --- map: night tiles, same casing-then-surface build --- */
+  --mp-land:       #171E27;
+  --mp-block:      #1E2732;
+  --mp-block-dense:#25303D;
+  --mp-park:       #1B3125;
+  --mp-park-ink:   #5C9B6C;
+  --mp-water:      #143247;
+  --mp-water-ink:  #6EADCC;
+  --mp-hw:         #B0842D;
+  --mp-hw-case:    #6B4F16;
+  --mp-art:        #2E3A48;
+  --mp-art-case:   #3A4757;
+  --mp-st:         #232C38;
+  --mp-st-case:    #2B3542;
+  --mp-road-ink:   #8494A6;
+  --mp-halo:       #171E27;
+
 
   --shadow-sm: 0 1px 2px rgba(0,0,0,.4);
   --shadow-md: 0 2px 4px rgba(0,0,0,.4), 0 14px 32px rgba(0,0,0,.45);
@@ -368,6 +430,38 @@ select:focus-visible, .btn:focus-visible, .vcard:focus-visible,
   font-variant-numeric: tabular-nums; color: var(--ink);
 }
 
+.hudchip--road .hudchip__v { font-size: 11.5px; letter-spacing: .01em; }
+
+.hudchip--status .hudchip__v {
+  font-size: 10px; letter-spacing: .09em; text-transform: uppercase;
+}
+.hudchip--status { border-color: var(--line); }
+.hudchip--status:has([data-status="STOPPED"])  { background: var(--red-soft);   border-color: var(--red); }
+.hudchip--status:has([data-status="CRAWLING"]) { background: var(--amber-soft); border-color: var(--amber); }
+.hudchip--status:has([data-status="CRUISING"]) { background: var(--green-soft); border-color: var(--green); }
+.hudchip--status [data-status="STOPPED"]  { color: var(--red); }
+.hudchip--status [data-status="CRAWLING"] { color: var(--amber); }
+.hudchip--status [data-status="CRUISING"] { color: var(--green); }
+
+/* ---------------- the driver card ---------------- */
+
+.dcard {
+  display: grid; grid-template-columns: auto 1fr auto; gap: 11px; align-items: center;
+  padding: 11px 12px; margin-bottom: 14px;
+  background: var(--surface-2); border: 1px solid var(--line); border-radius: var(--r-md);
+}
+.dcard__ava {
+  width: 34px; height: 34px; border-radius: 50%;
+  display: grid; place-items: center;
+  background: var(--blue-soft); color: var(--blue);
+  font-family: var(--f-display); font-size: 12.5px; font-weight: 700; letter-spacing: .02em;
+}
+.dcard__who, .dcard__car { display: grid; gap: 2px; min-width: 0; }
+.dcard__car { text-align: right; }
+.dcard__who b { font-size: 13.5px; color: var(--ink); }
+.dcard__car b { font-family: var(--f-mono); font-size: 12px; color: var(--ink); }
+.dcard__meta { font-size: 11px; color: var(--ink-3); }
+
 .toasts {
   position: absolute; right: 14px; top: 14px; display: grid; gap: 6px;
   width: min(255px, 55%); justify-items: end;
@@ -525,33 +619,89 @@ select:focus-visible, .btn:focus-visible, .vcard:focus-visible,
 
 /* ---------------- the SVG map ---------------- */
 
-.mp-bg     { fill: var(--surface-2); }
-.mp-block  { fill: var(--surface-3); }
-.mp-street { stroke: var(--line); stroke-width: 1.5; }
+.mp-land   { fill: var(--mp-land); }
+.mp-block  { fill: var(--mp-block); }
+.mp-block--dense { fill: var(--mp-block-dense); }
+.mp-park   { fill: var(--mp-park); }
+.mp-water  { fill: var(--mp-water); }
+.mp-river  {
+  fill: none; stroke: var(--mp-water); stroke-width: 7;
+  stroke-linecap: round; stroke-linejoin: round; opacity: .9;
+}
 
+.mp-water-label {
+  fill: var(--mp-water-ink); font-family: var(--f-body); font-size: 10px;
+  font-style: italic; letter-spacing: .06em;
+}
+.mp-green-label {
+  fill: var(--mp-park-ink); font-family: var(--f-body); font-size: 8.5px;
+  letter-spacing: .05em;
+}
+
+/* Roads: a wide casing underneath, the surface on top. Streets are
+   painted first, highways last, so junctions stack the way they do
+   on a real map. */
+.rd { stroke-linecap: round; stroke-linejoin: round; }
+.rd--street.rd--case   { stroke: var(--mp-st-case);  stroke-width: 2.7; }
+.rd--street.rd--fill   { stroke: var(--mp-st);       stroke-width: 1.6; }
+.rd--arterial.rd--case { stroke: var(--mp-art-case); stroke-width: 5.2; }
+.rd--arterial.rd--fill { stroke: var(--mp-art);      stroke-width: 3.4; }
+.rd--highway.rd--case  { stroke: var(--mp-hw-case);  stroke-width: 7.6; }
+.rd--highway.rd--fill  { stroke: var(--mp-hw);       stroke-width: 5.4; }
+
+.mp-road-label {
+  fill: var(--mp-road-ink); font-family: var(--f-mono); font-size: 7.4px;
+  letter-spacing: .09em; text-transform: uppercase;
+  paint-order: stroke; stroke: var(--mp-halo); stroke-width: 2.6px; stroke-linejoin: round;
+}
+.rdl--highway { fill: var(--mp-hw-case); font-weight: 500; }
+
+/* Landmarks */
+.poi__disc  { fill: var(--surface); stroke: var(--ink-3); stroke-width: 1.1; }
+.poi__glyph { fill: var(--ink-2); }
+.mp-poi-label {
+  fill: var(--ink-2); font-family: var(--f-body); font-size: 8.6px; font-weight: 600;
+  letter-spacing: .02em;
+  paint-order: stroke; stroke: var(--mp-halo); stroke-width: 2.8px; stroke-linejoin: round;
+}
+
+.poi.is-muted .mp-poi-label { display: none; }
+
+/* The rest of the city's traffic - decoration, nothing subscribes to it. */
+.mp-ambient { fill: var(--ink-3); opacity: .38; }
+
+/* The active route */
+.mp-route-case {
+  fill: none; stroke: var(--mp-route-case); stroke-width: 9;
+  stroke-linecap: round; stroke-linejoin: round; opacity: .85;
+}
 .mp-route {
-  fill: none; stroke: var(--ink-3); stroke-width: 3;
-  stroke-dasharray: 6 7; stroke-linecap: round; opacity: .55;
+  fill: none; stroke: var(--mp-route); stroke-width: 5;
+  stroke-linecap: round; stroke-linejoin: round; opacity: .38;
 }
+/* The covered part of the trip, drawn over the pending part. */
 .mp-route-done {
-  fill: none; stroke: var(--amber); stroke-width: 4;
+  fill: none; stroke: var(--mp-route); stroke-width: 5;
   stroke-linecap: round; stroke-linejoin: round;
-  transition: stroke-dashoffset .12s linear;
+  transition: stroke-dashoffset .1s linear;
 }
 
-.mp-pin-a  { fill: var(--blue); }
-.mp-pin-b  { fill: var(--amber); }
+.mp-pin-a  { fill: var(--mp-pin-a); }
+.mp-pin-b  { fill: var(--mp-pin-b); }
 .mp-halo   { opacity: .2; }
 
 .mp-label {
-  fill: var(--ink-2); font-family: var(--f-mono); font-size: 12px;
-  paint-order: stroke; stroke: var(--surface-2); stroke-width: 3.5px; stroke-linejoin: round;
+  fill: var(--ink); font-family: var(--f-mono); font-size: 12px; font-weight: 500;
+  paint-order: stroke; stroke: var(--mp-halo); stroke-width: 4px; stroke-linejoin: round;
 }
 
-#car { transition: transform .1s linear; opacity: 0; }
+#car { transition: transform .09s linear; opacity: 0; }
+#car .shadow { fill: rgba(0,0,0,.3); transform: translate(1px, 2px); }
 #car .body   { fill: var(--ink); }
 #car .glass  { fill: var(--amber); }
+#car .lamp   { fill: #FFF0BE; }
 #car .pulse  { fill: var(--amber); opacity: .22; }
+#car.is-stopped .pulse { fill: var(--red); opacity: .3; }
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {

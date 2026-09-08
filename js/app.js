@@ -42,6 +42,7 @@ const ui = {
 
 let facade;
 let observerList = [];
+let ambient;
 
 /* ============================================================
    MAP RENDERING
@@ -54,25 +55,201 @@ const mk = (tag, attrs) => {
   return node;
 };
 
-function drawStreets() {
-  const g = $("streets");
-  g.innerHTML = "";
-  g.appendChild(mk("rect", { x: 0, y: 0, width: 720, height: 420, class: "mp-bg" }));
+const polyD = (pts, close) =>
+  pts.map((p, i) => (i === 0 ? "M" : "L") + " " + p.x + " " + p.y).join(" ") + (close ? " Z" : "");
 
-  [[60, 250, 120, 90], [430, 60, 150, 70], [300, 300, 130, 80]].forEach(([x, y, w, h]) => {
-    g.appendChild(mk("rect", { x, y, width: w, height: h, rx: 6, class: "mp-block" }));
+/* ---------- city blocks: the built-up land between the roads ---------- */
+
+function blockShapes() {
+  const out = [];
+  for (let r = 0; r < 7; r++) {
+    for (let c = 0; c < 9; c++) {
+      const n = cityNoise(r * 9 + c, 17);
+      if (n < 0.38) continue;                       // leave gaps, not a waffle
+      const x = c * 80 + 12 + n * 10;
+      const y = r * 58 + 14 + cityNoise(c, r) * 10;
+      const w = 34 + cityNoise(r, c * 3) * 30;
+      const h = 20 + cityNoise(c * 5, r) * 18;
+      const mid = { x: x + w / 2, y: y + h / 2 };
+      if (inWater(mid)) continue;
+      if (PARKS.some((p) => pointInPolygon(mid, p.points))) continue;
+      out.push({ x, y, w, h, tone: n > 0.72 ? "dense" : "plain" });
+    }
+  }
+  return out;
+}
+
+/**
+ * Draws the city once: land, water, parks, then the roads in class
+ * order so highways sit on top of lanes, then the landmarks.
+ */
+function drawCity() {
+  const g = $("terrain");
+  g.innerHTML = "";
+  g.appendChild(mk("rect", { x: 0, y: 0, width: 720, height: 420, class: "mp-land" }));
+
+  blockShapes().forEach((b) =>
+    g.appendChild(mk("rect", { x: b.x, y: b.y, width: b.w, height: b.h, rx: 2, class: "mp-block mp-block--" + b.tone })));
+
+  PARKS.forEach((park) => g.appendChild(mk("path", { d: polyD(park.points, true), class: "mp-park" })));
+
+  g.appendChild(mk("path", { d: polyD(RIVER.points), class: "mp-river" }));
+
+  WATER.forEach((w) => g.appendChild(mk("path", { d: polyD(w.points, true), class: "mp-water" })));
+
+  drawRoads();
+  drawGreenLabels();
+  drawLandmarks();
+}
+
+function drawRoads() {
+  const g = $("roads");
+  g.innerHTML = "";
+
+  // Casing first, then the surface on top - the trick every real map
+  // uses to make roads read as roads rather than as coloured lines.
+  ["street", "arterial", "highway"].forEach((cls) => {
+    const roads = ROADS.filter((r) => r.cls === cls);
+    ["case", "fill"].forEach((layer) => {
+      roads.forEach((road) => {
+        g.appendChild(mk("path", {
+          d: polyD(road.points),
+          class: "rd rd--" + cls + " rd--" + layer,
+          fill: "none",
+        }));
+      });
+    });
   });
 
-  [60, 140, 220, 300, 380].forEach((y) =>
-    g.appendChild(mk("line", { x1: 0, y1: y, x2: 720, y2: y, class: "mp-street" })));
-  [80, 190, 300, 410, 520, 630].forEach((x) =>
-    g.appendChild(mk("line", { x1: x, y1: 0, x2: x, y2: 420, class: "mp-street" })));
+  // Name the majors, laid along their longest straight. A map that
+  // labels every road just looks noisy, so this keeps the highways and
+  // drops any label that is cramped, clipped by the edge, or sitting on
+  // top of one already placed.
+  const placed = [];
+  NAMED_ROADS.forEach((road, i) => {
+    let best = null;
+    for (let k = 0; k < road.points.length - 1; k++) {
+      const a = road.points[k], b = road.points[k + 1];
+      const len = Math.hypot(b.x - a.x, b.y - a.y);
+      if (!best || len > best.len) best = { a, b, len };
+    }
+
+    const need = road.cls === "highway" ? 60 : 78;
+    if (!best || best.len < need) return;
+
+    const mid = { x: (best.a.x + best.b.x) / 2, y: (best.a.y + best.b.y) / 2 };
+    if (mid.x < 56 || mid.x > 664 || mid.y < 18 || mid.y > 404) return;
+    if (placed.some((q) => Math.hypot(q.x - mid.x, q.y - mid.y) < 48)) return;
+    placed.push(mid);
+
+    const id = "rdlbl" + i;
+    const flip = best.b.x < best.a.x;
+    const from = flip ? best.b : best.a;
+    const to = flip ? best.a : best.b;
+
+    const guide = mk("path", { id, d: polyD([from, to]), fill: "none", stroke: "none" });
+    g.appendChild(guide);
+
+    const text = mk("text", { class: "mp-road-label rdl--" + road.cls, dy: -3 });
+    const tp = document.createElementNS(SVG_NS, "textPath");
+    tp.setAttribute("href", "#" + id);
+    tp.setAttribute("startOffset", "50%");
+    tp.setAttribute("text-anchor", "middle");
+    tp.textContent = road.name;
+    text.appendChild(tp);
+    g.appendChild(text);
+  });
 }
+
+/** Centre of a polygon, near enough for placing a label in it. */
+function centroid(points) {
+  return {
+    x: points.reduce((sum, p) => sum + p.x, 0) / points.length,
+    y: points.reduce((sum, p) => sum + p.y, 0) / points.length,
+  };
+}
+
+/**
+ * Park and lake names, drawn AFTER the roads. Put them in the terrain
+ * layer and the road surfaces paint straight over the text.
+ */
+function drawGreenLabels() {
+  const g = $("pois");
+  g.innerHTML = "";
+
+  PARKS.forEach((park) => {
+    const c = centroid(park.points);
+    const t = mk("text", { x: c.x, y: c.y + 3, class: "mp-green-label", "text-anchor": "middle" });
+    t.textContent = park.name;
+    g.appendChild(t);
+  });
+
+  WATER.forEach((w) => {
+    const c = centroid(w.points);
+    const t = mk("text", { x: c.x, y: c.y, class: "mp-water-label", "text-anchor": "middle" });
+    t.textContent = w.name;
+    g.appendChild(t);
+  });
+}
+
+const POI_GLYPH = {
+  airport:  "M2 0l-9-3 1-2 8 1 4-4 2 1-3 5 4 4-1 2z",
+  rail:     "M-4-5h8v7h-8z",
+  heritage: "M-4 4v-6l4-4 4 4v6z",
+  business: "M-4 5v-9h8v9z",
+  suburb:   "M-4 4v-5l4-3 4 3v5z",
+};
+
+/** Every landmark on the map, not only the two on the current route. */
+function drawLandmarks() {
+  const g = $("pois");
+
+  LOCATIONS.forEach((loc) => {
+    const node = mk("g", { class: "poi", "data-loc": loc.id, transform: `translate(${loc.x} ${loc.y})` });
+    node.appendChild(mk("circle", { r: 7.5, class: "poi__disc" }));
+    node.appendChild(mk("path", { d: POI_GLYPH[loc.kind] || POI_GLYPH.suburb, class: "poi__glyph", transform: "scale(.62)" }));
+
+    const label = mk("text", { x: 0, y: 19, class: "mp-poi-label", "text-anchor": "middle" });
+    label.textContent = loc.name;
+    node.appendChild(label);
+    g.appendChild(node);
+  });
+}
+
+/* ---------- ambient traffic: the rest of the city, moving ---------- */
+
+function drawAmbient() {
+  const g = $("ambient");
+  g.innerHTML = "";
+  ambient.positions().forEach(() => g.appendChild(mk("rect", { x: -2.6, y: -1.5, width: 5.2, height: 3, rx: 1, class: "mp-ambient" })));
+}
+
+function tickAmbient() {
+  ambient.tick(0.016);
+  const g = $("ambient");
+  const pos = ambient.positions();
+  for (let i = 0; i < g.children.length; i++) {
+    const p = pos[i];
+    g.children[i].setAttribute("transform", `translate(${p.x.toFixed(1)} ${p.y.toFixed(1)}) rotate(${p.heading.toFixed(0)})`);
+  }
+  requestAnimationFrame(tickAmbient);
+}
+
+/* ---------- the active route ---------- */
 
 function drawRoute(pickup, drop, path) {
   const g = $("routelayer");
   g.innerHTML = "";
 
+  // The route prints big labels for these two, so silence the small
+  // landmark labels underneath and avoid printing each name twice.
+  document.querySelectorAll(".poi").forEach((n) => n.classList.remove("is-muted"));
+  [pickup.id, drop.id].filter(Boolean).forEach((id) => {
+    const n = document.querySelector('.poi[data-loc="' + id + '"]');
+    if (n) n.classList.add("is-muted");
+  });
+
+  g.appendChild(mk("path", { d: path.toSvgPath(), class: "mp-route-case" }));
   g.appendChild(mk("path", { d: path.toSvgPath(), class: "mp-route", id: "routebase" }));
   const done = mk("path", { d: path.toSvgPath(), class: "mp-route-done", id: "routedone" });
   g.appendChild(done);
@@ -80,43 +257,53 @@ function drawRoute(pickup, drop, path) {
   done.style.strokeDasharray = len;
   done.style.strokeDashoffset = len;
 
-  const pins = [
+  [
     { p: pickup, cls: "mp-pin-a", text: pickup.name },
     { p: drop,   cls: "mp-pin-b", text: drop.name },
-  ];
-  pins.forEach(({ p, cls, text }) => {
-    g.appendChild(mk("circle", { cx: p.x, cy: p.y, r: 10, class: cls + " mp-halo" }));
-    g.appendChild(mk("circle", { cx: p.x, cy: p.y, r: 5, class: cls }));
+  ].forEach(({ p, cls, text }) => {
+    g.appendChild(mk("circle", { cx: p.x, cy: p.y, r: 11, class: cls + " mp-halo" }));
+    g.appendChild(mk("circle", { cx: p.x, cy: p.y, r: 5.5, class: cls }));
     const label = mk("text", { x: p.x + 14, y: p.y + 4, class: "mp-label" });
     label.textContent = text;
     g.appendChild(label);
   });
+
+  // Show the roads this route actually uses.
+  const names = path.legNames().slice(0, 4);
+  $("viaLine").textContent = names.length ? "via " + names.join(" › ") : "via local streets";
 }
 
-function moveCar(point, heading, progress) {
+function moveCar(point, heading, progress, status) {
   const car = $("car");
   car.setAttribute("transform", `translate(${point.x.toFixed(1)} ${point.y.toFixed(1)}) rotate(${heading.toFixed(0)})`);
   car.style.opacity = 1;
+  car.classList.toggle("is-stopped", status === "STOPPED");
 
   const done = $("routedone");
-  if (done) {
-    const len = done.getTotalLength();
-    done.style.strokeDashoffset = len * (1 - progress);
-  }
+  if (done) done.style.strokeDashoffset = done.getTotalLength() * (1 - progress);
 }
 
 /* ============================================================
    OBSERVER WIRING - the four subscribers and their checkboxes
    ============================================================ */
 
+function showTelemetry(fix) {
+  $("hudEta").textContent = fix.etaMin + " min";
+  $("hudKm").textContent = fix.remainingKm.toFixed(1) + " km";
+  $("hudSpeed").textContent = fix.speedKmph + " km/h";
+  $("hudRoad").textContent = fix.road || "side lane";
+
+  const chip = $("hudStatus");
+  chip.textContent = fix.status === "STOPPED" ? "at a signal"
+    : fix.status === "CRAWLING" ? "slow traffic"
+    : fix.status === "CRUISING" ? "clear road" : "moving";
+  chip.dataset.status = fix.status;
+}
+
 function buildObservers() {
   observerList = [
     new MapMarkerObserver(moveCar),
-    new EtaPanelObserver((etaMin, km, speed) => {
-      $("hudEta").textContent = etaMin + " min";
-      $("hudKm").textContent = km.toFixed(1) + " km";
-      $("hudSpeed").textContent = speed + " km/h";
-    }),
+    new EtaPanelObserver(showTelemetry),
     new TripLogObserver(),
     new PushNotificationObserver(pushToast),
   ];
@@ -137,6 +324,32 @@ function buildObservers() {
     });
     box.appendChild(label);
   });
+}
+
+/* ============================================================
+   THE DRIVER CARD
+   ============================================================ */
+
+function renderDriver(ride) {
+  const card = $("driverCard");
+  if (!ride || !ride.driver || ride.state.key === "RequestedState") {
+    card.hidden = true;
+    return;
+  }
+  const d = ride.driver;
+  const initials = d.name.split(" ").map((w) => w[0]).join("").slice(0, 2);
+
+  card.hidden = false;
+  card.innerHTML =
+    '<span class="dcard__ava">' + initials + "</span>" +
+    '<span class="dcard__who">' +
+      '<b>' + d.name + "</b>" +
+      '<span class="dcard__meta">' + d.rating + " ★ · " + d.trips.toLocaleString() + " trips</span>" +
+    "</span>" +
+    '<span class="dcard__car">' +
+      "<b>" + d.plate + "</b>" +
+      '<span class="dcard__meta">' + d.model + "</span>" +
+    "</span>";
 }
 
 /* ============================================================
@@ -381,6 +594,7 @@ function renderCodeSamples() {
 function onRideUpdate(ride, payload) {
   ui.ride = ride;
   renderLifecycle(ride);
+  renderDriver(ride);
   if (payload && payload.toast) pushToast(payload.toast);
 
   if (ride.state.key === "ArrivingState") {
@@ -393,6 +607,8 @@ function onRideUpdate(ride, payload) {
   if (ride.state.isFinal) {
     $("hudEta").textContent = "--";
     $("hudSpeed").textContent = "0 km/h";
+    $("hudStatus").textContent = "idle";
+    $("hudStatus").dataset.status = "IDLE";
   }
 }
 
@@ -401,7 +617,11 @@ function init() {
 
   facade = new RideBookingFacade({ pushToast, onRideUpdate });
 
-  drawStreets();
+  drawCity();
+  ambient = new AmbientTraffic(CITY, 22);
+  drawAmbient();
+  requestAnimationFrame(tickAmbient);
+
   buildLocationSelects();
   buildVehiclePicker();
   buildStrategySelect();
@@ -432,6 +652,7 @@ function init() {
 
   refreshQuote();
   renderLifecycle(null);
+  log("SYSTEM", `City loaded: ${CITY.nodes.length} junctions, ${CITY.edges.length} road links. Routes are searched across that network, not drawn straight.`);
   log("SYSTEM", "RideFlow ready. Press Book ride and watch the tags on the left of each line.");
 }
 

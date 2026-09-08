@@ -35,6 +35,28 @@
   --sand:        #7E6A18;
   --sand-soft:   #F4EFD6;
 
+  /* --- map: a warm paper city, roads drawn casing-then-surface --- */
+  --mp-land:       #F2F0EA;
+  --mp-block:      #E7E4DB;
+  --mp-block-dense:#DEDACE;
+  --mp-park:       #D5E5CD;
+  --mp-park-ink:   #4C7B4E;
+  --mp-water:      #ABD4E9;
+  --mp-water-ink:  #33708F;
+  --mp-hw:         #F3D9A4;
+  --mp-hw-case:    #D8B771;
+  --mp-route:      #1E5BE0;
+  --mp-route-case: #FFFFFF;
+  --mp-pin-a:      #0E7A55;
+  --mp-pin-b:      #C0392E;
+  --mp-art:        #FFFFFF;
+  --mp-art-case:   #D6D1C4;
+  --mp-st:         #FAF8F3;
+  --mp-st-case:    #E3DFD3;
+  --mp-road-ink:   #8A8272;
+  --mp-halo:       #F2F0EA;
+
+
   --shadow-sm: 0 1px 2px rgba(15,22,32,.06), 0 2px 8px rgba(15,22,32,.05);
   --shadow-md: 0 2px 4px rgba(15,22,32,.06), 0 12px 30px rgba(15,22,32,.10);
 
@@ -82,6 +104,28 @@
     --sand:        #E4E0A0;
     --sand-soft:   #2B2818;
 
+  /* --- map: night tiles, same casing-then-surface build --- */
+  --mp-land:       #171E27;
+  --mp-block:      #1E2732;
+  --mp-block-dense:#25303D;
+  --mp-park:       #1B3125;
+  --mp-park-ink:   #5C9B6C;
+  --mp-water:      #143247;
+  --mp-water-ink:  #6EADCC;
+  --mp-hw:         #6A5A33;
+  --mp-hw-case:    #4A3E22;
+  --mp-route:      #5B8DEF;
+  --mp-route-case: #0B111A;
+  --mp-pin-a:      #43C39A;
+  --mp-pin-b:      #F0776A;
+  --mp-art:        #2E3A48;
+  --mp-art-case:   #3A4757;
+  --mp-st:         #232C38;
+  --mp-st-case:    #2B3542;
+  --mp-road-ink:   #8494A6;
+  --mp-halo:       #171E27;
+
+
     --shadow-sm: 0 1px 2px rgba(0,0,0,.4);
     --shadow-md: 0 2px 4px rgba(0,0,0,.4), 0 14px 32px rgba(0,0,0,.45);
   }
@@ -113,6 +157,24 @@
   --orange-soft: #33201A;
   --sand:        #E4E0A0;
   --sand-soft:   #2B2818;
+
+  /* --- map: night tiles, same casing-then-surface build --- */
+  --mp-land:       #171E27;
+  --mp-block:      #1E2732;
+  --mp-block-dense:#25303D;
+  --mp-park:       #1B3125;
+  --mp-park-ink:   #5C9B6C;
+  --mp-water:      #143247;
+  --mp-water-ink:  #6EADCC;
+  --mp-hw:         #B0842D;
+  --mp-hw-case:    #6B4F16;
+  --mp-art:        #2E3A48;
+  --mp-art-case:   #3A4757;
+  --mp-st:         #232C38;
+  --mp-st-case:    #2B3542;
+  --mp-road-ink:   #8494A6;
+  --mp-halo:       #171E27;
+
 
   --shadow-sm: 0 1px 2px rgba(0,0,0,.4);
   --shadow-md: 0 2px 4px rgba(0,0,0,.4), 0 14px 32px rgba(0,0,0,.45);
@@ -371,6 +433,38 @@ select:focus-visible, .btn:focus-visible, .vcard:focus-visible,
   font-variant-numeric: tabular-nums; color: var(--ink);
 }
 
+.hudchip--road .hudchip__v { font-size: 11.5px; letter-spacing: .01em; }
+
+.hudchip--status .hudchip__v {
+  font-size: 10px; letter-spacing: .09em; text-transform: uppercase;
+}
+.hudchip--status { border-color: var(--line); }
+.hudchip--status:has([data-status="STOPPED"])  { background: var(--red-soft);   border-color: var(--red); }
+.hudchip--status:has([data-status="CRAWLING"]) { background: var(--amber-soft); border-color: var(--amber); }
+.hudchip--status:has([data-status="CRUISING"]) { background: var(--green-soft); border-color: var(--green); }
+.hudchip--status [data-status="STOPPED"]  { color: var(--red); }
+.hudchip--status [data-status="CRAWLING"] { color: var(--amber); }
+.hudchip--status [data-status="CRUISING"] { color: var(--green); }
+
+/* ---------------- the driver card ---------------- */
+
+.dcard {
+  display: grid; grid-template-columns: auto 1fr auto; gap: 11px; align-items: center;
+  padding: 11px 12px; margin-bottom: 14px;
+  background: var(--surface-2); border: 1px solid var(--line); border-radius: var(--r-md);
+}
+.dcard__ava {
+  width: 34px; height: 34px; border-radius: 50%;
+  display: grid; place-items: center;
+  background: var(--blue-soft); color: var(--blue);
+  font-family: var(--f-display); font-size: 12.5px; font-weight: 700; letter-spacing: .02em;
+}
+.dcard__who, .dcard__car { display: grid; gap: 2px; min-width: 0; }
+.dcard__car { text-align: right; }
+.dcard__who b { font-size: 13.5px; color: var(--ink); }
+.dcard__car b { font-family: var(--f-mono); font-size: 12px; color: var(--ink); }
+.dcard__meta { font-size: 11px; color: var(--ink-3); }
+
 .toasts {
   position: absolute; right: 14px; top: 14px; display: grid; gap: 6px;
   width: min(255px, 55%); justify-items: end;
@@ -528,33 +622,89 @@ select:focus-visible, .btn:focus-visible, .vcard:focus-visible,
 
 /* ---------------- the SVG map ---------------- */
 
-.mp-bg     { fill: var(--surface-2); }
-.mp-block  { fill: var(--surface-3); }
-.mp-street { stroke: var(--line); stroke-width: 1.5; }
+.mp-land   { fill: var(--mp-land); }
+.mp-block  { fill: var(--mp-block); }
+.mp-block--dense { fill: var(--mp-block-dense); }
+.mp-park   { fill: var(--mp-park); }
+.mp-water  { fill: var(--mp-water); }
+.mp-river  {
+  fill: none; stroke: var(--mp-water); stroke-width: 7;
+  stroke-linecap: round; stroke-linejoin: round; opacity: .9;
+}
 
+.mp-water-label {
+  fill: var(--mp-water-ink); font-family: var(--f-body); font-size: 10px;
+  font-style: italic; letter-spacing: .06em;
+}
+.mp-green-label {
+  fill: var(--mp-park-ink); font-family: var(--f-body); font-size: 8.5px;
+  letter-spacing: .05em;
+}
+
+/* Roads: a wide casing underneath, the surface on top. Streets are
+   painted first, highways last, so junctions stack the way they do
+   on a real map. */
+.rd { stroke-linecap: round; stroke-linejoin: round; }
+.rd--street.rd--case   { stroke: var(--mp-st-case);  stroke-width: 2.7; }
+.rd--street.rd--fill   { stroke: var(--mp-st);       stroke-width: 1.6; }
+.rd--arterial.rd--case { stroke: var(--mp-art-case); stroke-width: 5.2; }
+.rd--arterial.rd--fill { stroke: var(--mp-art);      stroke-width: 3.4; }
+.rd--highway.rd--case  { stroke: var(--mp-hw-case);  stroke-width: 7.6; }
+.rd--highway.rd--fill  { stroke: var(--mp-hw);       stroke-width: 5.4; }
+
+.mp-road-label {
+  fill: var(--mp-road-ink); font-family: var(--f-mono); font-size: 7.4px;
+  letter-spacing: .09em; text-transform: uppercase;
+  paint-order: stroke; stroke: var(--mp-halo); stroke-width: 2.6px; stroke-linejoin: round;
+}
+.rdl--highway { fill: var(--mp-hw-case); font-weight: 500; }
+
+/* Landmarks */
+.poi__disc  { fill: var(--surface); stroke: var(--ink-3); stroke-width: 1.1; }
+.poi__glyph { fill: var(--ink-2); }
+.mp-poi-label {
+  fill: var(--ink-2); font-family: var(--f-body); font-size: 8.6px; font-weight: 600;
+  letter-spacing: .02em;
+  paint-order: stroke; stroke: var(--mp-halo); stroke-width: 2.8px; stroke-linejoin: round;
+}
+
+.poi.is-muted .mp-poi-label { display: none; }
+
+/* The rest of the city's traffic - decoration, nothing subscribes to it. */
+.mp-ambient { fill: var(--ink-3); opacity: .38; }
+
+/* The active route */
+.mp-route-case {
+  fill: none; stroke: var(--mp-route-case); stroke-width: 9;
+  stroke-linecap: round; stroke-linejoin: round; opacity: .85;
+}
 .mp-route {
-  fill: none; stroke: var(--ink-3); stroke-width: 3;
-  stroke-dasharray: 6 7; stroke-linecap: round; opacity: .55;
+  fill: none; stroke: var(--mp-route); stroke-width: 5;
+  stroke-linecap: round; stroke-linejoin: round; opacity: .38;
 }
+/* The covered part of the trip, drawn over the pending part. */
 .mp-route-done {
-  fill: none; stroke: var(--amber); stroke-width: 4;
+  fill: none; stroke: var(--mp-route); stroke-width: 5;
   stroke-linecap: round; stroke-linejoin: round;
-  transition: stroke-dashoffset .12s linear;
+  transition: stroke-dashoffset .1s linear;
 }
 
-.mp-pin-a  { fill: var(--blue); }
-.mp-pin-b  { fill: var(--amber); }
+.mp-pin-a  { fill: var(--mp-pin-a); }
+.mp-pin-b  { fill: var(--mp-pin-b); }
 .mp-halo   { opacity: .2; }
 
 .mp-label {
-  fill: var(--ink-2); font-family: var(--f-mono); font-size: 12px;
-  paint-order: stroke; stroke: var(--surface-2); stroke-width: 3.5px; stroke-linejoin: round;
+  fill: var(--ink); font-family: var(--f-mono); font-size: 12px; font-weight: 500;
+  paint-order: stroke; stroke: var(--mp-halo); stroke-width: 4px; stroke-linejoin: round;
 }
 
-#car { transition: transform .1s linear; opacity: 0; }
+#car { transition: transform .09s linear; opacity: 0; }
+#car .shadow { fill: rgba(0,0,0,.3); transform: translate(1px, 2px); }
 #car .body   { fill: var(--ink); }
 #car .glass  { fill: var(--amber); }
+#car .lamp   { fill: #FFF0BE; }
 #car .pulse  { fill: var(--amber); opacity: .22; }
+#car.is-stopped .pulse { fill: var(--red); opacity: .3; }
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
@@ -657,6 +807,7 @@ select:focus-visible, .btn:focus-visible, .vcard:focus-visible,
           <span class="statebar__k">now</span>
           <span class="statebar__v" id="stateLabel">Pick a route and book</span>
         </div>
+        <div class="dcard" id="driverCard" hidden></div>
         <div class="lifecycle" id="lifecycle"></div>
         <button class="btn btn--ghost" id="btnCancel" type="button" disabled>Cancel ride</button>
       </div>
@@ -670,22 +821,30 @@ select:focus-visible, .btn:focus-visible, .vcard:focus-visible,
     <section class="panel">
       <div class="panel__hd">
         <h2 class="panel__title">Live map &middot; Observer subject broadcasting</h2>
-        <span class="panel__title">Hyderabad</span>
+        <span class="panel__title" id="viaLine">Hyderabad</span>
       </div>
       <div class="mapwrap">
-        <svg id="map" viewBox="0 0 720 420" role="img" aria-label="Simulated city map showing the driver moving along the route">
-          <g id="streets"></g>
+        <svg id="map" viewBox="0 0 720 420" role="img" aria-label="Simulated Hyderabad street map showing the driver moving along the routed roads">
+          <g id="terrain"></g>
+          <g id="roads"></g>
+          <g id="pois"></g>
+          <g id="ambient"></g>
           <g id="routelayer"></g>
           <g id="car">
-            <circle class="pulse" r="14"></circle>
-            <rect class="body" x="-9" y="-6" width="18" height="12" rx="3"></rect>
-            <rect class="glass" x="1" y="-4" width="6" height="8" rx="1.5"></rect>
+            <circle class="pulse" r="15"></circle>
+            <rect class="shadow" x="-9" y="-5" width="19" height="11" rx="3.5"></rect>
+            <rect class="body" x="-9" y="-6" width="18" height="12" rx="3.5"></rect>
+            <rect class="glass" x="0" y="-4" width="6" height="8" rx="1.5"></rect>
+            <rect class="lamp" x="7.4" y="-4.4" width="2" height="2" rx="1"></rect>
+            <rect class="lamp" x="7.4" y="2.4" width="2" height="2" rx="1"></rect>
           </g>
         </svg>
         <div class="hud">
           <div class="hudchip"><span class="hudchip__k">ETA</span><span class="hudchip__v" id="hudEta">--</span></div>
           <div class="hudchip"><span class="hudchip__k">Dist</span><span class="hudchip__v" id="hudKm">--</span></div>
           <div class="hudchip"><span class="hudchip__k">Speed</span><span class="hudchip__v" id="hudSpeed">0 km/h</span></div>
+          <div class="hudchip hudchip--road"><span class="hudchip__k">On</span><span class="hudchip__v" id="hudRoad">--</span></div>
+          <div class="hudchip hudchip--status"><span class="hudchip__v" id="hudStatus" data-status="IDLE">idle</span></div>
         </div>
         <div class="toasts" id="toasts"></div>
       </div>
@@ -1008,19 +1167,27 @@ class LocationObserver {
 
 // 3. Concrete observers. None of them knows the others exist.
 class MapMarkerObserver extends LocationObserver {
-  update(fix) { this.moveMarker(fix.point, fix.heading); }
+  update(fix) { this.moveMarker(fix.point, fix.heading, fix.progress, fix.status); }
 }
 
 class EtaPanelObserver extends LocationObserver {
-  update(fix) { this.showEta(fix.etaMin, fix.remainingKm, fix.speedKmph); }
+  update(fix) { this.showEta(fix); }        // ETA, distance, speed, road name
 }
 
 // 4. Wiring - and the checkboxes above call exactly these two methods.
 publisher.subscribe(new MapMarkerObserver(moveCar));
-publisher.subscribe(new EtaPanelObserver(showEta));
+publisher.subscribe(new EtaPanelObserver(showTelemetry));
 
-// 5. Every GPS fix, one line reaches all of them:
-publisher.notify({ point, heading, etaMin, remainingKm, speedKmph });
+// 5. Where the car actually IS comes from traffic.js, which accelerates,
+//    brakes for bends and sits at red lights. The subject just relays it -
+//    it does not drive, and it does not know who is listening.
+motion.step(dtSeconds);
+
+publisher.notify({
+  leg, progress, point, heading,
+  road: "PVNR Expressway", roadClass: "highway", status: "CRUISING",
+  remainingKm, etaMin, speedKmph,
+});
 </script>
 
 <script type="text/plain" id="src-state">
@@ -1196,91 +1363,761 @@ const log = (tag, message) => DispatchLog.getInstance().write(tag, message);
 
 /* ===== js/core/geo.js ===== */
 /* ============================================================
-   Map geometry - plain helper code, not a design pattern.
-   The map is an SVG with a 720 x 420 coordinate space; every
-   location below is a point in that space, so distances in the
-   app are derived from the map rather than made up.
+   Map geometry + the city itself - plain helper code, NOT a
+   design pattern.
+
+   The map is an SVG with a 720 x 420 coordinate space. Everything
+   the app knows about distance comes from this file: the city has
+   a real road network (a planar graph built from named roads),
+   and routes are found by shortest-travel-time search across it.
+   Nothing here is a straight line between two dots.
    ============================================================ */
 
 /** 1 map pixel = 0.05 km, i.e. 200 px across the map = 10 km. */
 const KM_PER_PX = 0.05;
 
+/* ------------------------------------------------------------
+   1. LANDMARKS the rider can pick
+   ------------------------------------------------------------ */
+
 const LOCATIONS = [
-  { id: "kukatpally",   name: "Kukatpally",        x:  95, y:  95 },
-  { id: "hitech",       name: "Hitech City",       x: 250, y: 175 },
-  { id: "gachibowli",   name: "Gachibowli",        x: 170, y: 300 },
-  { id: "jubilee",      name: "Jubilee Hills",     x: 395, y: 120 },
-  { id: "secunderabad", name: "Secunderabad Stn",  x: 560, y:  95 },
-  { id: "charminar",    name: "Charminar",         x: 470, y: 330 },
-  { id: "airport",      name: "RGIA Airport",      x: 630, y: 375 },
+  { id: "kukatpally",   name: "Kukatpally",       kind: "suburb",   x:  95, y:  95 },
+  { id: "hitech",       name: "Hitech City",      kind: "business", x: 250, y: 175 },
+  { id: "gachibowli",   name: "Gachibowli",       kind: "business", x: 170, y: 300 },
+  { id: "jubilee",      name: "Jubilee Hills",    kind: "suburb",   x: 395, y: 120 },
+  { id: "secunderabad", name: "Secunderabad Stn", kind: "rail",     x: 560, y:  95 },
+  { id: "charminar",    name: "Charminar",        kind: "heritage", x: 470, y: 330 },
+  { id: "airport",      name: "RGIA Airport",     kind: "airport",  x: 630, y: 375 },
 ];
 
 const findLocation = (id) => LOCATIONS.find((l) => l.id === id);
 
+/* ------------------------------------------------------------
+   2. TERRAIN - the things roads have to go around
+   ------------------------------------------------------------ */
+
+/** Hussain Sagar. Roads stop at its bank; a route has to go round. */
+const WATER = [
+  {
+    name: "Hussain Sagar",
+    points: [
+      { x: 452, y: 150 }, { x: 470, y: 128 }, { x: 500, y: 122 }, { x: 524, y: 134 },
+      { x: 532, y: 158 }, { x: 528, y: 186 }, { x: 512, y: 205 }, { x: 486, y: 210 },
+      { x: 462, y: 198 }, { x: 448, y: 174 },
+    ],
+  },
+];
+
+/** The Musi, running east-west across the old city. */
+const RIVER = {
+  name: "Musi River",
+  points: [
+    { x: 352, y: 296 }, { x: 400, y: 286 }, { x: 448, y: 292 },
+    { x: 500, y: 284 }, { x: 556, y: 292 }, { x: 612, y: 282 }, { x: 720, y: 288 },
+  ],
+};
+
+const PARKS = [
+  { name: "KBR Park",       points: [{ x: 322, y: 132 }, { x: 372, y: 124 }, { x: 386, y: 160 }, { x: 350, y: 178 }, { x: 316, y: 164 }] },
+  { name: "Botanical Gdn",  points: [{ x: 196, y: 214 }, { x: 240, y: 208 }, { x: 248, y: 240 }, { x: 208, y: 250 }] },
+  { name: "Public Gardens", points: [{ x: 424, y: 232 }, { x: 462, y: 226 }, { x: 468, y: 254 }, { x: 430, y: 260 }] },
+];
+
+/* ------------------------------------------------------------
+   3. THE ROAD NETWORK
+   ------------------------------------------------------------
+   Each road is a named polyline with a class. The class sets how
+   fast traffic moves on it, which is what makes the router prefer
+   the expressway to a lane even when the lane is shorter.
+   ------------------------------------------------------------ */
+
+const ROAD_SPEED = {   // km/h, free-flow
+  highway:  62,
+  arterial: 38,
+  street:   22,
+};
+
+const NAMED_ROADS = [
+  { name: "Outer Ring Road", cls: "highway", points: [
+    { x:  62, y:  52 }, { x:  44, y: 150 }, { x:  58, y: 252 }, { x: 118, y: 336 },
+    { x: 232, y: 382 }, { x: 366, y: 400 }, { x: 502, y: 396 }, { x: 604, y: 386 }, { x: 662, y: 356 } ] },
+
+  { name: "PVNR Expressway", cls: "highway", points: [
+    { x: 286, y: 268 }, { x: 372, y: 316 }, { x: 468, y: 354 }, { x: 556, y: 372 }, { x: 630, y: 375 } ] },
+
+  { name: "NH-44", cls: "highway", points: [
+    { x: 548, y:  28 }, { x: 560, y:  95 }, { x: 552, y: 168 }, { x: 546, y: 236 },
+    { x: 522, y: 296 }, { x: 470, y: 330 } ] },
+
+  { name: "NH-65 Mumbai Hwy", cls: "highway", points: [
+    { x:  95, y:  95 }, { x: 166, y: 128 }, { x: 250, y: 175 }, { x: 318, y: 206 }, { x: 396, y: 224 } ] },
+
+  { name: "Old Mumbai Rd", cls: "arterial", points: [
+    { x: 250, y: 175 }, { x: 226, y: 232 }, { x: 196, y: 268 }, { x: 170, y: 300 } ] },
+
+  { name: "Gachibowli Link", cls: "arterial", points: [
+    { x: 170, y: 300 }, { x: 214, y: 322 }, { x: 286, y: 268 } ] },
+
+  { name: "Jubilee Hills Rd 36", cls: "arterial", points: [
+    { x: 250, y: 175 }, { x: 312, y: 152 }, { x: 356, y: 124 }, { x: 395, y: 120 } ] },
+
+  { name: "Banjara Hills Rd 1", cls: "arterial", points: [
+    { x: 395, y: 120 }, { x: 412, y: 166 }, { x: 408, y: 214 }, { x: 396, y: 224 } ] },
+
+  { name: "Necklace Rd", cls: "arterial", points: [
+    { x: 440, y: 196 }, { x: 438, y: 158 }, { x: 452, y: 126 }, { x: 486, y: 108 },
+    { x: 522, y: 112 }, { x: 540, y: 140 } ] },
+
+  { name: "Tank Bund Rd", cls: "arterial", points: [
+    { x: 540, y: 140 }, { x: 544, y: 172 }, { x: 530, y: 206 }, { x: 502, y: 224 }, { x: 466, y: 222 } ] },
+
+  { name: "Sardar Patel Rd", cls: "arterial", points: [
+    { x: 560, y:  95 }, { x: 522, y: 112 } ] },
+
+  { name: "Rajiv Gandhi Rd", cls: "arterial", points: [
+    { x: 396, y: 224 }, { x: 432, y: 262 }, { x: 448, y: 292 }, { x: 470, y: 330 } ] },
+
+  { name: "Charminar–Airport Rd", cls: "arterial", points: [
+    { x: 470, y: 330 }, { x: 540, y: 344 }, { x: 596, y: 360 }, { x: 630, y: 375 } ] },
+
+  { name: "Secunderabad Link", cls: "arterial", points: [
+    { x: 560, y:  95 }, { x: 596, y: 132 }, { x: 606, y: 190 }, { x: 590, y: 246 }, { x: 546, y: 236 } ] },
+
+  { name: "Banjara Hills Rd 12", cls: "arterial", points: [
+    { x: 395, y: 120 }, { x: 418, y: 152 }, { x: 432, y: 178 }, { x: 440, y: 196 } ] },
+
+  { name: "Basheerbagh Rd", cls: "arterial", points: [
+    { x: 466, y: 222 }, { x: 432, y: 230 }, { x: 396, y: 224 } ] },
+
+  { name: "Kukatpally Main", cls: "arterial", points: [
+    { x:  95, y:  95 }, { x: 104, y: 160 }, { x: 128, y: 214 }, { x: 170, y: 260 }, { x: 170, y: 300 } ] },
+];
+
+/* ---------- a jittered minor-street grid, kept out of the water ---------- */
+
+/** Deterministic pseudo-random in [0,1) so the city looks the same every load. */
+function cityNoise(a, b) {
+  const s = Math.sin(a * 127.1 + b * 311.7) * 43758.5453;
+  return s - Math.floor(s);
+}
+
+function pointInPolygon(pt, poly) {
+  let inside = false;
+  for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) {
+    const xi = poly[i].x, yi = poly[i].y, xj = poly[j].x, yj = poly[j].y;
+    if ((yi > pt.y) !== (yj > pt.y) && pt.x < ((xj - xi) * (pt.y - yi)) / (yj - yi) + xi) inside = !inside;
+  }
+  return inside;
+}
+
+const inWater = (pt) => WATER.some((w) => pointInPolygon(pt, w.points));
+
+function buildMinorStreets() {
+  const roads = [];
+  const wob = (i, j) => (cityNoise(i, j) - 0.5) * 26;
+
+  for (let r = 0; r < 7; r++) {                     // east-west lanes
+    const y = 34 + r * 58;
+    const pts = [];
+    for (let c = 0; c <= 9; c++) pts.push({ x: c * 80, y: y + wob(r, c) });
+    roads.push({ name: "", cls: "street", points: pts });
+  }
+  for (let c = 0; c < 9; c++) {                     // north-south lanes
+    const x = 40 + c * 82;
+    const pts = [];
+    for (let r = 0; r <= 7; r++) pts.push({ x: x + wob(c + 40, r), y: r * 60 });
+    roads.push({ name: "", cls: "street", points: pts });
+  }
+  return roads;
+}
+
+/** Every road in the city, majors first so they win when drawn. */
+const ROADS = NAMED_ROADS.concat(buildMinorStreets());
+
+/* ------------------------------------------------------------
+   4. TURNING THE ROADS INTO A GRAPH
+   ------------------------------------------------------------
+   Roads are drawn as free polylines, so they cross wherever they
+   cross. This splits every segment at each crossing and welds
+   shared corners, producing a proper junction network to search.
+   ------------------------------------------------------------ */
+
+const EPS = 1e-9;
+
+/** Where two segments cross, as parameters along each, or null. */
+function segIntersect(a1, a2, b1, b2) {
+  const rx = a2.x - a1.x, ry = a2.y - a1.y;
+  const sx = b2.x - b1.x, sy = b2.y - b1.y;
+  const denom = rx * sy - ry * sx;
+  if (Math.abs(denom) < EPS) return null;                 // parallel
+  const t = ((b1.x - a1.x) * sy - (b1.y - a1.y) * sx) / denom;
+  const u = ((b1.x - a1.x) * ry - (b1.y - a1.y) * rx) / denom;
+  if (t < EPS || t > 1 - EPS || u < EPS || u > 1 - EPS) return null;
+  return { t, u };
+}
+
+class RoadNetwork {
+  constructor(roads) {
+    this.nodes = [];            // { x, y }
+    this.adj = new Map();       // nodeId -> [{ to, cost, km, cls, name }]
+    this.edges = [];            // flattened, for drawing
+    this._ids = new Map();
+    this._build(roads);
+  }
+
+  _nodeId(pt) {
+    const key = Math.round(pt.x * 2) + ":" + Math.round(pt.y * 2);
+    if (this._ids.has(key)) return this._ids.get(key);
+    const id = this.nodes.length;
+    this.nodes.push({ x: pt.x, y: pt.y });
+    this.adj.set(id, []);
+    this._ids.set(key, id);
+    return id;
+  }
+
+  _build(roads) {
+    // Flatten every road into segments, dropping anything under water.
+    const segs = [];
+    roads.forEach((road) => {
+      for (let i = 0; i < road.points.length - 1; i++) {
+        const a = road.points[i], b = road.points[i + 1];
+        const mid = { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 };
+        if (inWater(mid) || inWater(a) || inWater(b)) continue;
+        segs.push({ a, b, cls: road.cls, name: road.name, cuts: [] });
+      }
+    });
+
+    // Record every crossing as a cut on both segments.
+    for (let i = 0; i < segs.length; i++) {
+      for (let j = i + 1; j < segs.length; j++) {
+        const hit = segIntersect(segs[i].a, segs[i].b, segs[j].a, segs[j].b);
+        if (!hit) continue;
+        segs[i].cuts.push(hit.t);
+        segs[j].cuts.push(hit.u);
+      }
+    }
+
+    // Split at the cuts and wire the pieces into the graph.
+    segs.forEach((seg) => {
+      const ts = [0].concat(seg.cuts, [1]).sort((p, q) => p - q);
+      const at = (t) => ({ x: seg.a.x + (seg.b.x - seg.a.x) * t, y: seg.a.y + (seg.b.y - seg.a.y) * t });
+      for (let k = 0; k < ts.length - 1; k++) {
+        const p = at(ts[k]), q = at(ts[k + 1]);
+        if (Math.hypot(q.x - p.x, q.y - p.y) < 1.5) continue;
+        this._link(this._nodeId(p), this._nodeId(q), seg.cls, seg.name);
+      }
+    });
+  }
+
+  _link(from, to, cls, name) {
+    if (from === to) return;
+    const a = this.nodes[from], b = this.nodes[to];
+    const km = Math.hypot(b.x - a.x, b.y - a.y) * KM_PER_PX;
+    // Congestion is fixed per stretch of road, so the same trip routes
+    // and prices the same way twice - a demo that reshuffles is useless.
+    const jam = 0.72 + cityNoise(from, to) * 0.5;
+    const hours = km / (ROAD_SPEED[cls] * jam);
+
+    // Cost is mostly travel time, with a distance term mixed in. On pure
+    // time the router will happily add 20 km of expressway to save thirty
+    // seconds - technically optimal, obviously wrong to the person paying
+    // by the kilometre.
+    const cost = hours * 0.72 + (km / 45) * 0.28;
+
+    this.adj.get(from).push({ to, cost, km, cls, name });
+    this.adj.get(to).push({ to: from, cost, km, cls, name });
+    this.edges.push({ a, b, cls, name });
+  }
+
+  /** The junction a rider standing at `pt` would walk out to. */
+  nearestNode(pt) {
+    let best = 0, bestD = Infinity;
+    this.nodes.forEach((n, i) => {
+      const d = (n.x - pt.x) * (n.x - pt.x) + (n.y - pt.y) * (n.y - pt.y);
+      if (d < bestD) { bestD = d; best = i; }
+    });
+    return best;
+  }
+
+  /** Dijkstra on travel time. Returns the chain of junctions, or null. */
+  shortestPath(startId, goalId) {
+    const dist = new Map([[startId, 0]]);
+    const prev = new Map();
+    const seen = new Set();
+    const queue = [{ id: startId, d: 0 }];
+
+    while (queue.length) {
+      queue.sort((p, q) => p.d - q.d);
+      const { id } = queue.shift();
+      if (seen.has(id)) continue;
+      seen.add(id);
+      if (id === goalId) break;
+
+      for (const edge of this.adj.get(id) || []) {
+        if (seen.has(edge.to)) continue;
+        const alt = dist.get(id) + edge.cost;
+        if (alt < (dist.has(edge.to) ? dist.get(edge.to) : Infinity)) {
+          dist.set(edge.to, alt);
+          prev.set(edge.to, { from: id, edge });
+          queue.push({ id: edge.to, d: alt });
+        }
+      }
+    }
+
+    if (startId === goalId) return [{ id: startId, cls: "street", name: "" }];
+    if (!prev.has(goalId)) return null;
+
+    const chain = [];
+    let cur = goalId;
+    while (cur !== startId) {
+      const step = prev.get(cur);
+      if (!step) break;
+      chain.unshift({ id: cur, cls: step.edge.cls, name: step.edge.name });
+      cur = step.from;
+    }
+    chain.unshift({ id: startId, cls: chain.length ? chain[0].cls : "street", name: "" });
+    return chain;
+  }
+}
+
+const CITY = new RoadNetwork(ROADS);
+
+/* ------------------------------------------------------------
+   5. A ROUTE ALONG THOSE ROADS
+   ------------------------------------------------------------ */
+
 /**
- * A polyline route with the two things the Observer pattern needs
- * from it: where the car is at progress t, and which way it faces.
+ * A polyline route that knows three things the rest of the app
+ * needs: where the car is at progress t, which way it faces, and
+ * what kind of road it is on right there - so traffic.js can pick
+ * a believable speed for that stretch.
  */
 class RoutePath {
-  constructor(points) {
+  constructor(points, classes, names) {
     this.points = points;
     this.segments = [];
     this.lengthPx = 0;
+    classes = classes || [];
+    names = names || [];
 
     for (let i = 0; i < points.length - 1; i++) {
       const a = points[i];
       const b = points[i + 1];
       const len = Math.hypot(b.x - a.x, b.y - a.y);
-      this.segments.push({ a, b, len, start: this.lengthPx });
+      this.segments.push({
+        a, b, len,
+        start: this.lengthPx,
+        cls:  classes[i] || "street",
+        name: names[i] || "",
+      });
       this.lengthPx += len;
     }
   }
 
-  /** @param {number} t 0 = start of route, 1 = destination */
-  pointAt(t) {
+  _segmentAt(t) {
     const target = Math.max(0, Math.min(1, t)) * this.lengthPx;
     for (const s of this.segments) {
-      if (target <= s.start + s.len || s === this.segments[this.segments.length - 1]) {
-        const local = s.len === 0 ? 0 : (target - s.start) / s.len;
-        return {
-          x: s.a.x + (s.b.x - s.a.x) * local,
-          y: s.a.y + (s.b.y - s.a.y) * local,
-        };
-      }
+      if (target <= s.start + s.len) return { s, local: s.len === 0 ? 0 : (target - s.start) / s.len };
     }
-    return this.points[this.points.length - 1];
+    const last = this.segments[this.segments.length - 1];
+    return last ? { s: last, local: 1 } : null;
+  }
+
+  /** @param {number} t 0 = start of route, 1 = destination */
+  pointAt(t) {
+    const hit = this._segmentAt(t);
+    if (!hit) return this.points[0];
+    return {
+      x: hit.s.a.x + (hit.s.b.x - hit.s.a.x) * hit.local,
+      y: hit.s.a.y + (hit.s.b.y - hit.s.a.y) * hit.local,
+    };
   }
 
   /** Degrees of rotation for the car marker. */
   headingAt(t) {
-    const p1 = this.pointAt(Math.max(0, t - 0.01));
-    const p2 = this.pointAt(Math.min(1, t + 0.01));
+    const p1 = this.pointAt(Math.max(0, t - 0.008));
+    const p2 = this.pointAt(Math.min(1, t + 0.008));
     return (Math.atan2(p2.y - p1.y, p2.x - p1.x) * 180) / Math.PI;
   }
 
+  /** Road class under the car right now: highway | arterial | street. */
+  classAt(t) {
+    const hit = this._segmentAt(t);
+    return hit ? hit.s.cls : "street";
+  }
+
+  /** Name of the road under the car, "" for an unnamed lane. */
+  roadAt(t) {
+    const hit = this._segmentAt(t);
+    return hit ? hit.s.name : "";
+  }
+
+  /** How sharply the road bends `ahead` down the route, in degrees. */
+  turnAt(t, ahead) {
+    const h1 = this.headingAt(t);
+    const h2 = this.headingAt(Math.min(1, t + (ahead || 0.035)));
+    const d = Math.abs(h2 - h1) % 360;
+    return d > 180 ? 360 - d : d;
+  }
+
+  /** The named roads this route uses, in order - the turn-by-turn list. */
+  legNames() {
+    const out = [];
+    this.segments.forEach((s) => {
+      if (s.name && out[out.length - 1] !== s.name) out.push(s.name);
+    });
+    return out;
+  }
+
   toSvgPath() {
-    return this.points.map((p, i) => `${i === 0 ? "M" : "L"} ${p.x.toFixed(1)} ${p.y.toFixed(1)}`).join(" ");
+    return this.points.map((p, i) => (i === 0 ? "M" : "L") + " " + p.x.toFixed(1) + " " + p.y.toFixed(1)).join(" ");
   }
 }
 
 /**
- * Cars follow streets, not straight lines, so a route bends twice:
- * across, then down, then across again.
+ * Route from one point to another ALONG THE ROADS. Both ends snap
+ * to the nearest junction, the network is searched for the quickest
+ * way between them, and the short hops from the kerb to that
+ * junction are stitched on either end.
  */
 function buildRoute(from, to) {
-  const bendX = from.x + (to.x - from.x) * 0.62;
-  const points = [
-    { x: from.x, y: from.y },
-    { x: bendX,  y: from.y },
-    { x: bendX,  y: to.y   },
-    { x: to.x,   y: to.y   },
-  ];
-  return new RoutePath(points);
+  const startId = CITY.nearestNode(from);
+  const goalId  = CITY.nearestNode(to);
+  const chain   = CITY.shortestPath(startId, goalId);
+
+  if (!chain || chain.length < 2) {
+    // Nothing connected (shouldn't happen) - fall back to a bent line.
+    const bendX = from.x + (to.x - from.x) * 0.62;
+    return new RoutePath(
+      [{ x: from.x, y: from.y }, { x: bendX, y: from.y }, { x: bendX, y: to.y }, { x: to.x, y: to.y }]
+    );
+  }
+
+  const points  = [{ x: from.x, y: from.y }];
+  const classes = [];
+  const names   = [];
+
+  chain.forEach((step, i) => {
+    const n = CITY.nodes[step.id];
+    const prev = points[points.length - 1];
+    if (Math.hypot(n.x - prev.x, n.y - prev.y) < 0.6) return;
+    points.push({ x: n.x, y: n.y });
+    classes.push(i === 0 ? "street" : step.cls);
+    names.push(i === 0 ? "" : step.name);
+  });
+
+  const last = points[points.length - 1];
+  if (Math.hypot(to.x - last.x, to.y - last.y) > 0.6) {
+    points.push({ x: to.x, y: to.y });
+    classes.push("street");
+    names.push("");
+  }
+
+  return new RoutePath(points, classes, names);
 }
 
-/** Road distance (following the bends), rounded to one decimal. */
+/** Road distance (following every bend), rounded to one decimal. */
 function roadKm(path) {
   return +(path.lengthPx * KM_PER_PX).toFixed(1);
+}
+
+
+/* ===== js/core/traffic.js ===== */
+/* ============================================================
+   Traffic + vehicle motion - plain helper code, NOT a pattern.
+   ------------------------------------------------------------
+   The Observer pattern in observer.js broadcasts "the driver
+   moved". THIS file decides where the driver actually got to,
+   and it does it the way a car does: accelerating, braking for
+   bends, crawling in congestion and stopping at red lights.
+
+   Nothing here knows the map is on screen, and nothing here
+   knows anyone is subscribed. It just drives.
+   ============================================================ */
+
+/* ---------- how hard a vehicle can push ---------- */
+
+const MOTION = {
+  accelKmphPerSec: 7.5,     // gentle pull-away
+  brakeKmphPerSec: 16,      // firmer than it accelerates, like a real car
+  turnSlowDeg:     42,      // a bend this sharp forces a real slowdown
+  signalEverySec:  0,       // set per junction below
+};
+
+/**
+ * Congestion for one stretch, 0.35 (crawling) .. 1.0 (clear).
+ * Fixed per stretch of road so a route behaves the same way twice,
+ * and worse on small streets than on the expressway.
+ */
+function congestionAt(path, t) {
+  const cls = path.classAt(t);
+  const base = cls === "highway" ? 0.90 : cls === "arterial" ? 0.74 : 0.58;
+  const wobble = cityNoise(Math.floor(t * 24), path.lengthPx | 0);
+  return Math.max(0.32, Math.min(1, base + (wobble - 0.5) * 0.34));
+}
+
+/**
+ * One car driving one route.
+ *
+ * Distances are real kilometres and speeds are real km/h - the
+ * demo only speeds up the CLOCK (see `timeScale`), so the numbers
+ * on the HUD stay believable while the animation stays watchable.
+ */
+class VehicleMotion {
+  /**
+   * @param {object} opts { path, distanceKm, cruiseKmph, seed }
+   */
+  constructor(opts) {
+    this.path = opts.path;
+    this.distanceKm = opts.distanceKm;
+    this.cruiseKmph = opts.cruiseKmph || 34;
+    this.seed = opts.seed || 1;
+
+    this.signals = this._placeSignals();
+    this.reset();
+  }
+
+  reset() {
+    this.travelledKm = 0;
+    this.speedKmph = 0;
+    this.elapsedSec = 0;
+    this.stoppedFor = 0;
+    this.cleared = new Set();
+    this.recentSpeed = [];
+    this.stops = 0;
+  }
+
+  /**
+   * Traffic lights sit at junctions - the corners of the route -
+   * but only on ordinary roads. Nobody stops on the expressway.
+   */
+  _placeSignals() {
+    const out = [];
+    let run = 0;
+    this.path.segments.forEach((s, i) => {
+      run += s.len;
+      if (i === this.path.segments.length - 1) return;
+      const t = run / this.path.lengthPx;
+      if (this.path.classAt(t) === "highway") return;
+      const roll = cityNoise(i * 7.3 + this.seed, run);
+      if (roll > 0.62) out.push({ t, wait: 4 + roll * 9, id: i });
+    });
+    return out;
+  }
+
+  get progress() {
+    return this.distanceKm <= 0 ? 1 : Math.min(1, this.travelledKm / this.distanceKm);
+  }
+
+  get done() {
+    return this.progress >= 1;
+  }
+
+  /** Flat out for this vehicle. The cruise figure is a city AVERAGE,
+      so the real ceiling sits well above it. */
+  get topKmph() {
+    return this.cruiseKmph * 2.3;
+  }
+
+  /**
+   * What the rest of the route can be driven at, from the road classes
+   * still ahead. This is the half of the ETA that does not lurch every
+   * time the car meets a red light.
+   */
+  expectedKmphAhead() {
+    const from = this.progress;
+    if (from >= 1) return this.cruiseKmph;
+
+    const remainingKm = this.distanceKm * (1 - from);
+    const steps = 16;
+    let hours = 0;
+
+    for (let i = 0; i < steps; i++) {
+      const at = Math.min(1, from + ((i + 0.5) / steps) * (1 - from));
+      const limit = ROAD_SPEED[this.path.classAt(at)] || 22;
+      const bend = this.path.turnAt(at);
+      const turnFactor = bend > MOTION.turnSlowDeg ? Math.max(0.34, 1 - bend / 150) : 1;
+      const v = Math.max(6, Math.min(limit * congestionAt(this.path, at), this.topKmph) * turnFactor);
+      hours += (remainingKm / steps) / v;
+    }
+
+    // TIME is what adds up over a route, not speed. Averaging the speed
+    // limits arithmetically quietly promises a trip nobody can drive:
+    // one crawling kilometre costs far more than one clear kilometre
+    // saves. Total the hours, then divide back out.
+    return hours > 0 ? remainingKm / hours : this.cruiseKmph;
+  }
+
+  /**
+   * The pace the ETA is built on: what the road ahead allows, tempered
+   * by how this trip has actually been going. Straight observed speed
+   * sends the ETA up every time the car stops, which is why a real app
+   * blends the two.
+   */
+  get averageKmph() {
+    const expected = this.expectedKmphAhead();
+    if (!this.recentSpeed.length) return expected;
+    const observed = this.recentSpeed.reduce((a, b) => a + b, 0) / this.recentSpeed.length;
+
+    // Early on there is nothing to learn from: a car that has covered 200 m
+    // says nothing about the next 20 km, and letting it vote makes the
+    // opening ETA absurdly pessimistic. Trust the route estimate at first
+    // and hand weight over to observation as the trip proceeds.
+    const trust = Math.min(0.45, this.progress * 0.9);
+    return Math.max(6, expected * (1 - trust) + Math.max(observed, 5) * trust);
+  }
+
+  /** Minutes left: the driving, plus every light still to be sat at. */
+  get etaMin() {
+    const remaining = Math.max(0, this.distanceKm - this.travelledKm);
+    const driveSec = (remaining / this.averageKmph) * 3600;
+
+    const signalSec = this.signals
+      .filter((sig) => !this.cleared.has(sig.id))
+      .reduce((sum, sig) => sum + sig.wait, 0);
+
+    return Math.max(0, Math.ceil((driveSec + signalSec) / 60));
+  }
+
+  get remainingKm() {
+    return +Math.max(0, this.distanceKm - this.travelledKm).toFixed(1);
+  }
+
+  /** What the car is doing right now, for the HUD. */
+  get status() {
+    if (this.stoppedFor > 0) return "STOPPED";
+    if (this.speedKmph < 12) return "CRAWLING";
+    if (this.path.classAt(this.progress) === "highway") return "CRUISING";
+    return "MOVING";
+  }
+
+  /**
+   * The speed this stretch of road allows: its class limit, scaled
+   * by congestion, capped by what the vehicle can do, and cut back
+   * for a bend coming up.
+   */
+  targetKmph() {
+    const t = this.progress;
+    const limit = ROAD_SPEED[this.path.classAt(t)] || 22;
+    const flow  = limit * congestionAt(this.path, t);
+    const bend  = this.path.turnAt(t);
+    const turnFactor = bend > MOTION.turnSlowDeg ? Math.max(0.34, 1 - bend / 150) : 1;
+    return Math.max(8, Math.min(flow, this.topKmph) * turnFactor);
+  }
+
+  /**
+   * Advance by `dtSec` SIMULATED seconds. Called repeatedly by the
+   * Observer subject; each call is one GPS fix worth of movement.
+   */
+  step(dtSec) {
+    if (this.done) return;
+    this.elapsedSec += dtSec;
+
+    // Sitting at a red light.
+    if (this.stoppedFor > 0) {
+      this.stoppedFor -= dtSec;
+      this.speedKmph = 0;
+      this.recentSpeed.push(0);
+      if (this.recentSpeed.length > 40) this.recentSpeed.shift();
+      return;
+    }
+
+    // Approaching a light we have not cleared yet.
+    const ahead = this.signals.find(
+      (sig) => !this.cleared.has(sig.id) && this.progress >= sig.t - 0.012
+    );
+    if (ahead) {
+      this.cleared.add(ahead.id);
+      this.stoppedFor = ahead.wait;
+      this.stops += 1;
+      this.speedKmph = 0;
+      return;
+    }
+
+    // Ease toward the speed this stretch allows.
+    const target = this.targetKmph();
+    const rate = target > this.speedKmph ? MOTION.accelKmphPerSec : MOTION.brakeKmphPerSec;
+    const delta = Math.sign(target - this.speedKmph) * rate * dtSec;
+    this.speedKmph = Math.abs(target - this.speedKmph) < Math.abs(delta)
+      ? target
+      : this.speedKmph + delta;
+
+    this.travelledKm = Math.min(this.distanceKm, this.travelledKm + (this.speedKmph / 3600) * dtSec);
+
+    this.recentSpeed.push(this.speedKmph);
+    if (this.recentSpeed.length > 40) this.recentSpeed.shift();
+  }
+
+  /**
+   * Drive the whole leg with nobody watching, to find out how long
+   * it really takes. The publisher uses this to work out how fast to
+   * run the demo clock so a 30 km airport run still finishes on
+   * screen in a few seconds - without faking the speedometer.
+   */
+  realisticSeconds() {
+    const snapshot = {
+      travelledKm: this.travelledKm, speedKmph: this.speedKmph, elapsedSec: this.elapsedSec,
+      stoppedFor: this.stoppedFor, cleared: new Set(this.cleared),
+      recentSpeed: this.recentSpeed.slice(), stops: this.stops,
+    };
+
+    this.reset();
+    let guard = 0;
+    while (!this.done && guard < 40000) { this.step(0.5); guard += 1; }
+    const seconds = this.elapsedSec;
+
+    Object.assign(this, snapshot);
+    this.cleared = snapshot.cleared;
+    this.recentSpeed = snapshot.recentSpeed;
+    return Math.max(30, seconds);
+  }
+}
+
+/* ------------------------------------------------------------
+   Ambient city traffic - the other cars on the map.
+   Decorative only: nothing subscribes to these and no fare
+   depends on them. They exist so the city is not empty.
+   ------------------------------------------------------------ */
+
+class AmbientTraffic {
+  constructor(network, count) {
+    this.cars = [];
+    const usable = network.edges.filter((e) => e.cls !== "street");
+
+    for (let i = 0; i < count; i++) {
+      const edge = usable[Math.floor(cityNoise(i * 3.7, i * 1.9) * usable.length)];
+      if (!edge) continue;
+      this.cars.push({
+        edge,
+        t: cityNoise(i, i * 2.1),
+        dir: cityNoise(i * 5.1, 9) > 0.5 ? 1 : -1,
+        speed: 0.05 + cityNoise(i * 1.3, 4) * 0.16,
+        network,
+        seedIndex: i,
+      });
+    }
+  }
+
+  /** Nudge every car along its road; hop to a new road at the end. */
+  tick(dt) {
+    this.cars.forEach((car, i) => {
+      car.t += car.dir * car.speed * dt;
+      if (car.t > 1 || car.t < 0) {
+        const usable = car.network.edges;
+        car.edge = usable[Math.floor(Math.random() * usable.length)];
+        car.t = car.dir > 0 ? 0 : 1;
+      }
+    });
+  }
+
+  positions() {
+    return this.cars.map((car) => ({
+      x: car.edge.a.x + (car.edge.b.x - car.edge.a.x) * car.t,
+      y: car.edge.a.y + (car.edge.b.y - car.edge.a.y) * car.t,
+      heading: (Math.atan2(car.edge.b.y - car.edge.a.y, car.edge.b.x - car.edge.a.x) * 180) / Math.PI
+               + (car.dir < 0 ? 180 : 0),
+    }));
+  }
 }
 
 
@@ -1304,14 +2141,19 @@ class GeoService {
     return { path, km, minutes };
   }
 
-  /** Where the nearest free driver happens to be sitting right now. */
-  randomPointNear(location, spread = 130) {
+  /**
+   * Where the nearest free driver happens to be sitting right now.
+   * Snapped onto the road network - a waiting cab is parked on a
+   * street, not floating in the middle of Hussain Sagar.
+   */
+  randomPointNear(location, spread = 150) {
     const angle = Math.random() * Math.PI * 2;
     const dist = spread * (0.55 + Math.random() * 0.45);
-    return {
-      x: Math.max(40, Math.min(680, location.x + Math.cos(angle) * dist)),
-      y: Math.max(40, Math.min(380, location.y + Math.sin(angle) * dist)),
+    const guess = {
+      x: Math.max(30, Math.min(690, location.x + Math.cos(angle) * dist)),
+      y: Math.max(30, Math.min(390, location.y + Math.sin(angle) * dist)),
     };
+    return CITY.nodes[CITY.nearestNode(guess)];
   }
 }
 
@@ -1320,23 +2162,51 @@ class DriverMatchingService {
   constructor(geo) {
     this.geo = geo;
     this.pool = [
-      { name: "Ramesh K.",  rating: 4.9 },
-      { name: "Sunitha R.", rating: 4.8 },
-      { name: "Imran S.",   rating: 4.7 },
-      { name: "Vijay M.",   rating: 4.9 },
-      { name: "Priya N.",   rating: 5.0 },
+      { name: "Ramesh K.",  rating: 4.9, trips: 4182 },
+      { name: "Sunitha R.", rating: 4.8, trips: 2760 },
+      { name: "Imran S.",   rating: 4.7, trips: 6015 },
+      { name: "Vijay M.",   rating: 4.9, trips: 1188 },
+      { name: "Priya N.",   rating: 5.0, trips:  903 },
+      { name: "Anil T.",    rating: 4.6, trips: 7734 },
+      { name: "Farhan Q.",  rating: 4.8, trips: 3391 },
     ];
+
+    // What each class of vehicle on this fleet actually is.
+    this.models = {
+      BIKE:  ["Honda Activa", "TVS Jupiter", "Bajaj Pulsar"],
+      AUTO:  ["Bajaj RE", "Piaggio Ape", "TVS King"],
+      SEDAN: ["Maruti Dzire", "Hyundai Aura", "Honda Amaze", "Tata Tigor"],
+      SUV:   ["Toyota Innova", "Maruti Ertiga", "Mahindra Marazzo"],
+    };
+  }
+
+  /** Telangana plates: TS <district 07-36> <2 letters> <4 digits>. */
+  plateFor() {
+    const L = () => String.fromCharCode(65 + Math.floor(Math.random() * 26));
+    const district = String(7 + Math.floor(Math.random() * 30)).padStart(2, "0");
+    return `TS ${district} ${L()}${L()} ${1000 + Math.floor(Math.random() * 8999)}`;
   }
 
   findDriver(vehicle, pickup) {
     const person = this.pool[Math.floor(Math.random() * this.pool.length)];
+    const models = this.models[vehicle.code] || ["Unmarked"];
+    const at = this.geo.randomPointNear(pickup);
+    const awayKm = +(Math.hypot(at.x - pickup.x, at.y - pickup.y) * KM_PER_PX).toFixed(1);
+
     const driver = {
       ...person,
       vehicle,
-      plate: `TS ${9 + Math.floor(Math.random() * 3)}${String.fromCharCode(65 + Math.floor(Math.random() * 26))}A ${1000 + Math.floor(Math.random() * 8999)}`,
-      at: this.geo.randomPointNear(pickup),
+      model: models[Math.floor(Math.random() * models.length)],
+      plate: this.plateFor(),
+      at,
+      awayKm,
     };
-    log("SYSTEM", `DriverMatchingService: matched {{${driver.name}}} (${driver.rating}*) driving a ${vehicle.label} - ${driver.plate}`);
+
+    log(
+      "SYSTEM",
+      `DriverMatchingService: matched {{${driver.name}}} (${driver.rating}*, ${driver.trips} trips) ` +
+      `in a ${driver.model} - ${driver.plate}, ${awayKm} km away`
+    );
     return driver;
   }
 }
@@ -1730,38 +2600,69 @@ class DriverLocationPublisher {
   }
 
   /**
-   * Simulates the driver's phone emitting a GPS fix a few times a
-   * second while it travels from `route[0]` to the end of the route.
+   * Opens the driver's GPS stream for one leg of the trip.
    *
-   * @param {object} opts  { path, distanceKm, seconds, leg, onArrive }
+   * The subject does not decide where the car goes - VehicleMotion
+   * in traffic.js drives it, accelerating, braking for bends and
+   * stopping at red lights. All the Observer pattern does here is
+   * take whatever the car reports and hand it to every subscriber.
+   *
+   * @param {object} opts { path, distanceKm, seconds, cruiseKmph, leg, onArrive }
    */
   startTracking(opts) {
     this.stopTracking();
 
     const { path, distanceKm, seconds, leg, onArrive } = opts;
-    const tickMs = 90;
-    const totalTicks = Math.max(1, Math.round((seconds * 1000) / tickMs));
-    let tick = 0;
+    const tickMs = 80;
 
-    log("OBSERVER", `Driver GPS stream opened for leg {{${leg}}} - broadcasting to ${this.observers.length} subscriber(s)`);
+    const motion = new VehicleMotion({
+      path,
+      distanceKm,
+      cruiseKmph: opts.cruiseKmph || 34,
+      seed: path.lengthPx,
+    });
+
+    // The car drives at real speeds; only the CLOCK is compressed, so
+    // a 30 km airport run still plays out on screen in a few seconds
+    // without the speedometer telling lies.
+    const realSec = motion.realisticSeconds();
+    const timeScale = realSec / Math.max(1, seconds);
+    motion.reset();
+
+    this.motion = motion;
+    log(
+      "OBSERVER",
+      `Driver GPS stream opened for leg {{${leg}}} - ${distanceKm.toFixed(1)} km, ` +
+      `${Math.round(realSec / 60)} min of real driving at ${timeScale.toFixed(0)}x, ` +
+      `${motion.signals.length} signal(s) - broadcasting to ${this.observers.length} subscriber(s)`
+    );
+
+    let lastStops = 0;
 
     this.timer = setInterval(() => {
-      tick += 1;
-      const progress = Math.min(1, tick / totalTicks);
-      const remainingKm = +(distanceKm * (1 - progress)).toFixed(1);
-      const remainingSec = seconds * (1 - progress);
+      motion.step((tickMs / 1000) * timeScale);
+
+      if (motion.stops > lastStops) {
+        lastStops = motion.stops;
+        log("OBSERVER", `Driver held at a signal on {{${path.roadAt(motion.progress) || "an unnamed lane"}}}`);
+      }
+
+      const progress = motion.progress;
 
       this.notify({
         leg,
         progress,
         point: path.pointAt(progress),
         heading: path.headingAt(progress),
-        remainingKm,
-        etaMin: Math.max(0, Math.ceil(remainingSec / 60)),
-        speedKmph: Math.round(28 + Math.sin(tick / 6) * 9),
+        road: path.roadAt(progress),
+        roadClass: path.classAt(progress),
+        status: motion.status,
+        remainingKm: motion.remainingKm,
+        etaMin: motion.etaMin,
+        speedKmph: Math.round(motion.speedKmph),
       });
 
-      if (progress >= 1) {
+      if (motion.done) {
         this.stopTracking();
         if (onArrive) onArrive();
       }
@@ -1784,17 +2685,17 @@ class MapMarkerObserver extends LocationObserver {
     this.moveMarker = moveMarker;
   }
   update(fix) {
-    this.moveMarker(fix.point, fix.heading, fix.progress);
+    this.moveMarker(fix.point, fix.heading, fix.progress, fix.status);
   }
 }
 
 class EtaPanelObserver extends LocationObserver {
   constructor(showEta) {
-    super("eta", "EtaPanelObserver", "Refreshes the ETA, distance and speed readouts.");
+    super("eta", "EtaPanelObserver", "Refreshes ETA, distance, speed and the road name.");
     this.showEta = showEta;
   }
   update(fix) {
-    this.showEta(fix.etaMin, fix.remainingKm, fix.speedKmph);
+    this.showEta(fix);
   }
 }
 
@@ -1805,10 +2706,16 @@ class TripLogObserver extends LocationObserver {
   }
   update(fix) {
     this.count += 1;
-    // A real fleet logger samples; printing every 90 ms would drown the console.
-    if (this.count % 18 !== 0) return;
-    log("OBSERVER", `fix #${this.count} - ${fix.remainingKm} km out, ETA ${fix.etaMin} min, ${fix.speedKmph} km/h`);
+    // A real fleet logger samples; printing every 80 ms would drown the console.
+    if (this.count % 20 !== 0) return;
+    const where = fix.road ? "on " + fix.road : "on a side lane";
+    log(
+      "OBSERVER",
+      `fix #${this.count} ${where} - ${fix.remainingKm} km out, ETA ${fix.etaMin} min, ` +
+      `${fix.speedKmph} km/h (${fix.status.toLowerCase()})`
+    );
   }
+  reset() { this.count = 0; }
 }
 
 class PushNotificationObserver extends LocationObserver {
@@ -1818,16 +2725,22 @@ class PushNotificationObserver extends LocationObserver {
     this.sent = new Set();
   }
   update(fix) {
+    // Real apps alert on TIME LEFT, not on a fraction of the route -
+    // "5 minutes away" means something to a rider, "62% there" does not.
     const alerts = [
-      { at: 0.55, key: "half",    text: "Driver is halfway to you." },
-      { at: 0.88, key: "close",   text: "Driver is arriving in a minute." },
+      { key: "five",  when: (f) => f.etaMin <= 5 && f.etaMin > 2, text: "Your driver is about 5 minutes away." },
+      { key: "two",   when: (f) => f.etaMin <= 2,                 text: "Driver is arriving now - please head out." },
+      { key: "jam",   when: (f) => f.status === "STOPPED" && f.progress > 0.25,
+        text: "Driver is held up in traffic. ETA updated." },
     ];
+
+    if (fix.leg !== "TO_PICKUP") return;
+
     alerts.forEach((a) => {
-      if (fix.leg === "TO_PICKUP" && fix.progress >= a.at && !this.sent.has(a.key)) {
-        this.sent.add(a.key);
-        this.pushToast(a.text);
-        log("OBSERVER", `PushNotificationObserver -> {{"${a.text}"}}`);
-      }
+      if (this.sent.has(a.key) || !a.when(fix)) return;
+      this.sent.add(a.key);
+      this.pushToast(a.text);
+      log("OBSERVER", `PushNotificationObserver -> {{"${a.text}"}}`);
     });
   }
   reset() { this.sent.clear(); }
@@ -1896,7 +2809,9 @@ class RequestedState extends RideState {
   get canCancel() { return true; }
 
   onEnter(ride) {
-    ride.after(1100, () => this.next(ride));
+    // Matching takes as long as it takes - a fixed 1.1s every time
+    // is the tell of a fake demo.
+    ride.after(900 + Math.random() * 1800, () => this.next(ride));
   }
 
   next(ride) {
@@ -1918,8 +2833,10 @@ class DriverAssignedState extends RideState {
   get canCancel() { return true; }
 
   onEnter(ride) {
-    ride.notifyUi({ toast: `<b>${ride.driver.name}</b> accepted - ${ride.driver.plate}` });
-    ride.after(1200, () => this.next(ride));
+    ride.notifyUi({
+      toast: `<b>${ride.driver.name}</b> accepted &middot; ${ride.driver.model} &middot; ${ride.driver.plate}`,
+    });
+    ride.after(700 + Math.random() * 900, () => this.next(ride));
   }
 
   next(ride) {
@@ -1944,6 +2861,7 @@ class ArrivingState extends RideState {
       path: ride.legs.toPickup,
       distanceKm: ride.legs.toPickupKm,
       seconds: ride.legs.toPickupSeconds,
+      cruiseKmph: ride.vehicle.speedKmph,
       leg: "TO_PICKUP",
       onArrive: () => this.next(ride),
     });
@@ -1972,6 +2890,7 @@ class InProgressState extends RideState {
       path: ride.legs.toDrop,
       distanceKm: ride.legs.toDropKm,
       seconds: ride.legs.toDropSeconds,
+      cruiseKmph: ride.vehicle.speedKmph,
       leg: "TO_DROP",
       onArrive: () => this.next(ride),
     });
@@ -2147,15 +3066,17 @@ class RideBookingFacade {
     const toPickup    = buildRoute(driverStart, priced.pickup);
     const toPickupKm  = roadKm(toPickup);
 
-    // Demo timing: a real 29 km airport run takes an hour. Compressed so
-    // the whole lifecycle plays out in about half a minute on screen.
+    // Demo timing: a real 29 km airport run takes an hour. Only the
+    // CLOCK is compressed - traffic.js still drives at real speeds, so
+    // the ETA and speedometer stay honest while the animation stays
+    // short. Longer trips get proportionally longer on screen.
     const legs = {
       toPickup,
       toPickupKm,
-      toPickupSeconds: Math.min(9, Math.max(5, toPickupKm * 1.2)),
+      toPickupSeconds: Math.min(11, Math.max(5, 3 + toPickupKm * 0.7)),
       toDrop: priced.path,
       toDropKm: priced.km,
-      toDropSeconds: Math.min(20, Math.max(8, priced.km * 0.7)),
+      toDropSeconds: Math.min(26, Math.max(9, 6 + priced.km * 0.6)),
     };
 
     // 5. Build the ride and give it the services its STATES will need.
@@ -2238,6 +3159,7 @@ const ui = {
 
 let facade;
 let observerList = [];
+let ambient;
 
 /* ============================================================
    MAP RENDERING
@@ -2250,25 +3172,201 @@ const mk = (tag, attrs) => {
   return node;
 };
 
-function drawStreets() {
-  const g = $("streets");
-  g.innerHTML = "";
-  g.appendChild(mk("rect", { x: 0, y: 0, width: 720, height: 420, class: "mp-bg" }));
+const polyD = (pts, close) =>
+  pts.map((p, i) => (i === 0 ? "M" : "L") + " " + p.x + " " + p.y).join(" ") + (close ? " Z" : "");
 
-  [[60, 250, 120, 90], [430, 60, 150, 70], [300, 300, 130, 80]].forEach(([x, y, w, h]) => {
-    g.appendChild(mk("rect", { x, y, width: w, height: h, rx: 6, class: "mp-block" }));
+/* ---------- city blocks: the built-up land between the roads ---------- */
+
+function blockShapes() {
+  const out = [];
+  for (let r = 0; r < 7; r++) {
+    for (let c = 0; c < 9; c++) {
+      const n = cityNoise(r * 9 + c, 17);
+      if (n < 0.38) continue;                       // leave gaps, not a waffle
+      const x = c * 80 + 12 + n * 10;
+      const y = r * 58 + 14 + cityNoise(c, r) * 10;
+      const w = 34 + cityNoise(r, c * 3) * 30;
+      const h = 20 + cityNoise(c * 5, r) * 18;
+      const mid = { x: x + w / 2, y: y + h / 2 };
+      if (inWater(mid)) continue;
+      if (PARKS.some((p) => pointInPolygon(mid, p.points))) continue;
+      out.push({ x, y, w, h, tone: n > 0.72 ? "dense" : "plain" });
+    }
+  }
+  return out;
+}
+
+/**
+ * Draws the city once: land, water, parks, then the roads in class
+ * order so highways sit on top of lanes, then the landmarks.
+ */
+function drawCity() {
+  const g = $("terrain");
+  g.innerHTML = "";
+  g.appendChild(mk("rect", { x: 0, y: 0, width: 720, height: 420, class: "mp-land" }));
+
+  blockShapes().forEach((b) =>
+    g.appendChild(mk("rect", { x: b.x, y: b.y, width: b.w, height: b.h, rx: 2, class: "mp-block mp-block--" + b.tone })));
+
+  PARKS.forEach((park) => g.appendChild(mk("path", { d: polyD(park.points, true), class: "mp-park" })));
+
+  g.appendChild(mk("path", { d: polyD(RIVER.points), class: "mp-river" }));
+
+  WATER.forEach((w) => g.appendChild(mk("path", { d: polyD(w.points, true), class: "mp-water" })));
+
+  drawRoads();
+  drawGreenLabels();
+  drawLandmarks();
+}
+
+function drawRoads() {
+  const g = $("roads");
+  g.innerHTML = "";
+
+  // Casing first, then the surface on top - the trick every real map
+  // uses to make roads read as roads rather than as coloured lines.
+  ["street", "arterial", "highway"].forEach((cls) => {
+    const roads = ROADS.filter((r) => r.cls === cls);
+    ["case", "fill"].forEach((layer) => {
+      roads.forEach((road) => {
+        g.appendChild(mk("path", {
+          d: polyD(road.points),
+          class: "rd rd--" + cls + " rd--" + layer,
+          fill: "none",
+        }));
+      });
+    });
   });
 
-  [60, 140, 220, 300, 380].forEach((y) =>
-    g.appendChild(mk("line", { x1: 0, y1: y, x2: 720, y2: y, class: "mp-street" })));
-  [80, 190, 300, 410, 520, 630].forEach((x) =>
-    g.appendChild(mk("line", { x1: x, y1: 0, x2: x, y2: 420, class: "mp-street" })));
+  // Name the majors, laid along their longest straight. A map that
+  // labels every road just looks noisy, so this keeps the highways and
+  // drops any label that is cramped, clipped by the edge, or sitting on
+  // top of one already placed.
+  const placed = [];
+  NAMED_ROADS.forEach((road, i) => {
+    let best = null;
+    for (let k = 0; k < road.points.length - 1; k++) {
+      const a = road.points[k], b = road.points[k + 1];
+      const len = Math.hypot(b.x - a.x, b.y - a.y);
+      if (!best || len > best.len) best = { a, b, len };
+    }
+
+    const need = road.cls === "highway" ? 60 : 78;
+    if (!best || best.len < need) return;
+
+    const mid = { x: (best.a.x + best.b.x) / 2, y: (best.a.y + best.b.y) / 2 };
+    if (mid.x < 56 || mid.x > 664 || mid.y < 18 || mid.y > 404) return;
+    if (placed.some((q) => Math.hypot(q.x - mid.x, q.y - mid.y) < 48)) return;
+    placed.push(mid);
+
+    const id = "rdlbl" + i;
+    const flip = best.b.x < best.a.x;
+    const from = flip ? best.b : best.a;
+    const to = flip ? best.a : best.b;
+
+    const guide = mk("path", { id, d: polyD([from, to]), fill: "none", stroke: "none" });
+    g.appendChild(guide);
+
+    const text = mk("text", { class: "mp-road-label rdl--" + road.cls, dy: -3 });
+    const tp = document.createElementNS(SVG_NS, "textPath");
+    tp.setAttribute("href", "#" + id);
+    tp.setAttribute("startOffset", "50%");
+    tp.setAttribute("text-anchor", "middle");
+    tp.textContent = road.name;
+    text.appendChild(tp);
+    g.appendChild(text);
+  });
 }
+
+/** Centre of a polygon, near enough for placing a label in it. */
+function centroid(points) {
+  return {
+    x: points.reduce((sum, p) => sum + p.x, 0) / points.length,
+    y: points.reduce((sum, p) => sum + p.y, 0) / points.length,
+  };
+}
+
+/**
+ * Park and lake names, drawn AFTER the roads. Put them in the terrain
+ * layer and the road surfaces paint straight over the text.
+ */
+function drawGreenLabels() {
+  const g = $("pois");
+  g.innerHTML = "";
+
+  PARKS.forEach((park) => {
+    const c = centroid(park.points);
+    const t = mk("text", { x: c.x, y: c.y + 3, class: "mp-green-label", "text-anchor": "middle" });
+    t.textContent = park.name;
+    g.appendChild(t);
+  });
+
+  WATER.forEach((w) => {
+    const c = centroid(w.points);
+    const t = mk("text", { x: c.x, y: c.y, class: "mp-water-label", "text-anchor": "middle" });
+    t.textContent = w.name;
+    g.appendChild(t);
+  });
+}
+
+const POI_GLYPH = {
+  airport:  "M2 0l-9-3 1-2 8 1 4-4 2 1-3 5 4 4-1 2z",
+  rail:     "M-4-5h8v7h-8z",
+  heritage: "M-4 4v-6l4-4 4 4v6z",
+  business: "M-4 5v-9h8v9z",
+  suburb:   "M-4 4v-5l4-3 4 3v5z",
+};
+
+/** Every landmark on the map, not only the two on the current route. */
+function drawLandmarks() {
+  const g = $("pois");
+
+  LOCATIONS.forEach((loc) => {
+    const node = mk("g", { class: "poi", "data-loc": loc.id, transform: `translate(${loc.x} ${loc.y})` });
+    node.appendChild(mk("circle", { r: 7.5, class: "poi__disc" }));
+    node.appendChild(mk("path", { d: POI_GLYPH[loc.kind] || POI_GLYPH.suburb, class: "poi__glyph", transform: "scale(.62)" }));
+
+    const label = mk("text", { x: 0, y: 19, class: "mp-poi-label", "text-anchor": "middle" });
+    label.textContent = loc.name;
+    node.appendChild(label);
+    g.appendChild(node);
+  });
+}
+
+/* ---------- ambient traffic: the rest of the city, moving ---------- */
+
+function drawAmbient() {
+  const g = $("ambient");
+  g.innerHTML = "";
+  ambient.positions().forEach(() => g.appendChild(mk("rect", { x: -2.6, y: -1.5, width: 5.2, height: 3, rx: 1, class: "mp-ambient" })));
+}
+
+function tickAmbient() {
+  ambient.tick(0.016);
+  const g = $("ambient");
+  const pos = ambient.positions();
+  for (let i = 0; i < g.children.length; i++) {
+    const p = pos[i];
+    g.children[i].setAttribute("transform", `translate(${p.x.toFixed(1)} ${p.y.toFixed(1)}) rotate(${p.heading.toFixed(0)})`);
+  }
+  requestAnimationFrame(tickAmbient);
+}
+
+/* ---------- the active route ---------- */
 
 function drawRoute(pickup, drop, path) {
   const g = $("routelayer");
   g.innerHTML = "";
 
+  // The route prints big labels for these two, so silence the small
+  // landmark labels underneath and avoid printing each name twice.
+  document.querySelectorAll(".poi").forEach((n) => n.classList.remove("is-muted"));
+  [pickup.id, drop.id].filter(Boolean).forEach((id) => {
+    const n = document.querySelector('.poi[data-loc="' + id + '"]');
+    if (n) n.classList.add("is-muted");
+  });
+
+  g.appendChild(mk("path", { d: path.toSvgPath(), class: "mp-route-case" }));
   g.appendChild(mk("path", { d: path.toSvgPath(), class: "mp-route", id: "routebase" }));
   const done = mk("path", { d: path.toSvgPath(), class: "mp-route-done", id: "routedone" });
   g.appendChild(done);
@@ -2276,43 +3374,53 @@ function drawRoute(pickup, drop, path) {
   done.style.strokeDasharray = len;
   done.style.strokeDashoffset = len;
 
-  const pins = [
+  [
     { p: pickup, cls: "mp-pin-a", text: pickup.name },
     { p: drop,   cls: "mp-pin-b", text: drop.name },
-  ];
-  pins.forEach(({ p, cls, text }) => {
-    g.appendChild(mk("circle", { cx: p.x, cy: p.y, r: 10, class: cls + " mp-halo" }));
-    g.appendChild(mk("circle", { cx: p.x, cy: p.y, r: 5, class: cls }));
+  ].forEach(({ p, cls, text }) => {
+    g.appendChild(mk("circle", { cx: p.x, cy: p.y, r: 11, class: cls + " mp-halo" }));
+    g.appendChild(mk("circle", { cx: p.x, cy: p.y, r: 5.5, class: cls }));
     const label = mk("text", { x: p.x + 14, y: p.y + 4, class: "mp-label" });
     label.textContent = text;
     g.appendChild(label);
   });
+
+  // Show the roads this route actually uses.
+  const names = path.legNames().slice(0, 4);
+  $("viaLine").textContent = names.length ? "via " + names.join(" › ") : "via local streets";
 }
 
-function moveCar(point, heading, progress) {
+function moveCar(point, heading, progress, status) {
   const car = $("car");
   car.setAttribute("transform", `translate(${point.x.toFixed(1)} ${point.y.toFixed(1)}) rotate(${heading.toFixed(0)})`);
   car.style.opacity = 1;
+  car.classList.toggle("is-stopped", status === "STOPPED");
 
   const done = $("routedone");
-  if (done) {
-    const len = done.getTotalLength();
-    done.style.strokeDashoffset = len * (1 - progress);
-  }
+  if (done) done.style.strokeDashoffset = done.getTotalLength() * (1 - progress);
 }
 
 /* ============================================================
    OBSERVER WIRING - the four subscribers and their checkboxes
    ============================================================ */
 
+function showTelemetry(fix) {
+  $("hudEta").textContent = fix.etaMin + " min";
+  $("hudKm").textContent = fix.remainingKm.toFixed(1) + " km";
+  $("hudSpeed").textContent = fix.speedKmph + " km/h";
+  $("hudRoad").textContent = fix.road || "side lane";
+
+  const chip = $("hudStatus");
+  chip.textContent = fix.status === "STOPPED" ? "at a signal"
+    : fix.status === "CRAWLING" ? "slow traffic"
+    : fix.status === "CRUISING" ? "clear road" : "moving";
+  chip.dataset.status = fix.status;
+}
+
 function buildObservers() {
   observerList = [
     new MapMarkerObserver(moveCar),
-    new EtaPanelObserver((etaMin, km, speed) => {
-      $("hudEta").textContent = etaMin + " min";
-      $("hudKm").textContent = km.toFixed(1) + " km";
-      $("hudSpeed").textContent = speed + " km/h";
-    }),
+    new EtaPanelObserver(showTelemetry),
     new TripLogObserver(),
     new PushNotificationObserver(pushToast),
   ];
@@ -2333,6 +3441,32 @@ function buildObservers() {
     });
     box.appendChild(label);
   });
+}
+
+/* ============================================================
+   THE DRIVER CARD
+   ============================================================ */
+
+function renderDriver(ride) {
+  const card = $("driverCard");
+  if (!ride || !ride.driver || ride.state.key === "RequestedState") {
+    card.hidden = true;
+    return;
+  }
+  const d = ride.driver;
+  const initials = d.name.split(" ").map((w) => w[0]).join("").slice(0, 2);
+
+  card.hidden = false;
+  card.innerHTML =
+    '<span class="dcard__ava">' + initials + "</span>" +
+    '<span class="dcard__who">' +
+      '<b>' + d.name + "</b>" +
+      '<span class="dcard__meta">' + d.rating + " ★ · " + d.trips.toLocaleString() + " trips</span>" +
+    "</span>" +
+    '<span class="dcard__car">' +
+      "<b>" + d.plate + "</b>" +
+      '<span class="dcard__meta">' + d.model + "</span>" +
+    "</span>";
 }
 
 /* ============================================================
@@ -2577,6 +3711,7 @@ function renderCodeSamples() {
 function onRideUpdate(ride, payload) {
   ui.ride = ride;
   renderLifecycle(ride);
+  renderDriver(ride);
   if (payload && payload.toast) pushToast(payload.toast);
 
   if (ride.state.key === "ArrivingState") {
@@ -2589,6 +3724,8 @@ function onRideUpdate(ride, payload) {
   if (ride.state.isFinal) {
     $("hudEta").textContent = "--";
     $("hudSpeed").textContent = "0 km/h";
+    $("hudStatus").textContent = "idle";
+    $("hudStatus").dataset.status = "IDLE";
   }
 }
 
@@ -2597,7 +3734,11 @@ function init() {
 
   facade = new RideBookingFacade({ pushToast, onRideUpdate });
 
-  drawStreets();
+  drawCity();
+  ambient = new AmbientTraffic(CITY, 22);
+  drawAmbient();
+  requestAnimationFrame(tickAmbient);
+
   buildLocationSelects();
   buildVehiclePicker();
   buildStrategySelect();
@@ -2628,6 +3769,7 @@ function init() {
 
   refreshQuote();
   renderLifecycle(null);
+  log("SYSTEM", `City loaded: ${CITY.nodes.length} junctions, ${CITY.edges.length} road links. Routes are searched across that network, not drawn straight.`);
   log("SYSTEM", "RideFlow ready. Press Book ride and watch the tags on the left of each line.");
 }
 

@@ -38,7 +38,8 @@ css/styles.css              all styling
 js/
   core/
     dispatchLog.js          SINGLETON  - the shared log every pattern writes to
-    geo.js                  map coordinates, routes, distances (helper, not a pattern)
+    geo.js                  the city: roads, terrain, road graph, routing (helper, not a pattern)
+    traffic.js              how a car drives it: speed, congestion, signals (helper, not a pattern)
     services.js             the four subsystems the Facade hides
   patterns/
     factory.js              FACTORY    - Vehicle + Bike/Auto/SedanCab/SuvCab + VehicleFactory
@@ -147,7 +148,10 @@ subscribers and announces "here is my new position". It never learns their names
 ```
 
 **Where it runs:** `js/patterns/observer.js`. The publisher emits a fix every
-90 ms while the driver is moving.
+80 ms while the driver is moving. Note what the Subject does *not* do: it does
+not decide where the car got to. `js/core/traffic.js` drives, and the publisher
+only relays what it reports — so the pattern stays about broadcasting, not about
+motion.
 
 **The demo that proves it:** book a ride, then untick **EtaPanelObserver** while
 the car is moving. The ETA freezes; the car keeps driving; the log keeps writing.
@@ -238,6 +242,40 @@ constructor() {
 ```
 
 Every line in the console is proof that it works.
+
+---
+
+## The city underneath it
+
+None of this is a design pattern — it is the world the patterns operate on —
+but it is what makes the app behave like a ride app rather than a diagram.
+
+**The map is a road network, not a backdrop.** `geo.js` defines named roads
+(Outer Ring Road, PVNR Expressway, NH-44, Tank Bund Road …) plus Hussain Sagar,
+the Musi and three parks. Those polylines are then cut into a planar graph:
+every place two roads cross becomes a junction. That yields roughly 309
+junctions and 400 links.
+
+**Routes are searched, not drawn.** `buildRoute()` snaps both ends to the
+nearest junction and runs Dijkstra across that graph. So a route bends through
+real streets, the console can name them, and the lake has to be driven around
+rather than through. The cost is mostly travel time with a distance term mixed
+in — on pure travel time the router happily adds 20 km of expressway to save
+thirty seconds, which is optimal on paper and absurd to the person paying by
+the kilometre.
+
+**The car drives; it does not slide.** `traffic.js` accelerates and brakes at
+different rates, slows for sharp bends, moves at the speed the road class and
+its congestion allow, and stops at red lights. The ETA is built from the
+harmonic mean of the speeds still ahead plus the lights not yet sat at —
+averaging speeds arithmetically quietly promises a trip nobody can drive,
+because one crawling kilometre costs far more than one clear kilometre saves.
+Opening ETAs land within about 4% of the actual drive.
+
+**Only the clock is compressed.** A 24 km airport run really does take about an
+hour at these speeds, so the publisher measures the leg first and scales the
+demo clock to finish it in a few seconds. The speedometer and the ETA stay
+honest; only time runs fast.
 
 ---
 

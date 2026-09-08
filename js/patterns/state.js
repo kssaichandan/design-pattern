@@ -59,7 +59,9 @@ class RequestedState extends RideState {
   get canCancel() { return true; }
 
   onEnter(ride) {
-    ride.after(1100, () => this.next(ride));
+    // Matching takes as long as it takes - a fixed 1.1s every time
+    // is the tell of a fake demo.
+    ride.after(900 + Math.random() * 1800, () => this.next(ride));
   }
 
   next(ride) {
@@ -81,8 +83,10 @@ class DriverAssignedState extends RideState {
   get canCancel() { return true; }
 
   onEnter(ride) {
-    ride.notifyUi({ toast: `<b>${ride.driver.name}</b> accepted - ${ride.driver.plate}` });
-    ride.after(1200, () => this.next(ride));
+    ride.notifyUi({
+      toast: `<b>${ride.driver.name}</b> accepted &middot; ${ride.driver.model} &middot; ${ride.driver.plate}`,
+    });
+    ride.after(700 + Math.random() * 900, () => this.next(ride));
   }
 
   next(ride) {
@@ -107,6 +111,7 @@ class ArrivingState extends RideState {
       path: ride.legs.toPickup,
       distanceKm: ride.legs.toPickupKm,
       seconds: ride.legs.toPickupSeconds,
+      cruiseKmph: ride.vehicle.speedKmph,
       leg: "TO_PICKUP",
       onArrive: () => this.next(ride),
     });
@@ -135,6 +140,7 @@ class InProgressState extends RideState {
       path: ride.legs.toDrop,
       distanceKm: ride.legs.toDropKm,
       seconds: ride.legs.toDropSeconds,
+      cruiseKmph: ride.vehicle.speedKmph,
       leg: "TO_DROP",
       onArrive: () => this.next(ride),
     });

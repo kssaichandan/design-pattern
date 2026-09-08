@@ -103,6 +103,7 @@
           <span class="statebar__k">now</span>
           <span class="statebar__v" id="stateLabel">Pick a route and book</span>
         </div>
+        <div class="dcard" id="driverCard" hidden></div>
         <div class="lifecycle" id="lifecycle"></div>
         <button class="btn btn--ghost" id="btnCancel" type="button" disabled>Cancel ride</button>
       </div>
@@ -116,22 +117,30 @@
     <section class="panel">
       <div class="panel__hd">
         <h2 class="panel__title">Live map &middot; Observer subject broadcasting</h2>
-        <span class="panel__title">Hyderabad</span>
+        <span class="panel__title" id="viaLine">Hyderabad</span>
       </div>
       <div class="mapwrap">
-        <svg id="map" viewBox="0 0 720 420" role="img" aria-label="Simulated city map showing the driver moving along the route">
-          <g id="streets"></g>
+        <svg id="map" viewBox="0 0 720 420" role="img" aria-label="Simulated Hyderabad street map showing the driver moving along the routed roads">
+          <g id="terrain"></g>
+          <g id="roads"></g>
+          <g id="pois"></g>
+          <g id="ambient"></g>
           <g id="routelayer"></g>
           <g id="car">
-            <circle class="pulse" r="14"></circle>
-            <rect class="body" x="-9" y="-6" width="18" height="12" rx="3"></rect>
-            <rect class="glass" x="1" y="-4" width="6" height="8" rx="1.5"></rect>
+            <circle class="pulse" r="15"></circle>
+            <rect class="shadow" x="-9" y="-5" width="19" height="11" rx="3.5"></rect>
+            <rect class="body" x="-9" y="-6" width="18" height="12" rx="3.5"></rect>
+            <rect class="glass" x="0" y="-4" width="6" height="8" rx="1.5"></rect>
+            <rect class="lamp" x="7.4" y="-4.4" width="2" height="2" rx="1"></rect>
+            <rect class="lamp" x="7.4" y="2.4" width="2" height="2" rx="1"></rect>
           </g>
         </svg>
         <div class="hud">
           <div class="hudchip"><span class="hudchip__k">ETA</span><span class="hudchip__v" id="hudEta">--</span></div>
           <div class="hudchip"><span class="hudchip__k">Dist</span><span class="hudchip__v" id="hudKm">--</span></div>
           <div class="hudchip"><span class="hudchip__k">Speed</span><span class="hudchip__v" id="hudSpeed">0 km/h</span></div>
+          <div class="hudchip hudchip--road"><span class="hudchip__k">On</span><span class="hudchip__v" id="hudRoad">--</span></div>
+          <div class="hudchip hudchip--status"><span class="hudchip__v" id="hudStatus" data-status="IDLE">idle</span></div>
         </div>
         <div class="toasts" id="toasts"></div>
       </div>
@@ -454,19 +463,27 @@ class LocationObserver {
 
 // 3. Concrete observers. None of them knows the others exist.
 class MapMarkerObserver extends LocationObserver {
-  update(fix) { this.moveMarker(fix.point, fix.heading); }
+  update(fix) { this.moveMarker(fix.point, fix.heading, fix.progress, fix.status); }
 }
 
 class EtaPanelObserver extends LocationObserver {
-  update(fix) { this.showEta(fix.etaMin, fix.remainingKm, fix.speedKmph); }
+  update(fix) { this.showEta(fix); }        // ETA, distance, speed, road name
 }
 
 // 4. Wiring - and the checkboxes above call exactly these two methods.
 publisher.subscribe(new MapMarkerObserver(moveCar));
-publisher.subscribe(new EtaPanelObserver(showEta));
+publisher.subscribe(new EtaPanelObserver(showTelemetry));
 
-// 5. Every GPS fix, one line reaches all of them:
-publisher.notify({ point, heading, etaMin, remainingKm, speedKmph });
+// 5. Where the car actually IS comes from traffic.js, which accelerates,
+//    brakes for bends and sits at red lights. The subject just relays it -
+//    it does not drive, and it does not know who is listening.
+motion.step(dtSeconds);
+
+publisher.notify({
+  leg, progress, point, heading,
+  road: "PVNR Expressway", roadClass: "highway", status: "CRUISING",
+  remainingKm, etaMin, speedKmph,
+});
 </script>
 
 <script type="text/plain" id="src-state">
@@ -582,6 +599,7 @@ new DispatchLog()         === DispatchLog.getInstance();   // also true
 <!-- ================= application scripts, in dependency order ================= -->
 <script src="js/core/dispatchLog.js"></script>
 <script src="js/core/geo.js"></script>
+<script src="js/core/traffic.js"></script>
 <script src="js/core/services.js"></script>
 <script src="js/patterns/factory.js"></script>
 <script src="js/patterns/strategy.js"></script>

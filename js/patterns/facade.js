@@ -84,15 +84,17 @@ class RideBookingFacade {
     const toPickup    = buildRoute(driverStart, priced.pickup);
     const toPickupKm  = roadKm(toPickup);
 
-    // Demo timing: a real 29 km airport run takes an hour. Compressed so
-    // the whole lifecycle plays out in about half a minute on screen.
+    // Demo timing: a real 29 km airport run takes an hour. Only the
+    // CLOCK is compressed - traffic.js still drives at real speeds, so
+    // the ETA and speedometer stay honest while the animation stays
+    // short. Longer trips get proportionally longer on screen.
     const legs = {
       toPickup,
       toPickupKm,
-      toPickupSeconds: Math.min(9, Math.max(5, toPickupKm * 1.2)),
+      toPickupSeconds: Math.min(11, Math.max(5, 3 + toPickupKm * 0.7)),
       toDrop: priced.path,
       toDropKm: priced.km,
-      toDropSeconds: Math.min(20, Math.max(8, priced.km * 0.7)),
+      toDropSeconds: Math.min(26, Math.max(9, 6 + priced.km * 0.6)),
     };
 
     // 5. Build the ride and give it the services its STATES will need.

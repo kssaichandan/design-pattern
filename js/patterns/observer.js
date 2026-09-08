@@ -65,38 +65,69 @@ class DriverLocationPublisher {
   }
 
   /**
-   * Simulates the driver's phone emitting a GPS fix a few times a
-   * second while it travels from `route[0]` to the end of the route.
+   * Opens the driver's GPS stream for one leg of the trip.
    *
-   * @param {object} opts  { path, distanceKm, seconds, leg, onArrive }
+   * The subject does not decide where the car goes - VehicleMotion
+   * in traffic.js drives it, accelerating, braking for bends and
+   * stopping at red lights. All the Observer pattern does here is
+   * take whatever the car reports and hand it to every subscriber.
+   *
+   * @param {object} opts { path, distanceKm, seconds, cruiseKmph, leg, onArrive }
    */
   startTracking(opts) {
     this.stopTracking();
 
     const { path, distanceKm, seconds, leg, onArrive } = opts;
-    const tickMs = 90;
-    const totalTicks = Math.max(1, Math.round((seconds * 1000) / tickMs));
-    let tick = 0;
+    const tickMs = 80;
 
-    log("OBSERVER", `Driver GPS stream opened for leg {{${leg}}} - broadcasting to ${this.observers.length} subscriber(s)`);
+    const motion = new VehicleMotion({
+      path,
+      distanceKm,
+      cruiseKmph: opts.cruiseKmph || 34,
+      seed: path.lengthPx,
+    });
+
+    // The car drives at real speeds; only the CLOCK is compressed, so
+    // a 30 km airport run still plays out on screen in a few seconds
+    // without the speedometer telling lies.
+    const realSec = motion.realisticSeconds();
+    const timeScale = realSec / Math.max(1, seconds);
+    motion.reset();
+
+    this.motion = motion;
+    log(
+      "OBSERVER",
+      `Driver GPS stream opened for leg {{${leg}}} - ${distanceKm.toFixed(1)} km, ` +
+      `${Math.round(realSec / 60)} min of real driving at ${timeScale.toFixed(0)}x, ` +
+      `${motion.signals.length} signal(s) - broadcasting to ${this.observers.length} subscriber(s)`
+    );
+
+    let lastStops = 0;
 
     this.timer = setInterval(() => {
-      tick += 1;
-      const progress = Math.min(1, tick / totalTicks);
-      const remainingKm = +(distanceKm * (1 - progress)).toFixed(1);
-      const remainingSec = seconds * (1 - progress);
+      motion.step((tickMs / 1000) * timeScale);
+
+      if (motion.stops > lastStops) {
+        lastStops = motion.stops;
+        log("OBSERVER", `Driver held at a signal on {{${path.roadAt(motion.progress) || "an unnamed lane"}}}`);
+      }
+
+      const progress = motion.progress;
 
       this.notify({
         leg,
         progress,
         point: path.pointAt(progress),
         heading: path.headingAt(progress),
-        remainingKm,
-        etaMin: Math.max(0, Math.ceil(remainingSec / 60)),
-        speedKmph: Math.round(28 + Math.sin(tick / 6) * 9),
+        road: path.roadAt(progress),
+        roadClass: path.classAt(progress),
+        status: motion.status,
+        remainingKm: motion.remainingKm,
+        etaMin: motion.etaMin,
+        speedKmph: Math.round(motion.speedKmph),
       });
 
-      if (progress >= 1) {
+      if (motion.done) {
         this.stopTracking();
         if (onArrive) onArrive();
       }
@@ -119,17 +150,17 @@ class MapMarkerObserver extends LocationObserver {
     this.moveMarker = moveMarker;
   }
   update(fix) {
-    this.moveMarker(fix.point, fix.heading, fix.progress);
+    this.moveMarker(fix.point, fix.heading, fix.progress, fix.status);
   }
 }
 
 class EtaPanelObserver extends LocationObserver {
   constructor(showEta) {
-    super("eta", "EtaPanelObserver", "Refreshes the ETA, distance and speed readouts.");
+    super("eta", "EtaPanelObserver", "Refreshes ETA, distance, speed and the road name.");
     this.showEta = showEta;
   }
   update(fix) {
-    this.showEta(fix.etaMin, fix.remainingKm, fix.speedKmph);
+    this.showEta(fix);
   }
 }
 
@@ -140,10 +171,16 @@ class TripLogObserver extends LocationObserver {
   }
   update(fix) {
     this.count += 1;
-    // A real fleet logger samples; printing every 90 ms would drown the console.
-    if (this.count % 18 !== 0) return;
-    log("OBSERVER", `fix #${this.count} - ${fix.remainingKm} km out, ETA ${fix.etaMin} min, ${fix.speedKmph} km/h`);
+    // A real fleet logger samples; printing every 80 ms would drown the console.
+    if (this.count % 20 !== 0) return;
+    const where = fix.road ? "on " + fix.road : "on a side lane";
+    log(
+      "OBSERVER",
+      `fix #${this.count} ${where} - ${fix.remainingKm} km out, ETA ${fix.etaMin} min, ` +
+      `${fix.speedKmph} km/h (${fix.status.toLowerCase()})`
+    );
   }
+  reset() { this.count = 0; }
 }
 
 class PushNotificationObserver extends LocationObserver {
@@ -153,16 +190,22 @@ class PushNotificationObserver extends LocationObserver {
     this.sent = new Set();
   }
   update(fix) {
+    // Real apps alert on TIME LEFT, not on a fraction of the route -
+    // "5 minutes away" means something to a rider, "62% there" does not.
     const alerts = [
-      { at: 0.55, key: "half",    text: "Driver is halfway to you." },
-      { at: 0.88, key: "close",   text: "Driver is arriving in a minute." },
+      { key: "five",  when: (f) => f.etaMin <= 5 && f.etaMin > 2, text: "Your driver is about 5 minutes away." },
+      { key: "two",   when: (f) => f.etaMin <= 2,                 text: "Driver is arriving now - please head out." },
+      { key: "jam",   when: (f) => f.status === "STOPPED" && f.progress > 0.25,
+        text: "Driver is held up in traffic. ETA updated." },
     ];
+
+    if (fix.leg !== "TO_PICKUP") return;
+
     alerts.forEach((a) => {
-      if (fix.leg === "TO_PICKUP" && fix.progress >= a.at && !this.sent.has(a.key)) {
-        this.sent.add(a.key);
-        this.pushToast(a.text);
-        log("OBSERVER", `PushNotificationObserver -> {{"${a.text}"}}`);
-      }
+      if (this.sent.has(a.key) || !a.when(fix)) return;
+      this.sent.add(a.key);
+      this.pushToast(a.text);
+      log("OBSERVER", `PushNotificationObserver -> {{"${a.text}"}}`);
     });
   }
   reset() { this.sent.clear(); }
