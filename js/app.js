@@ -1,11 +1,11 @@
 /* ============================================================
    app.js - THE USER INTERFACE ONLY
    ------------------------------------------------------------
-   Read this file to see the payoff of the five patterns. It draws
+   Read this file to see the payoff of the seven patterns. It draws
    things and handles clicks. It never prices a ride, never decides
    what a ride is allowed to do next, never constructs a vehicle,
-   and never talks to a subsystem. It calls the Facade and renders
-   whatever comes back.
+   never talks to a payment provider and never touches a subsystem.
+   It calls the Facade and renders whatever comes back.
    ============================================================ */
 
 const $ = (id) => document.getElementById(id);
@@ -13,21 +13,13 @@ const $ = (id) => document.getElementById(id);
 /* ---------------- vehicle icons (presentation detail) ---------------- */
 
 const VEHICLE_ICONS = {
-  bike: '<svg viewBox="0 0 40 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="17" r="5"/><circle cx="32" cy="17" r="5"/><path d="M8 17l6-9h7l4 9M21 8l-2-4h-4M25 8h6"/></svg>',
-  auto: '<svg viewBox="0 0 40 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="18" r="3.5"/><circle cx="30" cy="18" r="3.5"/><path d="M7 18H5v-6c0-5 4-9 9-9h4c5 0 9 4 9 9v6h-3M15 18h11M28 12H8"/></svg>',
+  bike:  '<svg viewBox="0 0 40 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="17" r="5"/><circle cx="32" cy="17" r="5"/><path d="M8 17l6-9h7l4 9M21 8l-2-4h-4M25 8h6"/></svg>',
+  erick: '<svg viewBox="0 0 40 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="18" r="3.5"/><circle cx="30" cy="18" r="3.5"/><path d="M7 18H5v-6c0-5 4-9 9-9h4c5 0 9 4 9 9v6h-3M15 18h11"/><path d="m19 7-3 5h4l-3 5"/></svg>',
+  auto:  '<svg viewBox="0 0 40 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="18" r="3.5"/><circle cx="30" cy="18" r="3.5"/><path d="M7 18H5v-6c0-5 4-9 9-9h4c5 0 9 4 9 9v6h-3M15 18h11M28 12H8"/></svg>',
   sedan: '<svg viewBox="0 0 40 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="17" r="3.5"/><circle cx="29" cy="17" r="3.5"/><path d="M4 17v-4l4-1 4-5h13l5 5 5 1v4h-3M15 17h10"/></svg>',
-  suv: '<svg viewBox="0 0 40 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="17" r="3.5"/><circle cx="30" cy="17" r="3.5"/><path d="M4 17v-6l3-6h24l4 6h1v6h-3M15 17h11M9 11h24"/></svg>',
+  suv:   '<svg viewBox="0 0 40 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="17" r="3.5"/><circle cx="30" cy="17" r="3.5"/><path d="M4 17v-6l3-6h24l4 6h1v6h-3M15 17h11M9 11h24"/></svg>',
+  prime: '<svg viewBox="0 0 40 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="17" r="3.5"/><circle cx="29" cy="17" r="3.5"/><path d="M4 17v-4l4-1 4-5h13l5 5 5 1v4h-3M15 17h10"/><path d="m20 2 1.2 2.4L24 4.8l-2 1.9.5 2.7-2.5-1.3-2.5 1.3.5-2.7-2-1.9 2.8-.4z"/></svg>',
 };
-
-/* ---------------- the lifecycle timeline (labels only) ---------------- */
-
-const STEPS = [
-  { label: "Ride requested",   cls: "RequestedState" },
-  { label: "Driver assigned",  cls: "DriverAssignedState" },
-  { label: "Driver arriving",  cls: "ArrivingState" },
-  { label: "Ride in progress", cls: "InProgressState" },
-  { label: "Trip completed",   cls: "CompletedState" },
-];
 
 /* ---------------- local UI state ---------------- */
 
@@ -36,13 +28,17 @@ const ui = {
   dropId: "charminar",
   vehicleType: "SEDAN",
   strategyKey: "STANDARD",
+  addOns: [],
   ride: null,
   filter: "ALL",
 };
 
 let facade;
+let router;
 let observerList = [];
 let ambient;
+let vehicleCatalog = [];
+let meterObserver;
 
 /* ============================================================
    MAP RENDERING
@@ -134,12 +130,12 @@ function drawRoads() {
       if (!best || len > best.len) best = { a, b, len };
     }
 
-    const need = road.cls === "highway" ? 60 : 78;
+    const need = road.cls === "highway" ? 60 : 82;
     if (!best || best.len < need) return;
 
     const mid = { x: (best.a.x + best.b.x) / 2, y: (best.a.y + best.b.y) / 2 };
     if (mid.x < 56 || mid.x > 664 || mid.y < 18 || mid.y > 404) return;
-    if (placed.some((q) => Math.hypot(q.x - mid.x, q.y - mid.y) < 48)) return;
+    if (placed.some((q) => Math.hypot(q.x - mid.x, q.y - mid.y) < 54)) return;
     placed.push(mid);
 
     const id = "rdlbl" + i;
@@ -197,21 +193,50 @@ const POI_GLYPH = {
   rail:     "M-4-5h8v7h-8z",
   heritage: "M-4 4v-6l4-4 4 4v6z",
   business: "M-4 5v-9h8v9z",
+  market:   "M-4-3h8l-1 8h-6z",
+  leisure:  "M0-5 1.6-1h4.2L2.6 1.6 3.8 5.6 0 3.2l-3.8 2.4 1.2-4L-5.8-1h4.2z",
   suburb:   "M-4 4v-5l4-3 4 3v5z",
 };
 
-/** Every landmark on the map, not only the two on the current route. */
+/**
+ * Every landmark on the map. With 29 of them, only the majors get a
+ * printed name - label them all and the city turns into soup. The
+ * rest name themselves on hover, and any of them can be tapped to
+ * become your drop.
+ */
 function drawLandmarks() {
   const g = $("pois");
 
   LOCATIONS.forEach((loc) => {
-    const node = mk("g", { class: "poi", "data-loc": loc.id, transform: `translate(${loc.x} ${loc.y})` });
-    node.appendChild(mk("circle", { r: 7.5, class: "poi__disc" }));
-    node.appendChild(mk("path", { d: POI_GLYPH[loc.kind] || POI_GLYPH.suburb, class: "poi__glyph", transform: "scale(.62)" }));
+    const node = mk("g", {
+      class: "poi" + (loc.major ? " poi--major" : ""),
+      "data-loc": loc.id,
+      transform: `translate(${loc.x} ${loc.y})`,
+      tabindex: "0",
+      role: "button",
+    });
 
-    const label = mk("text", { x: 0, y: 19, class: "mp-poi-label", "text-anchor": "middle" });
+    node.appendChild(mk("circle", { r: loc.major ? 7.5 : 4.6, class: "poi__disc" }));
+    node.appendChild(mk("path", {
+      d: POI_GLYPH[loc.kind] || POI_GLYPH.suburb,
+      class: "poi__glyph",
+      transform: "scale(" + (loc.major ? 0.62 : 0.4) + ")",
+    }));
+
+    const label = mk("text", { x: 0, y: loc.major ? 19 : 15, class: "mp-poi-label", "text-anchor": "middle" });
     label.textContent = loc.name;
     node.appendChild(label);
+
+    const tip = document.createElementNS(SVG_NS, "title");
+    tip.textContent = `${loc.name} — ${loc.area}`;
+    node.appendChild(tip);
+
+    node.addEventListener("click", () => {
+      if (loc.id === ui.pickupId) return;
+      setRoute(null, loc.id);
+      pushToast(`Drop set to <b>${fmt.esc(loc.name)}</b>.`);
+    });
+
     g.appendChild(node);
   });
 }
@@ -221,7 +246,8 @@ function drawLandmarks() {
 function drawAmbient() {
   const g = $("ambient");
   g.innerHTML = "";
-  ambient.positions().forEach(() => g.appendChild(mk("rect", { x: -2.6, y: -1.5, width: 5.2, height: 3, rx: 1, class: "mp-ambient" })));
+  ambient.positions().forEach(() =>
+    g.appendChild(mk("rect", { x: -2.6, y: -1.5, width: 5.2, height: 3, rx: 1, class: "mp-ambient" })));
 }
 
 function tickAmbient() {
@@ -284,7 +310,7 @@ function moveCar(point, heading, progress, status) {
 }
 
 /* ============================================================
-   OBSERVER WIRING - the four subscribers and their checkboxes
+   OBSERVER WIRING - the six subscribers and their checkboxes
    ============================================================ */
 
 function showTelemetry(fix) {
@@ -300,10 +326,19 @@ function showTelemetry(fix) {
   chip.dataset.status = fix.status;
 }
 
+function showMeter(rupees) {
+  $("hudMeterWrap").hidden = rupees === null;
+  if (rupees !== null) $("hudMeter").textContent = fmt.money(rupees);
+}
+
 function buildObservers() {
+  meterObserver = new FareMeterObserver(showMeter, 0);
+
   observerList = [
     new MapMarkerObserver(moveCar),
     new EtaPanelObserver(showTelemetry),
+    meterObserver,
+    new SafetyMonitorObserver((text) => Screens.raiseAlert(text)),
     new TripLogObserver(),
     new PushNotificationObserver(pushToast),
   ];
@@ -327,7 +362,7 @@ function buildObservers() {
 }
 
 /* ============================================================
-   THE DRIVER CARD
+   THE DRIVER CARD AND THE TRIP OTP
    ============================================================ */
 
 function renderDriver(ride) {
@@ -337,19 +372,34 @@ function renderDriver(ride) {
     return;
   }
   const d = ride.driver;
-  const initials = d.name.split(" ").map((w) => w[0]).join("").slice(0, 2);
 
   card.hidden = false;
   card.innerHTML =
-    '<span class="dcard__ava">' + initials + "</span>" +
+    '<span class="dcard__ava">' + initialsOf(d.name) + "</span>" +
     '<span class="dcard__who">' +
-      '<b>' + d.name + "</b>" +
-      '<span class="dcard__meta">' + d.rating + " ★ · " + d.trips.toLocaleString() + " trips</span>" +
+      "<b>" + fmt.esc(d.name) + "</b>" +
+      '<span class="dcard__meta">' + d.rating + " ★ · " + d.trips.toLocaleString("en-IN") + " trips · " +
+        fmt.esc(d.langs.join(", ")) + "</span>" +
     "</span>" +
     '<span class="dcard__car">' +
-      "<b>" + d.plate + "</b>" +
-      '<span class="dcard__meta">' + d.model + "</span>" +
+      "<b>" + fmt.esc(d.plate) + "</b>" +
+      '<span class="dcard__meta">' + fmt.esc(d.colour + " " + d.model) + "</span>" +
+    "</span>" +
+    '<span class="dcard__acts">' +
+      '<span class="iconbtn" title="' + fmt.esc(d.phone) + '"><svg><use href="#i-phone"/></svg></span>' +
+      '<span class="iconbtn" title="Message driver"><svg><use href="#i-chat"/></svg></span>' +
     "</span>";
+}
+
+function renderOtp(ride) {
+  const card = $("otpCard");
+  const showing = ride && ride.otp && ride.state.key === "ArrivedState";
+  card.hidden = !showing;
+  if (!showing) return;
+
+  card.innerHTML =
+    '<span class="otpcard__k">Trip OTP · read this out to your driver</span>' +
+    '<span class="otpcard__v">' + ride.otp.split("").map((d) => "<b>" + d + "</b>").join("") + "</span>";
 }
 
 /* ============================================================
@@ -358,6 +408,7 @@ function renderDriver(ride) {
 
 function pushToast(html) {
   const wrap = $("toasts");
+  if (!wrap) return;
   const t = document.createElement("div");
   t.className = "toast";
   t.innerHTML = html;
@@ -370,7 +421,7 @@ function pushToast(html) {
    THE DISPATCH CONSOLE  (renders whatever the Singleton log holds)
    ============================================================ */
 
-const TAGS = ["ALL", "FACTORY", "STRATEGY", "OBSERVER", "STATE", "FACADE"];
+const TAGS = ["ALL", "FACTORY", "STRATEGY", "DECORATOR", "OBSERVER", "STATE", "ADAPTER", "FACADE", "SINGLETON"];
 
 function appendLogLine(entry) {
   const body = $("terminal");
@@ -380,9 +431,7 @@ function appendLogLine(entry) {
   if (ui.filter !== "ALL" && ui.filter !== entry.tag) row.style.display = "none";
 
   const time = entry.time.toTimeString().slice(0, 8);
-  const msg = entry.message
-    .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
-    .replace(/\{\{(.+?)\}\}/g, "<em>$1</em>");
+  const msg = fmt.esc(entry.message).replace(/\{\{(.+?)\}\}/g, "<em>$1</em>");
 
   row.innerHTML =
     '<span class="logline__t">' + time + "</span>" +
@@ -407,7 +456,7 @@ function pulseChip(tag) {
 
 function applyFilter(tag) {
   ui.filter = tag;
-  document.querySelectorAll(".filter").forEach((b) =>
+  document.querySelectorAll(".filter[data-tag]").forEach((b) =>
     b.setAttribute("aria-pressed", String(b.dataset.tag === tag)));
   document.querySelectorAll(".logline").forEach((row) => {
     row.style.display = tag === "ALL" || row.dataset.tag === tag ? "" : "none";
@@ -431,37 +480,73 @@ function buildConsole() {
   dispatchLog.onWrite((entry) => { if (entry) appendLogLine(entry); });
 }
 
+function toggleDock(force) {
+  const dock = $("dock");
+  const open = force === undefined ? dock.hidden : force;
+  dock.hidden = !open;
+  document.body.classList.toggle("has-dock", open);
+  $("dockToggle").setAttribute("aria-pressed", String(open));
+  if (open) $("terminal").scrollTop = $("terminal").scrollHeight;
+}
+
 /* ============================================================
-   FORM + FARE RECEIPT
+   BOOKING FORM
    ============================================================ */
+
+function setRoute(pickupId, dropId) {
+  if (pickupId) ui.pickupId = pickupId;
+  if (dropId) ui.dropId = dropId;
+
+  if (ui.pickupId === ui.dropId) {
+    const other = LOCATIONS.find((l) => l.id !== ui.pickupId);
+    if (dropId) ui.pickupId = other.id; else ui.dropId = other.id;
+  }
+
+  $("pickup").value = ui.pickupId;
+  $("drop").value = ui.dropId;
+  refreshQuote();
+}
+
+function renderQuickPlaces() {
+  const saved = session().saved;
+  const box = $("quickPlaces");
+
+  box.innerHTML = saved.slice(0, 4).map((p) => {
+    const loc = findLocation(p.locationId);
+    if (!loc) return "";
+    return `<button class="quick" data-quick="${p.locationId}" type="button">
+      <svg><use href="#i-${p.icon === "home" ? "home" : p.icon === "work" ? "work" : "star"}"/></svg>
+      <span><b>${fmt.esc(p.label)}</b><span>${fmt.esc(loc.name)}</span></span>
+    </button>`;
+  }).join("") +
+  `<button class="quick quick--add" data-go="saved" type="button">
+     <svg><use href="#i-plus"/></svg><span><b>Add place</b><span>Saved shortcuts</span></span>
+   </button>`;
+}
 
 function buildLocationSelects() {
   [["pickup", "pickupId"], ["drop", "dropId"]].forEach(([id, key]) => {
     const sel = $(id);
-    LOCATIONS.forEach((loc) => {
-      const o = document.createElement("option");
-      o.value = loc.id;
-      o.textContent = loc.name;
-      sel.appendChild(o);
-    });
+    fillLocationSelect(sel);
     sel.value = ui[key];
     sel.addEventListener("change", () => {
-      ui[key] = sel.value;
-      if (ui.pickupId === ui.dropId) {
-        const other = LOCATIONS.find((l) => l.id !== sel.value);
-        const otherKey = key === "pickupId" ? "dropId" : "pickupId";
-        ui[otherKey] = other.id;
-        $(key === "pickupId" ? "drop" : "pickup").value = other.id;
-      }
-      refreshQuote();
+      if (key === "pickupId") setRoute(sel.value, null);
+      else setRoute(null, sel.value);
     });
   });
 
   $("swap").addEventListener("click", () => {
-    [ui.pickupId, ui.dropId] = [ui.dropId, ui.pickupId];
+    const from = ui.pickupId;
+    ui.pickupId = ui.dropId;
+    ui.dropId = from;
     $("pickup").value = ui.pickupId;
     $("drop").value = ui.dropId;
     refreshQuote();
+  });
+
+  $("quickPlaces").addEventListener("click", (e) => {
+    const b = e.target.closest("[data-quick]");
+    if (b) setRoute(null, b.dataset.quick);
   });
 }
 
@@ -470,33 +555,73 @@ function buildVehiclePicker() {
   grid.innerHTML = "";
 
   // The UI asks the FACTORY what exists. It never lists vehicle classes itself.
-  VehicleFactory.available().forEach((vehicle) => {
+  vehicleCatalog = VehicleFactory.available();
+
+  vehicleCatalog.forEach((vehicle) => {
     const b = document.createElement("button");
     b.className = "vcard";
     b.type = "button";
+    b.dataset.veh = vehicle.code;
     b.setAttribute("aria-pressed", String(vehicle.code === ui.vehicleType));
     b.innerHTML =
       '<span class="vcard__ico">' + VEHICLE_ICONS[vehicle.iconId] + "</span>" +
       '<span class="vcard__name">' + vehicle.label + "</span>" +
-      '<span class="vcard__meta">' + vehicle.capacity + " seat</span>" +
-      '<span class="vcard__meta">Rs.' + vehicle.perKm + "/km</span>";
+      '<span class="vcard__price" data-price="' + vehicle.code + '">—</span>' +
+      '<span class="vcard__meta">' + vehicle.capacity + " seat · " + vehicle.blurb + "</span>";
 
     b.addEventListener("click", () => {
       ui.vehicleType = vehicle.code;
-      grid.querySelectorAll(".vcard").forEach((c) => c.setAttribute("aria-pressed", "false"));
-      b.setAttribute("aria-pressed", "true");
+      grid.querySelectorAll(".vcard").forEach((c) =>
+        c.setAttribute("aria-pressed", String(c.dataset.veh === vehicle.code)));
       refreshQuote();
     });
     grid.appendChild(b);
   });
 }
 
+function buildAddOnPicker() {
+  const box = $("addons");
+  box.innerHTML = Object.entries(RIDE_ADDONS).map(([key, a]) => `
+    <label class="addon">
+      <input type="checkbox" data-addon="${key}">
+      <span class="addon__mid"><b>${a.label}</b><span>${a.hint}</span></span>
+    </label>`).join("");
+
+  box.addEventListener("change", () => {
+    ui.addOns = [...box.querySelectorAll("[data-addon]")]
+      .filter((c) => c.checked).map((c) => c.dataset.addon);
+    facade.useAddOns(ui.addOns);          // <- the DECORATOR stack rebuilds
+    refreshQuote();
+  });
+}
+
 function buildStrategySelect() {
-  $("strategy").addEventListener("change", (e) => {
+  const sel = $("strategy");
+  sel.innerHTML = Object.keys(FARE_STRATEGIES)
+    .map((k) => `<option value="${k}">${FARE_STRATEGY_LABELS[k]}</option>`).join("");
+  sel.value = ui.strategyKey;
+
+  sel.addEventListener("change", (e) => {
     ui.strategyKey = e.target.value;
     facade.useFareStrategy(ui.strategyKey);      // <- the Strategy swap, live
     refreshQuote();
   });
+}
+
+function buildPaymentSelect() {
+  syncPaymentSelect();
+  $("payMethod").addEventListener("change", (e) => {
+    facade.usePaymentMethod(e.target.value);     // <- picks an ADAPTER
+    Screens.wallet();
+  });
+}
+
+function syncPaymentSelect() {
+  const sel = $("payMethod");
+  sel.innerHTML = facade.paymentMethods()
+    .map((m) => `<option value="${m.key}">${fmt.esc(m.label)}${m.detail ? " — " + fmt.esc(m.detail) : ""}</option>`)
+    .join("");
+  sel.value = facade.activePayment().key;
 }
 
 function refreshQuote() {
@@ -507,15 +632,25 @@ function refreshQuote() {
   });
 
   const active = facade.calculator.strategy;
+  const stack = active.chain ? active.chain() : null;
+
   $("receiptStrategy").innerHTML =
-    "<span>" + active.note + "</span><b>" + active.name + "</b>";
+    "<span>" + (stack ? "wrapped in " + stack.wraps.length + " decorator(s)" : fmt.esc(active.note)) +
+    "</span><b>" + fmt.esc(active.name) + "</b>";
 
   $("receiptLines").innerHTML =
     priced.quote.lines.map((l) =>
-      '<div class="rline' + (l.kind ? " rline--" + l.kind : "") + '"><span>' + l.label +
-      "</span><span>" + (l.amount < 0 ? "-" : "") + "Rs." + Math.abs(l.amount).toFixed(0) + "</span></div>"
+      '<div class="rline' + (l.kind ? " rline--" + l.kind : "") + '"><span>' + fmt.esc(l.label) +
+      "</span><span>" + (l.amount < 0 ? "−" : "") + "Rs." + Math.abs(l.amount).toFixed(0) + "</span></div>"
     ).join("") +
     '<div class="rline rline--total"><span>Total</span><span>Rs.' + priced.quote.total + "</span></div>";
+
+  // Price every tile so the picker reads like a real one.
+  facade.quoteAllVehicles({ pickupId: ui.pickupId, dropId: ui.dropId, vehicles: vehicleCatalog })
+    .forEach((row) => {
+      const el = document.querySelector('[data-price="' + row.vehicle.code + '"]');
+      if (el) el.textContent = fmt.money(row.total);
+    });
 
   $("hudKm").textContent = priced.km.toFixed(1) + " km";
   $("hudEta").textContent = priced.minutes + " min";
@@ -524,6 +659,7 @@ function refreshQuote() {
     drawRoute(priced.pickup, priced.drop, priced.path);
     $("car").style.opacity = 0;
   }
+  if (meterObserver) meterObserver.setQuote(priced.quote.total);
   return priced;
 }
 
@@ -536,7 +672,7 @@ function renderLifecycle(ride) {
   const cancelled = ride && ride.state.key === "CancelledState";
   const current = ride ? ride.state.step : -99;
 
-  wrap.innerHTML = STEPS.map((s, i) => {
+  wrap.innerHTML = RIDE_STEPS.map((s, i) => {
     let cls = "step";
     if (ride && !cancelled && i < current) cls += " is-done";
     if (ride && !cancelled && i === current) cls += " is-active";
@@ -553,7 +689,9 @@ function renderLifecycle(ride) {
 
   $("stateNow").textContent = ride ? ride.state.key : "no active ride";
   $("stateLabel").textContent = ride ? ride.state.label : "Pick a route and book";
+  $("rideIdLabel").textContent = ride ? ride.id : "";
   $("btnCancel").disabled = !ride || !ride.canCancel;
+  $("btnStart").hidden = !ride || ride.state.key !== "ArrivedState";
 
   const done = !ride || ride.state.isFinal;
   $("btnBook").disabled = !done;
@@ -561,40 +699,41 @@ function renderLifecycle(ride) {
 }
 
 /* ============================================================
-   CODE SAMPLES in the reference section
+   CODE SAMPLES in the reference screen
    ============================================================ */
 
-function esc(s) {
-  return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-}
-
 function highlight(src) {
-  const re = /(\/\*[\s\S]*?\*\/|\/\/[^\n]*)|("(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*'|`(?:[^`\\]|\\.)*`)|\b(class|extends|constructor|new|return|const|let|var|if|else|for|get|set|static|throw|super|this|function|null|true|false|of|in|forEach)\b|\b(\d+(?:\.\d+)?)\b/g;
+  const re = /(\/\*[\s\S]*?\*\/|\/\/[^\n]*)|("(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*'|`(?:[^`\\]|\\.)*`)|\b(class|extends|constructor|new|return|const|let|var|if|else|for|get|set|static|throw|super|this|function|null|true|false|of|in|try|catch|forEach)\b|\b(\d+(?:\.\d+)?)\b/g;
   let out = "", last = 0, m;
   while ((m = re.exec(src)) !== null) {
-    out += esc(src.slice(last, m.index));
+    out += fmt.esc(src.slice(last, m.index));
     const cls = m[1] ? "tk-com" : m[2] ? "tk-str" : m[3] ? "tk-key" : "tk-num";
-    out += '<span class="' + cls + '">' + esc(m[0]) + "</span>";
+    out += '<span class="' + cls + '">' + fmt.esc(m[0]) + "</span>";
     last = m.index + m[0].length;
   }
-  return out + esc(src.slice(last));
+  return out + fmt.esc(src.slice(last));
 }
 
 function renderCodeSamples() {
   document.querySelectorAll("pre[data-src]").forEach((pre) => {
     const src = $(pre.dataset.src);
-    if (src) pre.innerHTML = highlight(src.textContent.trim());
+    if (src && !pre.dataset.done) {
+      pre.innerHTML = highlight(src.textContent.trim());
+      pre.dataset.done = "1";
+    }
   });
 }
 
 /* ============================================================
-   BOOT
+   RIDE UPDATES
    ============================================================ */
 
 function onRideUpdate(ride, payload) {
   ui.ride = ride;
   renderLifecycle(ride);
   renderDriver(ride);
+  renderOtp(ride);
+
   if (payload && payload.toast) pushToast(payload.toast);
 
   if (ride.state.key === "ArrivingState") {
@@ -604,30 +743,120 @@ function onRideUpdate(ride, payload) {
     drawRoute(ride.pickup, ride.drop, ride.legs.toDrop);
     observerList.forEach((o) => { if (o.reset) o.reset(); });
   }
+
   if (ride.state.isFinal) {
     $("hudEta").textContent = "--";
     $("hudSpeed").textContent = "0 km/h";
     $("hudStatus").textContent = "idle";
     $("hudStatus").dataset.status = "IDLE";
+    showMeter(null);
+  }
+
+  // The ride is over: hand the record to the session Singleton, and
+  // every other screen already has it.
+  if (payload && payload.finished && !ride.recorded) {
+    ride.recorded = true;
+    const record = ride.toTripRecord();
+    session().recordTrip(record);
+    log("SINGLETON", `SessionManager.recordTrip({{${record.id}}}) - Activity, Wallet and Profile update themselves`);
+
+    router.bumpBadge("activity");
+    syncUserChip();
+
+    if (record.status === "completed") {
+      setTimeout(() => { if (router.current === "home") Screens.ratingSheet(record.id); }, 1100);
+    }
   }
 }
+
+/* ============================================================
+   SESSION-DRIVEN CHROME
+   ============================================================ */
+
+function syncUserChip() {
+  const s = session();
+  if (!s.user) return;
+  $("userAva").textContent = s.initials;
+  $("userName").textContent = s.user.name.split(/\s+/)[0];
+  $("userPhone").textContent = fmt.money(s.wallet.balance) + " · " + fmt.phone(s.user.phone);
+}
+
+function enterApp() {
+  $("auth").hidden = true;
+  $("app").hidden = false;
+
+  PAYMENT_METHODS.build(session());
+  facade.usePaymentMethod("UPI");
+
+  // Anything the rider set on a previous visit comes back with them.
+  facade.usePromo(session().promo);
+  facade.notifications.muted = !session().prefs.notifications;
+
+  syncUserChip();
+  syncPaymentSelect();
+  renderQuickPlaces();
+
+  // The screen has to be on before the route is drawn: measuring an
+  // SVG path inside a hidden section is not something to rely on.
+  router.go("home");
+  refreshQuote();
+  log("SYSTEM", `Signed in as ${session().user.name}. Nine screens, one SessionManager instance.`);
+}
+
+function signOut() {
+  if (facade.activeRide) facade.activeRide.dispose();
+  ui.ride = null;
+  session().signOut();
+  $("app").hidden = true;
+  $("auth").hidden = false;
+  Auth.reset();
+}
+
+/* ============================================================
+   BOOT
+   ============================================================ */
 
 function init() {
   log("SINGLETON", "DispatchLog.getInstance() - one shared log for the whole app.");
 
-  facade = new RideBookingFacade({ pushToast, onRideUpdate });
+  applyTheme();
 
+  facade = new RideBookingFacade({ pushToast, onRideUpdate });
+  router = new ScreenRouter("stage", "rail");
+
+  // The map is drawn once and reused by every screen that shows it.
   drawCity();
   ambient = new AmbientTraffic(CITY, 22);
   drawAmbient();
   requestAnimationFrame(tickAmbient);
 
+  // The wallet adapter needs a session, and the session must exist
+  // before any screen reads it.
+  PAYMENT_METHODS.build(session());
+  facade.payments.use(PAYMENT_METHODS.get("UPI"));
+
   buildLocationSelects();
   buildVehiclePicker();
+  buildAddOnPicker();
   buildStrategySelect();
+  buildPaymentSelect();
   buildObservers();
   buildConsole();
-  renderCodeSamples();
+  Sheet.wire();
+
+  router.buildRail();
+  router.register("home");
+  router.register("activity", () => Screens.activity());
+  router.register("wallet",   () => Screens.wallet());
+  router.register("offers",   () => Screens.offers());
+  router.register("saved",    () => Screens.saved());
+  router.register("safety",   () => Screens.safety());
+  router.register("profile",  () => Screens.profile());
+  router.register("settings", () => Screens.settings());
+  router.register("patterns", () => renderCodeSamples());
+
+  Screens.wire();
+  Auth.wire(enterApp);
 
   // Every observer starts subscribed.
   observerList.forEach((o) => facade.attachObserver(o));
@@ -643,6 +872,7 @@ function init() {
   });
 
   $("btnCancel").addEventListener("click", () => facade.cancelRide());
+  $("btnStart").addEventListener("click", () => facade.startRide());
 
   $("btnClear").addEventListener("click", () => {
     $("terminal").innerHTML = "";
@@ -650,10 +880,28 @@ function init() {
     log("SYSTEM", "Console cleared.");
   });
 
-  refreshQuote();
+  $("dockToggle").addEventListener("click", () => toggleDock());
+  $("dockClose").addEventListener("click", () => toggleDock(false));
+  $("userChip").addEventListener("click", () => router.go("profile"));
+
   renderLifecycle(null);
-  log("SYSTEM", `City loaded: ${CITY.nodes.length} junctions, ${CITY.edges.length} road links. Routes are searched across that network, not drawn straight.`);
-  log("SYSTEM", "RideFlow ready. Press Book ride and watch the tags on the left of each line.");
+
+  log("SYSTEM", `City loaded: ${LOCATIONS.length} places, ${CITY.nodes.length} junctions, ${CITY.edges.length} road links. Routes are searched across that network, not drawn straight.`);
+  log("SYSTEM", `Fleet ready: ${DRIVER_POOL.length} drivers, ${Object.keys(VehicleFactory.registry).length} vehicle classes, ${Object.keys(FARE_STRATEGIES).length} pricing rules.`);
+
+  // Splash, then either straight in or the sign-in screen.
+  setTimeout(() => {
+    $("splash").classList.add("is-gone");
+    setTimeout(() => { $("splash").hidden = true; }, 420);
+
+    if (session().isSignedIn) {
+      log("SINGLETON", "SessionManager found a saved account - skipping sign-in");
+      enterApp();
+    } else {
+      $("auth").hidden = false;
+      Auth.show("phone");
+    }
+  }, 1150);
 }
 
 document.addEventListener("DOMContentLoaded", init);

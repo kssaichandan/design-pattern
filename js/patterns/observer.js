@@ -210,3 +210,47 @@ class PushNotificationObserver extends LocationObserver {
   }
   reset() { this.sent.clear(); }
 }
+
+/**
+ * Added later, and it needed nothing but a subscribe() call. That
+ * is the payoff: the GPS code was not opened, and no other observer
+ * was told about it.
+ */
+class FareMeterObserver extends LocationObserver {
+  constructor(showMeter, quoteTotal) {
+    super("meter", "FareMeterObserver", "Runs the live fare meter during the trip.");
+    this.showMeter = showMeter;
+    this.total = quoteTotal;
+  }
+  setQuote(total) { this.total = total; }
+  update(fix) {
+    if (fix.leg !== "TO_DROP") return this.showMeter(null);
+    // Fare accrues with distance covered, the way a meter really works.
+    this.showMeter(Math.round(this.total * Math.min(1, fix.progress)));
+  }
+  reset() { this.showMeter(null); }
+}
+
+/** Watches the same stream for things a safety team would care about. */
+class SafetyMonitorObserver extends LocationObserver {
+  constructor(onAlert) {
+    super("safety", "SafetyMonitorObserver", "Flags overspeeding and long unexplained stops.");
+    this.onAlert = onAlert;
+    this.stoppedTicks = 0;
+    this.flagged = new Set();
+  }
+  update(fix) {
+    if (fix.speedKmph > 68 && !this.flagged.has("speed")) {
+      this.flagged.add("speed");
+      this.onAlert(`Overspeeding flagged - ${fix.speedKmph} km/h on ${fix.road || "a side lane"}`);
+      log("OBSERVER", `SafetyMonitorObserver -> {{overspeed ${fix.speedKmph} km/h}} logged for review`);
+    }
+    this.stoppedTicks = fix.status === "STOPPED" ? this.stoppedTicks + 1 : 0;
+    if (this.stoppedTicks === 90 && !this.flagged.has("halt")) {
+      this.flagged.add("halt");
+      this.onAlert("Long halt detected. Are you alright?");
+      log("OBSERVER", "SafetyMonitorObserver -> {{long halt}} - safety check pushed to the rider");
+    }
+  }
+  reset() { this.stoppedTicks = 0; this.flagged.clear(); }
+}
