@@ -87,6 +87,12 @@ class DriverLocationPublisher {
       seed: path.lengthPx,
     });
 
+    // The route the rider was promised for this leg. Normally the same
+    // as `path`; after a detour it is the original, so a subscriber can
+    // measure how far the car has strayed from it.
+    const planned = opts.planned || path;
+    this.leg = { opts, planned };
+
     // The car drives at real speeds; only the CLOCK is compressed, so
     // a 30 km airport run still plays out on screen in a few seconds
     // without the speedometer telling lies.
@@ -125,6 +131,8 @@ class DriverLocationPublisher {
         remainingKm: motion.remainingKm,
         etaMin: motion.etaMin,
         speedKmph: Math.round(motion.speedKmph),
+        stillSec: Math.round(motion.stillSec),
+        offRouteKm: +(planned.distanceFrom(path.pointAt(progress)) * KM_PER_PX).toFixed(2),
       });
 
       if (motion.done) {
@@ -137,6 +145,37 @@ class DriverLocationPublisher {
   stopTracking() {
     if (this.timer) clearInterval(this.timer);
     this.timer = null;
+  }
+
+  get isTracking() { return this.timer !== null; }
+
+  /** Where the car is right now on the leg being streamed. */
+  currentPoint() {
+    return this.motion.path.pointAt(this.motion.progress);
+  }
+
+  /**
+   * The driver turned off the planned route. The car now drives `path`;
+   * the leg keeps its original plan, its arrival callback and its name,
+   * so every subscriber sees the same stream continue - just off-route.
+   */
+  reroute(path) {
+    if (!this.isTracking) return;
+    const { opts, planned } = this.leg;
+    const left = 1 - this.motion.progress;
+    const km = roadKm(path);
+    this.startTracking({
+      ...opts,
+      path,
+      distanceKm: km,
+      seconds: Math.max(6, opts.seconds * left * (km / Math.max(0.1, opts.distanceKm * left))),
+      planned,
+    });
+  }
+
+  /** The car stops with no red light to explain it (safety demo). */
+  holdCar(seconds) {
+    if (this.isTracking) this.motion.hold(seconds);
   }
 }
 
@@ -209,4 +248,57 @@ class PushNotificationObserver extends LocationObserver {
     });
   }
   reset() { this.sent.clear(); }
+}
+
+/**
+ * REAL-WORLD PROBLEM: the NCW's 2026 guidelines for app cabs (and a
+ * Delhi High Court petition) ask platforms for automatic alerts when a
+ * car leaves its route or stops for a long, unexplained time, with an
+ * SOS that actually reaches someone.
+ *
+ * The Observer pattern makes this a fifth subscriber and nothing else:
+ * the publisher, the map, the ETA panel and the other observers did
+ * not change by a single line to make room for it.
+ */
+class SafetyMonitorObserver extends LocationObserver {
+  /**
+   * @param {function} raiseSafetyCheck  shows the "Are you okay?" card
+   */
+  constructor(raiseSafetyCheck) {
+    super("safety", "SafetyMonitorObserver", "Flags long unexplained stops and route deviations once the rider is aboard.");
+    this.raiseSafetyCheck = raiseSafetyCheck;
+    this.raised = new Set();
+
+    // A red light here lasts under 15 s. Three minutes stood still is
+    // not a signal. 0.8 km off the promised route is not GPS jitter.
+    this.stopLimitSec = 180;
+    this.offRouteLimitKm = 0.8;
+  }
+
+  update(fix) {
+    if (fix.leg !== "TO_DROP") return;     // watching starts when the rider is in the car
+
+    const checks = [
+      {
+        key: "stop",
+        when: (f) => f.stillSec >= this.stopLimitSec,
+        text: (f) => `Your car has been stopped for ${Math.round(f.stillSec / 60)} min on ${f.road || "a side lane"}.`,
+      },
+      {
+        key: "detour",
+        when: (f) => f.offRouteKm >= this.offRouteLimitKm,
+        text: (f) => `Your car is ${f.offRouteKm.toFixed(1)} km off the planned route.`,
+      },
+    ];
+
+    checks.forEach((c) => {
+      if (this.raised.has(c.key) || !c.when(fix)) return;
+      this.raised.add(c.key);
+      const text = c.text(fix);
+      log("OBSERVER", `SafetyMonitorObserver -> {{${c.key.toUpperCase()} ALERT}} ${text}`);
+      this.raiseSafetyCheck({ kind: c.key, text, fix });
+    });
+  }
+
+  reset() { this.raised.clear(); }
 }

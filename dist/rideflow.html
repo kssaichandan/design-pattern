@@ -341,6 +341,8 @@ select:focus-visible, .btn:focus-visible, .vcard:focus-visible,
   display: flex; justify-content: space-between; gap: 10px;
 }
 .receipt__strategy b { color: var(--blue); font-weight: 500; }
+.receipt__strategy { flex-wrap: wrap; }
+.receipt__guards { flex-basis: 100%; color: var(--violet); }
 .receipt__lines { padding: 9px 12px; display: grid; gap: 5px; }
 
 .rline {
@@ -542,6 +544,7 @@ select:focus-visible, .btn:focus-visible, .vcard:focus-visible,
 .tag-OBSERVER  { color: #43C39A; }
 .tag-STATE     { color: #B79BF5; }
 .tag-FACADE    { color: #FF9D7A; }
+.tag-DECORATOR { color: #5FD3E0; }
 .tag-SINGLETON { color: #E4E0A0; }
 .tag-SYSTEM    { color: #6C7E93; }
 
@@ -586,6 +589,8 @@ select:focus-visible, .btn:focus-visible, .vcard:focus-visible,
 .pt-state     { background: var(--violet-soft); color: var(--violet); }
 .pt-facade    { background: var(--orange-soft); color: var(--orange); }
 .pt-singleton { background: var(--sand-soft);   color: var(--sand);   }
+.pt-decorator { background: var(--blue-soft);   color: var(--violet); }
+.pt-problem   { background: var(--red-soft);    color: var(--red);    }
 
 .pat__name { font-size: 23px; letter-spacing: -0.035em; }
 .pat__name small {
@@ -720,6 +725,57 @@ select:focus-visible, .btn:focus-visible, .vcard:focus-visible,
   }
 }
 
+/* ---------------- real-world fixes: cancel reasons, re-match, demo, safety ---------------- */
+
+.rematch {
+  font-size: 12.5px; color: var(--ink-2); line-height: 1.45;
+  background: var(--amber-soft); border: 1px solid var(--amber);
+  border-radius: var(--r-md); padding: 8px 11px;
+}
+.rematch b { color: var(--ink); }
+
+.cancelask {
+  display: grid; gap: 7px; padding: 11px;
+  border: 1px solid var(--line); border-radius: var(--r-md); background: var(--surface-2);
+}
+.dcard[hidden], .cancelask[hidden], .rematch[hidden], .safety[hidden] { display: none; }
+.cancelask__q { font-size: 13px; font-weight: 600; color: var(--ink); }
+.cancelask__opt { display: grid; gap: 2px; text-align: left; background: var(--surface); }
+.cancelask__opt small { font-weight: 400; font-size: 11.5px; color: var(--ink-3); }
+.linkbtn {
+  background: none; border: 0; padding: 4px; cursor: pointer;
+  font: inherit; font-size: 12.5px; color: var(--blue); justify-self: start;
+}
+
+.demo { display: grid; gap: 6px; padding-top: 4px; border-top: 1px dashed var(--line); }
+.demo__row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 7px; }
+@media (max-width: 480px) { .demo__row { grid-template-columns: 1fr; } }
+.btn--sim {
+  background: var(--surface-2); border-color: var(--line); color: var(--ink-2);
+  padding: 8px 6px; font-size: 12.5px; border-radius: var(--r-md);
+}
+.btn--sim:hover:not(:disabled) { border-color: var(--ink-3); color: var(--ink); }
+.btn--sos {
+  background: var(--red); border-color: var(--red); color: #fff;
+  padding: 8px 6px; font-size: 12.5px; border-radius: var(--r-md);
+}
+.btn--sos:hover { filter: brightness(1.08); }
+
+.safety {
+  position: absolute; left: 50%; bottom: 14px; transform: translateX(-50%);
+  width: min(320px, calc(100% - 28px)); display: grid; gap: 6px;
+  background: var(--surface); color: var(--ink); border: 2px solid var(--red);
+  border-radius: var(--r-md); padding: 11px 12px; box-shadow: var(--shadow-md);
+  font-size: 13px; animation: toastin .28s ease-out;
+}
+.safety b { color: var(--red); font-size: 14px; }
+.safety__row { display: grid; grid-template-columns: 1fr 1fr; gap: 7px; margin-top: 3px; }
+
+.mp-detour {
+  fill: none; stroke: var(--red); stroke-width: 3.2; stroke-dasharray: 6 4;
+  stroke-linecap: round; stroke-linejoin: round;
+}
+
 </style>
 
 
@@ -746,6 +802,7 @@ select:focus-visible, .btn:focus-visible, .vcard:focus-visible,
       <span class="pchip" data-tag="OBSERVER">Observer</span>
       <span class="pchip" data-tag="STATE">State</span>
       <span class="pchip" data-tag="FACADE">Facade</span>
+      <span class="pchip" data-tag="DECORATOR">Decorator</span>
       <span class="pchip" data-tag="SINGLETON">Singleton</span>
     </div>
   </div>
@@ -790,6 +847,7 @@ select:focus-visible, .btn:focus-visible, .vcard:focus-visible,
           <select id="strategy">
             <option value="STANDARD">Standard fare</option>
             <option value="SURGE">Surge pricing &times;1.8 (peak hour)</option>
+            <option value="FESTIVAL">Festival surge &times;3 (watch the legal cap)</option>
             <option value="NIGHT">Night fare (+25%)</option>
             <option value="PASS">RidePass subscriber (-20%)</option>
             <option value="POOL">Shared pool (split fare)</option>
@@ -816,7 +874,28 @@ select:focus-visible, .btn:focus-visible, .vcard:focus-visible,
         </div>
         <div class="dcard" id="driverCard" hidden></div>
         <div class="lifecycle" id="lifecycle"></div>
+        <div class="rematch" id="rematchNote" hidden></div>
         <button class="btn btn--ghost" id="btnCancel" type="button" disabled>Cancel ride</button>
+
+        <div class="cancelask" id="cancelAsk" hidden>
+          <span class="cancelask__q">Why are you cancelling?</span>
+          <button class="btn btn--ghost cancelask__opt" id="btnCancelPlans" type="button">
+            I changed my plans <small id="cancelFeeNote"></small>
+          </button>
+          <button class="btn btn--ghost cancelask__opt" id="btnCancelAsked" type="button">
+            The driver asked me to cancel <small>no fee for you &middot; driver penalised</small>
+          </button>
+          <button class="linkbtn" id="btnCancelKeep" type="button">Keep my ride</button>
+        </div>
+
+        <div class="demo">
+          <span class="field__label">Simulate real-world problems &middot; the fixes respond on their own</span>
+          <div class="demo__row">
+            <button class="btn btn--sim" id="btnDriverCancel" type="button" disabled title="The driver cancels after accepting">Driver cancels</button>
+            <button class="btn btn--sim" id="btnStop" type="button" disabled title="The car stops for 4 minutes with no red light">Unexpected stop</button>
+            <button class="btn btn--sim" id="btnDetour" type="button" disabled title="The driver leaves the planned route">Route detour</button>
+          </div>
+        </div>
       </div>
     </section>
 
@@ -854,6 +933,14 @@ select:focus-visible, .btn:focus-visible, .vcard:focus-visible,
           <div class="hudchip hudchip--status"><span class="hudchip__v" id="hudStatus" data-status="IDLE">idle</span></div>
         </div>
         <div class="toasts" id="toasts"></div>
+        <div class="safety" id="safetyCard" role="alertdialog" aria-labelledby="safetyTitle" hidden>
+          <b id="safetyTitle">Are you okay?</b>
+          <span id="safetyText"></span>
+          <div class="safety__row">
+            <button class="btn btn--sim" id="btnSafeOk" type="button">I'm okay</button>
+            <button class="btn btn--sos" id="btnSos" type="button">SOS</button>
+          </div>
+        </div>
       </div>
       <div class="panel__body">
         <div class="field">
@@ -883,11 +970,50 @@ select:focus-visible, .btn:focus-visible, .vcard:focus-visible,
 
     <div class="ref__lede">
       <span class="eyebrow">How the app is built</span>
-      <h2>Five patterns, one booking flow</h2>
+      <h2>Six patterns, one booking flow</h2>
       <p>Each pattern below solves a specific problem this app would otherwise have. The
          code is the real code running above &mdash; open the dispatch console and you can
          watch each one announce itself as you click.</p>
     </div>
+
+    <!-- ---------- REAL-WORLD PROBLEMS ---------- -->
+    <article class="pat">
+      <div class="pat__head">
+        <span class="pat__tag pt-problem">Real-world problems</span>
+        <h3 class="pat__name">What riders on Uber, Ola and Rapido complain about<small>and how this app answers it</small></h3>
+        <p class="pat__body">Three complaints keep coming up in consumer surveys, regulator notices and
+           the 2025 Motor Vehicle Aggregator Guidelines. Each fix below is built on a pattern, which is
+           why it took so little code &mdash; and each can be triggered from the
+           <em>Simulate real-world problems</em> buttons above.</p>
+        <div class="qa">
+          <span class="qa__q">1 &middot; Drivers cancel after accepting &mdash; State</span>
+          <p class="qa__a">A LocalCircles survey found 84% of app-cab users had been pushed into
+             cancelling, so the <em>rider</em> paid the fee. Here a driver cancel sends the ride into a new
+             <code>RematchingState</code>: same fare, a different driver, Rs.0 for the rider and a
+             penalty for the driver. Riders can also cancel with <em>"the driver asked me to"</em> at no
+             cost. Every other cancellation fee is 10% of the fare, capped at Rs.100, as the guidelines set.</p>
+        </div>
+        <div class="qa">
+          <span class="qa__q">2 &middot; Fares you cannot trust &mdash; Decorator</span>
+          <p class="qa__a">Festival surges of 3x-4x, charges missing from the quote, and an alleged (and
+             denied) iPhone-vs-Android price gap. Every pricing rule is wrapped by
+             <code>FairInputGuard</code> (the device never reaches the rule) and
+             <code>SurgeCapGuard</code> (at most 2x, never below 50%). The upfront quote is what is
+             charged &mdash; even after a detour.</p>
+        </div>
+        <div class="qa">
+          <span class="qa__q">3 &middot; Safety during the trip &mdash; Observer</span>
+          <p class="qa__a">The NCW's 2026 guidelines ask for route-deviation alerts and checks on long
+             stops. <code>SafetyMonitorObserver</code> is a fifth subscriber to the driver's GPS: it raises
+             <em>"Are you okay?"</em> after 3 minutes stood still or 0.8 km off the route, with an SOS that
+             sends the car details and live location. Nothing else in the app changed to add it.</p>
+        </div>
+      </div>
+      <div class="code">
+        <div class="code__hd">state.js &mdash; the new stage a driver cancellation leads to</div>
+        <pre data-src="src-rematch"></pre>
+      </div>
+    </article>
 
     <!-- ---------- FACTORY ---------- -->
     <article class="pat">
@@ -958,7 +1084,7 @@ select:focus-visible, .btn:focus-visible, .vcard:focus-visible,
         <div class="qa">
           <span class="qa__q">Where it runs</span>
           <p class="qa__a">The driver's GPS. <code>DriverLocationPublisher</code> emits a fix about
-             eleven times a second; four observers act on it.</p>
+             eleven times a second; five observers act on it, including the safety monitor.</p>
         </div>
         <div class="qa">
           <span class="qa__q">What it replaces</span>
@@ -996,9 +1122,10 @@ select:focus-visible, .btn:focus-visible, .vcard:focus-visible,
         </div>
         <div class="qa">
           <span class="qa__q">See it live</span>
-          <p class="qa__a">Cancel during <em>Driver arriving</em> &mdash; allowed, with a fee. Wait
-             for <em>Ride in progress</em> and the button disables itself, because
-             <code>InProgressState.canCancel</code> is false.</p>
+          <p class="qa__a">Cancel during <em>Driver arriving</em> &mdash; allowed, with a fee. Press
+             <em>Driver cancels</em> and the ride moves to <code>RematchingState</code> instead of dying.
+             Wait for <em>Ride in progress</em> and both buttons disable themselves, because
+             <code>InProgressState</code> says so.</p>
         </div>
       </div>
       <div class="code">
@@ -1036,6 +1163,36 @@ select:focus-visible, .btn:focus-visible, .vcard:focus-visible,
       </div>
     </article>
 
+    <!-- ---------- DECORATOR ---------- -->
+    <article class="pat">
+      <div class="pat__head">
+        <span class="pat__tag pt-decorator">Structural</span>
+        <h3 class="pat__name">Decorator<small>js/patterns/decorator.js</small></h3>
+        <p class="pat__body">Wrap an object in another with the same interface, adding one duty around
+           the call. The caller cannot tell, and the wrapped object never changes.</p>
+        <div class="qa">
+          <span class="qa__q">Where it runs</span>
+          <p class="qa__a">Every pricing rule. The facade hands the calculator
+             <code>regulated(rule)</code> &mdash; the rule inside <code>FairInputGuard</code> and
+             <code>SurgeCapGuard</code>. The receipt shows the chain.</p>
+        </div>
+        <div class="qa">
+          <span class="qa__q">What it replaces</span>
+          <p class="qa__a">The legal cap copied into every strategy (one forgets, one fine), or an
+             <code>if</code> ladder creeping back into <code>FareCalculator</code>.</p>
+        </div>
+        <div class="qa">
+          <span class="qa__q">See it live</span>
+          <p class="qa__a">Pick <em>Festival surge &times;3</em>. The rule asks for 3x; the receipt gains a
+             green <em>Surge capped at 2x</em> line and the console prints a <em>DECORATOR</em> correction.</p>
+        </div>
+      </div>
+      <div class="code">
+        <div class="code__hd">decorator.js &mdash; the base wrapper and the legal cap</div>
+        <pre data-src="src-decorator"></pre>
+      </div>
+    </article>
+
     <!-- ---------- SINGLETON ---------- -->
     <article class="pat">
       <div class="pat__head">
@@ -1045,7 +1202,7 @@ select:focus-visible, .btn:focus-visible, .vcard:focus-visible,
            times and you get the same object back every time.</p>
         <div class="qa">
           <span class="qa__q">Where it runs</span>
-          <p class="qa__a">The dispatch console itself. Five pattern files write to it and the UI
+          <p class="qa__a">The dispatch console itself. Six pattern files write to it and the UI
              reads from it &mdash; they must all be pointing at one log.</p>
         </div>
         <div class="qa">
@@ -1055,7 +1212,7 @@ select:focus-visible, .btn:focus-visible, .vcard:focus-visible,
         </div>
         <div class="qa">
           <span class="qa__q">See it live</span>
-          <p class="qa__a">Every line in the console is proof &mdash; five separate files wrote
+          <p class="qa__a">Every line in the console is proof &mdash; six separate files wrote
              into one shared list.</p>
         </div>
       </div>
@@ -1070,6 +1227,7 @@ select:focus-visible, .btn:focus-visible, .vcard:focus-visible,
 
 <footer class="wrap foot">
   <span>RideFlow &mdash; ride-booking app built for a Design Patterns course.</span>
+  <span>Problem sources: LocalCircles surveys, CCPA notices, MoRTH Aggregator Guidelines 2025, NCW 2026 guidelines.</span>
   <span>Open <code>index.html</code> in any browser. No build step, no dependencies.</span>
 </footer>
 
@@ -1215,8 +1373,9 @@ class ArrivingState extends RideState {
     ride.publisher.startTracking({ path: ride.legs.toPickup, leg: "TO_PICKUP",
                                    onArrive: () => this.next(ride) });
   }
-  next(ride)   { ride.transitionTo(new InProgressState()); }
-  cancel(ride) { ride.transitionTo(new CancelledState("Rs.35 cancellation fee.")); }
+  next(ride)         { ride.transitionTo(new InProgressState()); }
+  cancel(ride, why)  { riderCancels(ride, why, "ArrivingState"); }   // 10% fee, or free if the driver asked
+  driverCancel(ride) { driverWalksAway(ride, "ArrivingState"); }     // -> RematchingState
 }
 
 // 3. A state that refuses - it simply does not override cancel().
@@ -1275,6 +1434,68 @@ class RideBookingFacade {
 
 // The entire user interface talks to the app through this one line.
 facade.bookRide({ pickupId, dropId, vehicleType });
+</script>
+
+<script type="text/plain" id="src-rematch">
+// The driver walked away. The rider did nothing wrong, so the ride
+// does not die: the driver is penalised and matching starts again.
+function driverWalksAway(ride, stage) {
+  const fee = cancellationFee(ride.quote.total);       // 10% of fare, max Rs.100
+  ride.services.matching.penalise(ride.driver, fee, "cancelled an accepted ride");
+  ride.walkedAway.push(ride.driver);
+  ride.driver = null;
+
+  if (ride.walkedAway.length > MAX_REMATCHES) {
+    ride.transitionTo(new CancelledState("Ride closed - you have not been charged.", 0));
+    return;
+  }
+  ride.transitionTo(new RematchingState());
+}
+
+// One new class is the whole new stage. No if-else elsewhere learnt about it.
+class RematchingState extends RideState {
+  get label()     { return "Finding you another driver"; }
+  get canCancel() { return true; }                    // and free: not the rider's fault
+
+  onEnter(ride) { ride.after(1200, () => this.next(ride)); }
+
+  next(ride) { assignDriver(ride); }                  // anyone but the drivers who left;
+                                                      // ride.quote is never touched
+  cancel(ride) {
+    ride.transitionTo(new CancelledState("Cancelled while re-matching - no fee.", 0));
+  }
+}
+</script>
+
+<script type="text/plain" id="src-decorator">
+// 1. Same interface as every strategy; forwards to the one it wraps.
+class FareStrategyDecorator extends FareStrategy {
+  constructor(inner) { super(); this.inner = inner; }
+  get name()      { return this.inner.name; }          // looks exactly like the rule
+  calculate(trip) { return this.inner.calculate(trip); }
+}
+
+// 2. Only vehicle, distance and time may reach a pricing rule.
+class FairInputGuard extends FareStrategyDecorator {
+  calculate(trip) {
+    const { vehicle, km, minutes } = trip;              // device, etc. are dropped
+    return this.inner.calculate({ vehicle, km, minutes });
+  }
+}
+
+// 3. The 2025 guidelines: at most 2x the base fare, never under 50%.
+class SurgeCapGuard extends FareStrategyDecorator {
+  calculate(trip) {
+    const quote = this.inner.calculate(trip);
+    const base  = this.rideCost(trip);
+    const fare  = sumOfFareLines(quote);
+    if (fare > base * 2) return withCorrection(quote, base * 2 - fare, "Surge capped at 2x");
+    return quote;                                       // already legal - untouched
+  }
+}
+
+// 4. Every rule goes in wrapped. No strategy changed to make room.
+calculator.setStrategy(new FairInputGuard(new SurgeCapGuard(new SurgePricingFare(3))));
 </script>
 
 <script type="text/plain" id="src-singleton">
@@ -1776,6 +1997,17 @@ class RoutePath {
     return out;
   }
 
+  /** Shortest distance from a point to this route, in map pixels. */
+  distanceFrom(pt) {
+    let best = Infinity;
+    this.segments.forEach(({ a, b, len }) => {
+      const t = len === 0 ? 0
+        : Math.max(0, Math.min(1, ((pt.x - a.x) * (b.x - a.x) + (pt.y - a.y) * (b.y - a.y)) / (len * len)));
+      best = Math.min(best, Math.hypot(pt.x - (a.x + (b.x - a.x) * t), pt.y - (a.y + (b.y - a.y) * t)));
+    });
+    return best;
+  }
+
   toSvgPath() {
     return this.points.map((p, i) => (i === 0 ? "M" : "L") + " " + p.x.toFixed(1) + " " + p.y.toFixed(1)).join(" ");
   }
@@ -1892,6 +2124,16 @@ class VehicleMotion {
     this.cleared = new Set();
     this.recentSpeed = [];
     this.stops = 0;
+    this.stillSec = 0;        // how long the car has been standing still, in one go
+  }
+
+  /**
+   * Stand still for `seconds` without a red light to explain it - the
+   * stop a safety monitor exists to notice. Used by the safety demo.
+   */
+  hold(seconds) {
+    this.stoppedFor = Math.max(this.stoppedFor, seconds);
+    this.speedKmph = 0;
   }
 
   /**
@@ -2023,6 +2265,7 @@ class VehicleMotion {
     // Sitting at a red light.
     if (this.stoppedFor > 0) {
       this.stoppedFor -= dtSec;
+      this.stillSec += dtSec;
       this.speedKmph = 0;
       this.recentSpeed.push(0);
       if (this.recentSpeed.length > 40) this.recentSpeed.shift();
@@ -2042,6 +2285,7 @@ class VehicleMotion {
     }
 
     // Ease toward the speed this stretch allows.
+    this.stillSec = 0;
     const target = this.targetKmph();
     const rate = target > this.speedKmph ? MOTION.accelKmphPerSec : MOTION.brakeKmphPerSec;
     const delta = Math.sign(target - this.speedKmph) * rate * dtSec;
@@ -2065,7 +2309,7 @@ class VehicleMotion {
     const snapshot = {
       travelledKm: this.travelledKm, speedKmph: this.speedKmph, elapsedSec: this.elapsedSec,
       stoppedFor: this.stoppedFor, cleared: new Set(this.cleared),
-      recentSpeed: this.recentSpeed.slice(), stops: this.stops,
+      recentSpeed: this.recentSpeed.slice(), stops: this.stops, stillSec: this.stillSec,
     };
 
     this.reset();
@@ -2149,6 +2393,48 @@ class GeoService {
   }
 
   /**
+   * The leg a matched driver drives to reach the rider, plus how long
+   * the demo gives it on screen. Planned AFTER a driver accepts, from
+   * where that driver really is - so a re-matched driver drives in
+   * from their own street, not from the first driver's.
+   */
+  pickupLeg(driverAt, pickup) {
+    const toPickup = buildRoute(driverAt, pickup);
+    const toPickupKm = roadKm(toPickup);
+    return {
+      toPickup,
+      toPickupKm,
+      // Demo timing: only the CLOCK is compressed, the speeds stay real.
+      toPickupSeconds: Math.min(11, Math.max(5, 3 + toPickupKm * 0.7)),
+    };
+  }
+
+  /**
+   * A route that leaves the planned one: from where the car is now,
+   * out through a junction off to one side, then on to the drop.
+   * Only used by the safety demo - a real driver needs no help to
+   * take a wrong turn.
+   */
+  detourRoute(from, planned, to, progress = 0) {
+    const t = Math.min(0.92, progress + 0.25);
+    const ahead = planned.pointAt(Math.min(1, t));
+    const heading = (planned.headingAt(t) * Math.PI) / 180;
+    const side = {
+      x: Math.max(30, Math.min(690, ahead.x - Math.sin(heading) * 70)),
+      y: Math.max(30, Math.min(390, ahead.y + Math.cos(heading) * 70)),
+    };
+    const via = CITY.nodes[CITY.nearestNode(side)];
+    const a = buildRoute(from, via);
+    const b = buildRoute(via, to);
+
+    const seg = (p) => p.segments;
+    const points = a.points.concat(b.points.slice(1));
+    const classes = seg(a).map((s) => s.cls).concat(seg(b).map((s) => s.cls));
+    const names = seg(a).map((s) => s.name).concat(seg(b).map((s) => s.name));
+    return new RoutePath(points, classes, names);
+  }
+
+  /**
    * Where the nearest free driver happens to be sitting right now.
    * Snapped onto the road network - a waiting cab is parked on a
    * street, not floating in the middle of Hussain Sagar.
@@ -2185,6 +2471,10 @@ class DriverMatchingService {
       SEDAN: ["Maruti Dzire", "Hyundai Aura", "Honda Amaze", "Tata Tigor"],
       SUV:   ["Toyota Innova", "Maruti Ertiga", "Mahindra Marazzo"],
     };
+
+    // Cancellations on record per driver - the accountability half of
+    // "you won't pay when the driver walks away".
+    this.strikes = {};
   }
 
   /** Telangana plates: TS <district 07-36> <2 letters> <4 digits>. */
@@ -2194,11 +2484,25 @@ class DriverMatchingService {
     return `TS ${district} ${L()}${L()} ${1000 + Math.floor(Math.random() * 8999)}`;
   }
 
-  findDriver(vehicle, pickup) {
-    const person = this.pool[Math.floor(Math.random() * this.pool.length)];
+  /**
+   * @param {string[]} exclude  drivers who already walked away from THIS
+   *                            ride - never offer the rider the same one.
+   * @returns the driver, or null when nobody suitable is left.
+   */
+  findDriver(vehicle, pickup, exclude = []) {
+    const free = this.pool.filter((p) => !exclude.includes(p.name));
+    if (!free.length) {
+      log("SYSTEM", "DriverMatchingService: no free driver left nearby.");
+      return null;
+    }
+
+    const person = free[Math.floor(Math.random() * free.length)];
     const models = this.models[vehicle.code] || ["Unmarked"];
     const at = this.geo.randomPointNear(pickup);
-    const awayKm = +(Math.hypot(at.x - pickup.x, at.y - pickup.y) * KM_PER_PX).toFixed(1);
+
+    // Distance by ROAD from where this driver is parked - the same
+    // leg the car will actually drive, so the card and the map agree.
+    const leg = this.geo.pickupLeg(at, pickup);
 
     const driver = {
       ...person,
@@ -2206,16 +2510,40 @@ class DriverMatchingService {
       model: models[Math.floor(Math.random() * models.length)],
       plate: this.plateFor(),
       at,
-      awayKm,
+      awayKm: leg.toPickupKm,
+      leg,
     };
 
     log(
       "SYSTEM",
       `DriverMatchingService: matched {{${driver.name}}} (${driver.rating}*, ${driver.trips} trips) ` +
-      `in a ${driver.model} - ${driver.plate}, ${awayKm} km away`
+      `in a ${driver.model} - ${driver.plate}, ${driver.awayKm} km away by road`
     );
     return driver;
   }
+
+  /**
+   * Accountability for a driver who walks away from an accepted ride,
+   * or who pushes the rider into cancelling. The penalty lands on the
+   * driver; the rider pays nothing.
+   */
+  penalise(driver, amount, why) {
+    this.strikes[driver.name] = (this.strikes[driver.name] || 0) + 1;
+    log(
+      "SYSTEM",
+      `DriverMatchingService: penalty {{Rs.${amount}}} against ${driver.name} - ${why} ` +
+      `(strike ${this.strikes[driver.name]} on record)`
+    );
+  }
+}
+
+/**
+ * Cancellation charge under the Motor Vehicle Aggregator Guidelines,
+ * 2025: 10% of the fare, capped at Rs.100. The same rule applies to a
+ * rider who cancels and to a driver who cancels after accepting.
+ */
+function cancellationFee(fare) {
+  return Math.min(100, Math.round(fare * 0.10));
 }
 
 /** 3. Takes the money when the trip ends. */
@@ -2417,11 +2745,13 @@ class FareStrategy {
 
   /** Shared helper: fees and 5% GST, applied the same way by every strategy. */
   finalise(lines, platformFee = 9) {
-    if (platformFee > 0) lines.push({ label: "Platform fee", amount: platformFee, kind: "add" });
+    // `tag` lets a decorator (decorator.js) tell the ride price apart
+    // from the fee and tax lines without knowing which rule made them.
+    if (platformFee > 0) lines.push({ label: "Platform fee", amount: platformFee, kind: "add", tag: "fee" });
 
     const subtotal = lines.reduce((sum, l) => sum + l.amount, 0);
     const gst = subtotal * 0.05;
-    lines.push({ label: "GST 5%", amount: gst, kind: "add" });
+    lines.push({ label: "GST 5%", amount: gst, kind: "add", tag: "tax" });
 
     return { lines, total: Math.round(subtotal + gst) };
   }
@@ -2455,7 +2785,7 @@ class SurgePricingFare extends FareStrategy {
     const base = this.rideCost(trip);
     const lines = [
       { label: "Ride cost",                          amount: base },
-      { label: `Surge x${this.multiplier} (peak hour)`, amount: base * (this.multiplier - 1), kind: "add" },
+      { label: `Surge x${this.multiplier} (peak hour)`, amount: base * (this.multiplier - 1), kind: "add", tag: "surge" },
     ];
     return this.finalise(lines);
   }
@@ -2533,10 +2863,140 @@ class FareCalculator {
 const FARE_STRATEGIES = {
   STANDARD: () => new StandardFare(),
   SURGE:    () => new SurgePricingFare(1.8),
+  // What some platforms tried on festival nights. The rule itself is
+  // left untouched - SurgeCapGuard in decorator.js holds it to 2x.
+  FESTIVAL: () => new SurgePricingFare(3),
   NIGHT:    () => new NightFare(),
   PASS:     () => new RidePassFare(),
   POOL:     () => new SharedPoolFare(),
 };
+
+
+/* ===== js/patterns/decorator.js ===== */
+/* ============================================================
+   PATTERN 6 - DECORATOR  (structural)
+   ------------------------------------------------------------
+   REAL-WORLD PROBLEM: ride-app riders in India keep reporting fares
+   they cannot trust - surge of 3x-4x on festival nights, charges that
+   were not on the upfront quote, and (alleged, and denied by the
+   companies) different prices for the same trip on an iPhone and an
+   Android phone. The Motor Vehicle Aggregator Guidelines, 2025 answer
+   with hard limits: surge at most 2x the base fare, and never below
+   50% of it off-peak.
+
+   DESIGN PROBLEM: those limits apply to EVERY pricing rule - the five
+   we have and every one added next festival season. Putting the check
+   inside each strategy means every new rule must remember the law, and
+   one that forgets is a fine waiting to happen. Putting it in the
+   FareCalculator turns the context back into an if-else ladder.
+
+   SOLUTION: wrap the strategy. A decorator implements the same
+   FareStrategy interface, holds another FareStrategy inside, and adds
+   one duty around the call. The calculator cannot tell it is talking
+   to a wrapper, and the wrapped rule does not know it is wrapped:
+
+       new FairInputGuard( new SurgeCapGuard( new SurgePricingFare(3) ) )
+
+   Guards stack in any order and any number, and no pricing rule
+   changed to make room for them.
+   ============================================================ */
+
+/* ---------- the base decorator: same interface, forwards everything ---------- */
+
+class FareStrategyDecorator extends FareStrategy {
+  constructor(inner) {
+    super();
+    this.inner = inner;          // the strategy (or decorator) being wrapped
+  }
+
+  // To the outside world a decorated rule looks exactly like the rule.
+  get name() { return this.inner.name; }
+  get note() { return this.inner.note; }
+
+  get guardName() { return "FareStrategyDecorator"; }
+
+  /** Every guard in the chain, outermost first - shown on the receipt. */
+  get guards() { return [this.guardName].concat(this.inner.guards || []); }
+
+  calculate(trip) { return this.inner.calculate(trip); }
+}
+
+/* ---------- guard 1: only fair inputs reach the pricing rule ---------- */
+
+class FairInputGuard extends FareStrategyDecorator {
+  get guardName() { return "FairInputGuard"; }
+
+  /**
+   * The booking request carries whatever the app knows about the rider
+   * (here, the kind of device they booked from). A fare may depend on
+   * the vehicle, the distance and the time - nothing else. Everything
+   * else is stripped before the pricing rule ever sees it, so no rule,
+   * present or future, CAN charge by phone model.
+   */
+  calculate(trip) {
+    const fair = { vehicle: trip.vehicle, km: trip.km, minutes: trip.minutes };
+    const dropped = Object.keys(trip).filter((k) => !(k in fair));
+
+    if (dropped.length && !this.announced) {
+      this.announced = true;
+      log("DECORATOR", `FairInputGuard stripped {{${dropped.join(", ")}}} from the pricing input - ` +
+        "a fare may depend only on vehicle, distance and time");
+    }
+    return this.inner.calculate(fair);
+  }
+}
+
+/* ---------- guard 2: the legal surge ceiling and fare floor ---------- */
+
+class SurgeCapGuard extends FareStrategyDecorator {
+  constructor(inner, cap = 2, floor = 0.5) {
+    super(inner);
+    this.cap = cap;              // MoRTH 2025: at most 2x the base fare
+    this.floor = floor;          // ...and at least 50% of it
+  }
+
+  get guardName() { return "SurgeCapGuard"; }
+
+  calculate(trip) {
+    const quote = this.inner.calculate(trip);
+
+    // "Base fare" here is the standard price of this exact trip: the
+    // vehicle's base + per-km + per-minute charges, before any offer.
+    const base = this.rideCost(trip);
+    const fareLines = quote.lines.filter((l) => l.tag !== "fee" && l.tag !== "tax");
+    const fare = fareLines.reduce((sum, l) => sum + l.amount, 0);
+
+    let fix = null;
+    if (fare > base * this.cap + 0.5) {
+      fix = { label: `Surge capped at ${this.cap}x (MoRTH 2025)`, amount: base * this.cap - fare, kind: "cut", tag: "cap" };
+    } else if (fare < base * this.floor - 0.5) {
+      fix = { label: `Raised to ${this.floor * 100}% floor (MoRTH 2025)`, amount: base * this.floor - fare, kind: "add", tag: "cap" };
+    }
+    if (!fix) return quote;      // already legal - pass it through untouched
+
+    // Rebuild the receipt: fare lines, the correction, the fees, then
+    // GST worked out again on the corrected subtotal.
+    const fees = quote.lines.filter((l) => l.tag === "fee");
+    const lines = fareLines.concat([fix], fees);
+    const subtotal = lines.reduce((sum, l) => sum + l.amount, 0);
+    const gst = subtotal * 0.05;
+    lines.push({ label: "GST 5%", amount: gst, kind: "add", tag: "tax" });
+    const total = Math.round(subtotal + gst);
+
+    log("DECORATOR", `SurgeCapGuard: ${this.inner.name} asked Rs.${quote.total}, ` +
+      `the law allows {{Rs.${total}}} - corrected by Rs.${Math.abs(quote.total - total)}`);
+    return { lines, total };
+  }
+}
+
+/**
+ * Every pricing rule the app uses goes through here, so no rule can
+ * reach a rider unguarded. Outermost first: strip unfair inputs, then
+ * enforce the legal band on whatever the rule charges.
+ */
+function regulated(strategy) {
+  return new FairInputGuard(new SurgeCapGuard(strategy));
+}
 
 
 /* ===== js/patterns/observer.js ===== */
@@ -2629,6 +3089,12 @@ class DriverLocationPublisher {
       seed: path.lengthPx,
     });
 
+    // The route the rider was promised for this leg. Normally the same
+    // as `path`; after a detour it is the original, so a subscriber can
+    // measure how far the car has strayed from it.
+    const planned = opts.planned || path;
+    this.leg = { opts, planned };
+
     // The car drives at real speeds; only the CLOCK is compressed, so
     // a 30 km airport run still plays out on screen in a few seconds
     // without the speedometer telling lies.
@@ -2667,6 +3133,8 @@ class DriverLocationPublisher {
         remainingKm: motion.remainingKm,
         etaMin: motion.etaMin,
         speedKmph: Math.round(motion.speedKmph),
+        stillSec: Math.round(motion.stillSec),
+        offRouteKm: +(planned.distanceFrom(path.pointAt(progress)) * KM_PER_PX).toFixed(2),
       });
 
       if (motion.done) {
@@ -2679,6 +3147,37 @@ class DriverLocationPublisher {
   stopTracking() {
     if (this.timer) clearInterval(this.timer);
     this.timer = null;
+  }
+
+  get isTracking() { return this.timer !== null; }
+
+  /** Where the car is right now on the leg being streamed. */
+  currentPoint() {
+    return this.motion.path.pointAt(this.motion.progress);
+  }
+
+  /**
+   * The driver turned off the planned route. The car now drives `path`;
+   * the leg keeps its original plan, its arrival callback and its name,
+   * so every subscriber sees the same stream continue - just off-route.
+   */
+  reroute(path) {
+    if (!this.isTracking) return;
+    const { opts, planned } = this.leg;
+    const left = 1 - this.motion.progress;
+    const km = roadKm(path);
+    this.startTracking({
+      ...opts,
+      path,
+      distanceKm: km,
+      seconds: Math.max(6, opts.seconds * left * (km / Math.max(0.1, opts.distanceKm * left))),
+      planned,
+    });
+  }
+
+  /** The car stops with no red light to explain it (safety demo). */
+  holdCar(seconds) {
+    if (this.isTracking) this.motion.hold(seconds);
   }
 }
 
@@ -2753,6 +3252,59 @@ class PushNotificationObserver extends LocationObserver {
   reset() { this.sent.clear(); }
 }
 
+/**
+ * REAL-WORLD PROBLEM: the NCW's 2026 guidelines for app cabs (and a
+ * Delhi High Court petition) ask platforms for automatic alerts when a
+ * car leaves its route or stops for a long, unexplained time, with an
+ * SOS that actually reaches someone.
+ *
+ * The Observer pattern makes this a fifth subscriber and nothing else:
+ * the publisher, the map, the ETA panel and the other observers did
+ * not change by a single line to make room for it.
+ */
+class SafetyMonitorObserver extends LocationObserver {
+  /**
+   * @param {function} raiseSafetyCheck  shows the "Are you okay?" card
+   */
+  constructor(raiseSafetyCheck) {
+    super("safety", "SafetyMonitorObserver", "Flags long unexplained stops and route deviations once the rider is aboard.");
+    this.raiseSafetyCheck = raiseSafetyCheck;
+    this.raised = new Set();
+
+    // A red light here lasts under 15 s. Three minutes stood still is
+    // not a signal. 0.8 km off the promised route is not GPS jitter.
+    this.stopLimitSec = 180;
+    this.offRouteLimitKm = 0.8;
+  }
+
+  update(fix) {
+    if (fix.leg !== "TO_DROP") return;     // watching starts when the rider is in the car
+
+    const checks = [
+      {
+        key: "stop",
+        when: (f) => f.stillSec >= this.stopLimitSec,
+        text: (f) => `Your car has been stopped for ${Math.round(f.stillSec / 60)} min on ${f.road || "a side lane"}.`,
+      },
+      {
+        key: "detour",
+        when: (f) => f.offRouteKm >= this.offRouteLimitKm,
+        text: (f) => `Your car is ${f.offRouteKm.toFixed(1)} km off the planned route.`,
+      },
+    ];
+
+    checks.forEach((c) => {
+      if (this.raised.has(c.key) || !c.when(fix)) return;
+      this.raised.add(c.key);
+      const text = c.text(fix);
+      log("OBSERVER", `SafetyMonitorObserver -> {{${c.key.toUpperCase()} ALERT}} ${text}`);
+      this.raiseSafetyCheck({ kind: c.key, text, fix });
+    });
+  }
+
+  reset() { this.raised.clear(); }
+}
+
 
 /* ===== js/patterns/state.js ===== */
 /* ============================================================
@@ -2794,6 +3346,15 @@ class RideState {
   get canCancel() { return false; }
   get isFinal()   { return false; }
 
+  /** Can the DRIVER still walk away from this ride? */
+  get canDriverCancel() { return false; }
+
+  /** Is the rider in the car? Safety monitoring only matters then. */
+  get riderOnboard() { return false; }
+
+  /** What the rider would pay to cancel right now. */
+  cancelFee(ride) { return 0; }
+
   /** Runs the moment the ride enters this state. */
   onEnter(ride) {}
 
@@ -2801,10 +3362,83 @@ class RideState {
   next(ride) {}
 
   /** Default behaviour: refuse. States that allow it override this. */
-  cancel(ride) {
+  cancel(ride, reason) {
     log("STATE", `{{${this.key}}} refuses cancel() - not allowed once the ride reaches this stage.`);
     ride.notifyUi({ toast: "This ride can no longer be cancelled." });
   }
+
+  /** Default behaviour: refuse. Only states with a driver on the way allow it. */
+  driverCancel(ride) {
+    log("STATE", `{{${this.key}}} refuses driverCancel() - a driver cannot walk away at this stage.`);
+  }
+}
+
+/* ---------- shared steps, used by more than one state ----------
+   Plain functions rather than copies in each class: the STATES
+   decide WHEN these happen, these only say HOW.                    */
+
+const MAX_REMATCHES = 2;
+
+/**
+ * Find a driver who has not already walked away from this ride, plan
+ * their leg to the pickup from where THEY are, and hand over to
+ * DriverAssignedState. No one left -> close the ride at no cost.
+ */
+function assignDriver(ride) {
+  const driver = ride.services.matching.findDriver(ride.vehicle, ride.pickup, ride.walkedAway.map((d) => d.name));
+  if (!driver) {
+    ride.transitionTo(new CancelledState("No driver is free nearby right now. Nothing has been charged.", 0));
+    return;
+  }
+  ride.driver = driver;
+  Object.assign(ride.legs, driver.leg);
+  ride.transitionTo(new DriverAssignedState());
+}
+
+/**
+ * The rider pressed Cancel after a driver accepted. The reason matters:
+ * "the driver asked me to cancel" is the trick riders complain about
+ * most - the driver avoids a penalty and the RIDER pays it. Here that
+ * reason costs the rider nothing and puts the penalty on the driver.
+ */
+function riderCancels(ride, reason, stage) {
+  ride.publisher.stopTracking();
+  const fee = cancellationFee(ride.quote.total);
+
+  if (reason === "DRIVER_ASKED") {
+    ride.services.matching.penalise(ride.driver, fee, "rider reports being asked to cancel");
+    log("STATE", `{{${stage}}} allows cancel() - reason DRIVER_ASKED, so the rider pays Rs.0 and the driver is penalised.`);
+    ride.transitionTo(new CancelledState(
+      `Cancelled - you reported that ${ride.driver.name} asked you to cancel. No fee for you; the driver has been penalised.`, 0));
+    return;
+  }
+
+  log("STATE", `{{${stage}}} allows cancel() - rider changed plans, fee Rs.${fee} (10% of fare, max Rs.100).`);
+  ride.transitionTo(new CancelledState(`Cancelled - Rs.${fee} cancellation fee (10% of the fare, capped at Rs.100).`, fee));
+}
+
+/**
+ * The driver cancelled after accepting. The rider did nothing wrong, so
+ * the ride does not die and the rider pays nothing: the penalty goes on
+ * the driver, and the ride goes back to matching at the SAME fare.
+ */
+function driverWalksAway(ride, stage) {
+  ride.publisher.stopTracking();
+  const driver = ride.driver;
+  const fee = cancellationFee(ride.quote.total);
+
+  ride.services.matching.penalise(driver, fee, "cancelled an accepted ride");
+  ride.walkedAway.push(driver);
+  ride.driver = null;
+
+  log("STATE", `{{${stage}}} allows driverCancel() - ${driver.name} walked away. Rider pays Rs.0.`);
+
+  if (ride.walkedAway.length > MAX_REMATCHES) {
+    ride.transitionTo(new CancelledState(
+      `${ride.walkedAway.length} drivers cancelled on you. The ride is closed and you have not been charged.`, 0));
+    return;
+  }
+  ride.transitionTo(new RematchingState(driver));
 }
 
 /* ---------- concrete states ---------- */
@@ -2822,14 +3456,46 @@ class RequestedState extends RideState {
   }
 
   next(ride) {
-    const driver = ride.services.matching.findDriver(ride.vehicle, ride.pickup);
-    ride.driver = driver;
-    ride.transitionTo(new DriverAssignedState());
+    assignDriver(ride);
   }
 
   cancel(ride) {
     log("STATE", `{{RequestedState}} allows cancel() - no driver committed yet, nothing to charge.`);
-    ride.transitionTo(new CancelledState("Cancelled before a driver was assigned - no fee."));
+    ride.transitionTo(new CancelledState("Cancelled before a driver was assigned - no fee.", 0));
+  }
+}
+
+/**
+ * NEW STAGE - the answer to "the driver cancelled on me". Adding it
+ * took this one class and two lines in the states that lead here; no
+ * if-else anywhere else in the app had to learn about it.
+ */
+class RematchingState extends RideState {
+  constructor(previous) {
+    super();
+    this.previous = previous;          // the driver who walked away
+  }
+  get key()       { return "RematchingState"; }
+  get label()     { return "Finding you another driver"; }
+  get step()      { return 0; }
+  get canCancel() { return true; }     // free - none of this is the rider's fault
+
+  onEnter(ride) {
+    log("STATE", `{{RematchingState}} - fare stays locked at Rs.${ride.quote.total}; ` +
+      `${ride.walkedAway.map((d) => d.name).join(", ")} excluded from matching (attempt ${ride.walkedAway.length} of ${MAX_REMATCHES}).`);
+    ride.notifyUi({
+      toast: `<b>${this.previous.name}</b> cancelled. Finding you another driver at the same <b>Rs.${ride.quote.total}</b> - you won't be charged.`,
+    });
+    ride.after(900 + Math.random() * 1200, () => this.next(ride));
+  }
+
+  next(ride) {
+    assignDriver(ride);
+  }
+
+  cancel(ride) {
+    log("STATE", `{{RematchingState}} allows cancel() - a driver let the rider down, so no fee.`);
+    ride.transitionTo(new CancelledState("Cancelled while re-matching - no fee.", 0));
   }
 }
 
@@ -2838,6 +3504,9 @@ class DriverAssignedState extends RideState {
   get label()     { return "Driver assigned"; }
   get step()      { return 1; }
   get canCancel() { return true; }
+  get canDriverCancel() { return true; }
+
+  cancelFee(ride) { return cancellationFee(ride.quote.total); }
 
   onEnter(ride) {
     ride.notifyUi({
@@ -2850,9 +3519,12 @@ class DriverAssignedState extends RideState {
     ride.transitionTo(new ArrivingState());
   }
 
-  cancel(ride) {
-    log("STATE", `{{DriverAssignedState}} allows cancel() - driver released back to the pool, Rs.20 fee.`);
-    ride.transitionTo(new CancelledState("Cancelled after assignment - Rs.20 cancellation fee."));
+  cancel(ride, reason) {
+    riderCancels(ride, reason, "DriverAssignedState");
+  }
+
+  driverCancel(ride) {
+    driverWalksAway(ride, "DriverAssignedState");
   }
 }
 
@@ -2861,6 +3533,9 @@ class ArrivingState extends RideState {
   get label()     { return "Driver on the way to you"; }
   get step()      { return 2; }
   get canCancel() { return true; }
+  get canDriverCancel() { return true; }
+
+  cancelFee(ride) { return cancellationFee(ride.quote.total); }
 
   onEnter(ride) {
     // The state decides which GPS leg is streaming right now.
@@ -2879,10 +3554,12 @@ class ArrivingState extends RideState {
     ride.transitionTo(new InProgressState());
   }
 
-  cancel(ride) {
-    ride.publisher.stopTracking();
-    log("STATE", `{{ArrivingState}} allows cancel() - driver already en route, Rs.35 fee.`);
-    ride.transitionTo(new CancelledState("Cancelled while the driver was en route - Rs.35 fee."));
+  cancel(ride, reason) {
+    riderCancels(ride, reason, "ArrivingState");
+  }
+
+  driverCancel(ride) {
+    driverWalksAway(ride, "ArrivingState");
   }
 }
 
@@ -2891,6 +3568,7 @@ class InProgressState extends RideState {
   get label()     { return "Ride in progress"; }
   get step()      { return 3; }
   get canCancel() { return false; }   // you cannot cancel a moving ride
+  get riderOnboard() { return true; }
 
   onEnter(ride) {
     ride.publisher.startTracking({
@@ -2915,15 +3593,21 @@ class CompletedState extends RideState {
   get isFinal() { return true; }
 
   onEnter(ride) {
+    // The upfront quote IS the bill: not re-priced at drop-off, even if
+    // the driver took a longer way round.
     const receipt = ride.services.payments.charge(ride.quote.total, ride.id);
-    ride.notifyUi({ toast: `Trip complete. <b>Rs.${ride.quote.total}</b> charged - ${receipt.method}` });
+    if (ride.detourKm) {
+      log("STATE", `{{CompletedState}} - driver detoured ${ride.detourKm} km; rider still pays the locked fare, not a rupee more.`);
+    }
+    ride.notifyUi({ toast: `Trip complete. <b>Rs.${ride.quote.total}</b> charged (your upfront fare) - ${receipt.method}` });
   }
 }
 
 class CancelledState extends RideState {
-  constructor(reason) {
+  constructor(reason, fee = 0) {
     super();
     this.reason = reason;
+    this.fee = fee;
   }
   get key()     { return "CancelledState"; }
   get label()   { return "Ride cancelled"; }
@@ -2932,6 +3616,7 @@ class CancelledState extends RideState {
 
   onEnter(ride) {
     ride.publisher.stopTracking();
+    if (this.fee > 0) ride.services.payments.charge(this.fee, ride.id + " (cancellation)");
     ride.notifyUi({ toast: this.reason });
   }
 }
@@ -2944,6 +3629,8 @@ class Ride {
     this.state = null;
     this.timers = [];
     this.history = [];
+    this.walkedAway = [];          // drivers who cancelled on this ride
+    this.detourKm = 0;
   }
 
   /**
@@ -2962,14 +3649,20 @@ class Ride {
   }
 
   /** Delegation, not decision-making. */
-  cancel() { this.state.cancel(this); }
-  next()   { this.state.next(this); }
+  cancel(reason)  { this.state.cancel(this, reason); }
+  driverCancel()  { this.state.driverCancel(this); }
+  next()          { this.state.next(this); }
 
-  get canCancel() { return this.state ? this.state.canCancel : false; }
+  get canCancel()       { return this.state ? this.state.canCancel : false; }
+  get canDriverCancel() { return this.state ? this.state.canDriverCancel : false; }
+  get riderOnboard()    { return this.state ? this.state.riderOnboard : false; }
+  get cancelFee()       { return this.state ? this.state.cancelFee(this) : 0; }
 
+  /** Run `fn` later - but only if the ride is still in the state that asked. */
   after(ms, fn) {
+    const owner = this.state;
     const t = setTimeout(() => {
-      if (!this.state.isFinal) fn();
+      if (this.state === owner && !this.state.isFinal) fn();
     }, ms);
     this.timers.push(t);
   }
@@ -3011,7 +3704,7 @@ class Ride {
    SOLUTION: one class in front of the whole booking subsystem,
    with one simple method. The UI says bookRide(request) and knows
    nothing else. Note the payoff: the facade is where the other
-   four patterns are wired together, so the UI never touches them.
+   five patterns are wired together, so the UI never touches them.
    ============================================================ */
 
 class RideBookingFacade {
@@ -3022,8 +3715,14 @@ class RideBookingFacade {
     this.payments      = new PaymentGateway();
     this.notifications = new NotificationService(pushToast);
 
-    this.calculator = new FareCalculator(FARE_STRATEGIES.STANDARD());
+    // Every pricing rule goes in wrapped by the legal guards (DECORATOR).
+    this.calculator = new FareCalculator(regulated(FARE_STRATEGIES.STANDARD()));
     this.publisher  = new DriverLocationPublisher();   // the Observer subject
+
+    // What the app knows about the rider's phone. It travels with the
+    // pricing request - and FairInputGuard makes sure no rule can use it.
+    const ua = typeof navigator !== "undefined" ? navigator.userAgent : "";
+    this.device = /iPhone|iPad/.test(ua) ? "iOS" : /Android/.test(ua) ? "Android" : "Desktop";
 
     this.onRideUpdate = onRideUpdate;
     this.activeRide   = null;
@@ -3032,7 +3731,7 @@ class RideBookingFacade {
   /* ---------- simple pass-throughs so the UI has ONE contact point ---------- */
 
   useFareStrategy(key) {
-    this.calculator.setStrategy(FARE_STRATEGIES[key]());
+    this.calculator.setStrategy(regulated(FARE_STRATEGIES[key]()));
   }
 
   attachObserver(observer)  { this.publisher.subscribe(observer); }
@@ -3048,10 +3747,11 @@ class RideBookingFacade {
     const drop    = findLocation(dropId);
     const vehicle = VehicleFactory.create(vehicleType);          // <- FACTORY
     const trip    = this.geo.route(pickup, drop, vehicle);
-    const quote   = this.calculator.calculate({                   // <- STRATEGY
+    const quote   = this.calculator.calculate({                   // <- STRATEGY (+ DECORATOR guards)
       vehicle,
       km: trip.km,
       minutes: trip.minutes,
+      device: this.device,                                        // stripped by FairInputGuard
     });
 
     return { pickup, drop, vehicle, quote, ...trip };
@@ -3068,19 +3768,14 @@ class RideBookingFacade {
     // 1 + 2 + 3. Vehicle, route and price (Factory + Strategy inside quote()).
     const priced = this.quote({ pickupId, dropId, vehicleType });
 
-    // 4. Work out the two legs the driver will drive: to you, then to your drop.
-    const driverStart = this.geo.randomPointNear(priced.pickup);
-    const toPickup    = buildRoute(driverStart, priced.pickup);
-    const toPickupKm  = roadKm(toPickup);
-
-    // Demo timing: a real 29 km airport run takes an hour. Only the
-    // CLOCK is compressed - traffic.js still drives at real speeds, so
-    // the ETA and speedometer stay honest while the animation stays
-    // short. Longer trips get proportionally longer on screen.
+    // 4. The drop leg is known now. The leg TO the pickup is planned the
+    //    moment a driver accepts, from wherever that driver really is -
+    //    so a re-matched driver drives in from their own street.
+    //    Demo timing: a real 29 km airport run takes an hour. Only the
+    //    CLOCK is compressed - traffic.js still drives at real speeds, so
+    //    the ETA and speedometer stay honest while the animation stays
+    //    short. Longer trips get proportionally longer on screen.
     const legs = {
-      toPickup,
-      toPickupKm,
-      toPickupSeconds: Math.min(11, Math.max(5, 3 + toPickupKm * 0.7)),
       toDrop: priced.path,
       toDropKm: priced.km,
       toDropSeconds: Math.min(26, Math.max(9, 6 + priced.km * 0.6)),
@@ -3112,11 +3807,60 @@ class RideBookingFacade {
     return ride;
   }
 
-  cancelRide() {
+  /** @param {string} reason  "CHANGED_PLANS" | "DRIVER_ASKED" */
+  cancelRide(reason = "CHANGED_PLANS") {
     if (this.activeRide) {
-      log("FACADE", "RideBookingFacade.cancelRide() -> delegating to the ride's current state");
-      this.activeRide.cancel();
+      log("FACADE", `RideBookingFacade.cancelRide(${reason}) -> delegating to the ride's current state`);
+      this.activeRide.cancel(reason);
     }
+  }
+
+  /* ---------- the driver's side, and the safety desk ---------- */
+
+  /** The driver presses "cancel trip" on their phone. */
+  driverCancelRide() {
+    if (this.activeRide) {
+      log("FACADE", "RideBookingFacade.driverCancelRide() -> delegating to the ride's current state");
+      this.activeRide.driverCancel();
+    }
+  }
+
+  /** Demo: the car stops for four minutes with no red light to explain it. */
+  simulateUnexpectedStop() {
+    const ride = this.activeRide;
+    if (!ride || !ride.riderOnboard) return;
+    log("FACADE", "Demo: the driver pulls over and stays there - watch SafetyMonitorObserver");
+    this.publisher.holdCar(240);
+  }
+
+  /** Demo: the driver leaves the planned route. */
+  simulateDetour() {
+    const ride = this.activeRide;
+    if (!ride || !ride.riderOnboard || !this.publisher.isTracking || ride.detourKm > 0) return;
+    const path = this.geo.detourRoute(this.publisher.currentPoint(), ride.legs.toDrop, ride.drop, this.publisher.motion.progress);
+    const extra = +Math.max(0, roadKm(path) - ride.legs.toDropKm * (1 - this.publisher.motion.progress)).toFixed(1);
+    ride.detourKm = +(ride.detourKm + extra).toFixed(1);
+    log("FACADE", `Demo: the driver turns off the planned route (+${extra} km) - watch SafetyMonitorObserver`);
+    this.publisher.reroute(path);
+    this.onRideUpdate(ride, { detour: path });
+  }
+
+  /**
+   * The rider answers the "Are you okay?" check.
+   * @param {string} answer  "OK" | "SOS"
+   */
+  respondToSafetyCheck(answer) {
+    const ride = this.activeRide;
+    if (!ride) return;
+    if (answer === "OK") {
+      log("SYSTEM", `Safety desk: rider on ${ride.id} confirmed they are okay. Monitoring continues.`);
+      return;
+    }
+    const fix = this.publisher.lastFix || {};
+    const where = fix.point ? `(${fix.point.x.toFixed(0)}, ${fix.point.y.toFixed(0)}) on ${fix.road || "a side lane"}` : "unknown";
+    log("SYSTEM", `SOS on {{${ride.id}}}: driver ${ride.driver.name}, ${ride.driver.model} ${ride.driver.plate}, ` +
+      `live location ${where} -> shared with 112 and the rider's emergency contact; control room calling the rider.`);
+    this.notifications.send("<b>SOS sent.</b> Police (112) and your emergency contact have your live location and the car details.");
   }
 }
 
@@ -3125,7 +3869,7 @@ class RideBookingFacade {
 /* ============================================================
    app.js - THE USER INTERFACE ONLY
    ------------------------------------------------------------
-   Read this file to see the payoff of the five patterns. It draws
+   Read this file to see the payoff of the six patterns. It draws
    things and handles clicks. It never prices a ride, never decides
    what a ride is allowed to do next, never constructs a vehicle,
    and never talks to a subsystem. It calls the Facade and renders
@@ -3162,6 +3906,7 @@ const ui = {
   strategyKey: "STANDARD",
   ride: null,
   filter: "ALL",
+  shownState: null,      // the state object last drawn, to spot real transitions
 };
 
 let facade;
@@ -3408,7 +4153,7 @@ function moveCar(point, heading, progress, status) {
 }
 
 /* ============================================================
-   OBSERVER WIRING - the four subscribers and their checkboxes
+   OBSERVER WIRING - the five subscribers and their checkboxes
    ============================================================ */
 
 function showTelemetry(fix) {
@@ -3418,7 +4163,7 @@ function showTelemetry(fix) {
   $("hudRoad").textContent = fix.road || "side lane";
 
   const chip = $("hudStatus");
-  chip.textContent = fix.status === "STOPPED" ? "at a signal"
+  chip.textContent = fix.status === "STOPPED" ? (fix.stillSec > 30 ? "stopped" : "at a signal")
     : fix.status === "CRAWLING" ? "slow traffic"
     : fix.status === "CRUISING" ? "clear road" : "moving";
   chip.dataset.status = fix.status;
@@ -3430,6 +4175,7 @@ function buildObservers() {
     new EtaPanelObserver(showTelemetry),
     new TripLogObserver(),
     new PushNotificationObserver(pushToast),
+    new SafetyMonitorObserver(showSafetyCheck),
   ];
 
   const box = $("observers");
@@ -3451,12 +4197,35 @@ function buildObservers() {
 }
 
 /* ============================================================
+   SAFETY CHECK  (raised by SafetyMonitorObserver, answered via the Facade)
+   ============================================================ */
+
+function showSafetyCheck(alert) {
+  $("safetyText").textContent = alert.text;
+  $("safetyCard").dataset.kind = alert.kind;
+  $("safetyCard").hidden = false;
+}
+
+function answerSafetyCheck(answer) {
+  $("safetyCard").hidden = true;
+  facade.respondToSafetyCheck(answer);
+}
+
+/** The road the driver actually took, drawn over the one promised. */
+function drawDetour(path) {
+  const g = $("routelayer");
+  const done = $("routedone");
+  if (done) done.remove();            // progress no longer maps onto the planned line
+  g.insertBefore(mk("path", { d: path.toSvgPath(), class: "mp-detour" }), g.querySelector("circle"));
+}
+
+/* ============================================================
    THE DRIVER CARD
    ============================================================ */
 
 function renderDriver(ride) {
   const card = $("driverCard");
-  if (!ride || !ride.driver || ride.state.key === "RequestedState") {
+  if (!ride || !ride.driver) {
     card.hidden = true;
     return;
   }
@@ -3494,7 +4263,7 @@ function pushToast(html) {
    THE DISPATCH CONSOLE  (renders whatever the Singleton log holds)
    ============================================================ */
 
-const TAGS = ["ALL", "FACTORY", "STRATEGY", "OBSERVER", "STATE", "FACADE"];
+const TAGS = ["ALL", "FACTORY", "STRATEGY", "DECORATOR", "OBSERVER", "STATE", "FACADE"];
 
 function appendLogLine(entry) {
   const body = $("terminal");
@@ -3632,7 +4401,8 @@ function refreshQuote() {
 
   const active = facade.calculator.strategy;
   $("receiptStrategy").innerHTML =
-    "<span>" + active.note + "</span><b>" + active.name + "</b>";
+    "<span>" + active.note + "</span><b>" + active.name + "</b>" +
+    (active.guards ? '<span class="receipt__guards">guarded by ' + active.guards.join(" › ") + "</span>" : "");
 
   $("receiptLines").innerHTML =
     priced.quote.lines.map((l) =>
@@ -3664,10 +4434,13 @@ function renderLifecycle(ride) {
     let cls = "step";
     if (ride && !cancelled && i < current) cls += " is-done";
     if (ride && !cancelled && i === current) cls += " is-active";
+    // The note names the class the ride really holds - which on the
+    // first row may be RematchingState rather than RequestedState.
+    const note = ride && !cancelled && i === current ? ride.state.key : s.cls;
     return '<div class="' + cls + '">' +
       '<span class="step__dot">' + (i + 1) + "</span>" +
       '<span class="step__name">' + s.label + "</span>" +
-      '<span class="step__note">' + s.cls + "</span></div>";
+      '<span class="step__note">' + note + "</span></div>";
   }).join("") +
   (cancelled
     ? '<div class="step is-dead"><span class="step__dot">&times;</span>' +
@@ -3678,6 +4451,20 @@ function renderLifecycle(ride) {
   $("stateNow").textContent = ride ? ride.state.key : "no active ride";
   $("stateLabel").textContent = ride ? ride.state.label : "Pick a route and book";
   $("btnCancel").disabled = !ride || !ride.canCancel;
+  if (!ride || !ride.canCancel) $("cancelAsk").hidden = true;
+
+  // Demo controls: each one is only live when the current STATE allows it.
+  $("btnDriverCancel").disabled = !ride || !ride.canDriverCancel;
+  $("btnStop").disabled = !ride || !ride.riderOnboard;
+  $("btnDetour").disabled = !ride || !ride.riderOnboard || ride.detourKm > 0;
+
+  const away = ride ? ride.walkedAway : [];
+  $("rematchNote").hidden = !away.length;
+  if (away.length) {
+    $("rematchNote").innerHTML =
+      "<b>" + away.map((d) => d.name).join(", ") + "</b> cancelled on you &middot; penalised, you pay Rs.0 &middot; " +
+      "fare locked at <b>Rs." + ride.quote.total + "</b>";
+  }
 
   const done = !ride || ride.state.isFinal;
   $("btnBook").disabled = !done;
@@ -3720,15 +4507,24 @@ function onRideUpdate(ride, payload) {
   renderLifecycle(ride);
   renderDriver(ride);
   if (payload && payload.toast) pushToast(payload.toast);
+  if (payload && payload.detour) drawDetour(payload.detour);
 
-  if (ride.state.key === "ArrivingState") {
+  // Redraw the map only when the ride actually ENTERS a new state, not
+  // on every toast a state sends while it is running.
+  const entered = ui.shownState !== ride.state;
+  ui.shownState = ride.state;
+
+  if (entered && ride.state.key === "ArrivingState") {
     drawRoute({ ...ride.legs.toPickup.points[0], name: ride.driver.name }, ride.pickup, ride.legs.toPickup);
+    observerList.forEach((o) => { if (o.reset) o.reset(); });   // a re-matched driver gets fresh alerts
   }
-  if (ride.state.key === "InProgressState") {
+  if (entered && ride.state.key === "InProgressState") {
     drawRoute(ride.pickup, ride.drop, ride.legs.toDrop);
     observerList.forEach((o) => { if (o.reset) o.reset(); });
   }
+  if (ride.state.key === "RematchingState") $("car").style.opacity = 0;
   if (ride.state.isFinal) {
+    $("safetyCard").hidden = true;
     $("hudEta").textContent = "--";
     $("hudSpeed").textContent = "0 km/h";
     $("hudStatus").textContent = "idle";
@@ -3758,6 +4554,7 @@ function init() {
 
   $("btnBook").addEventListener("click", () => {
     $("toasts").innerHTML = "";
+    $("safetyCard").hidden = true;
     observerList.forEach((o) => { if (o.reset) o.reset(); });
     facade.bookRide({
       pickupId: ui.pickupId,
@@ -3766,7 +4563,28 @@ function init() {
     });
   });
 
-  $("btnCancel").addEventListener("click", () => facade.cancelRide());
+  // Cancelling once a driver has accepted costs a fee, so ask why first:
+  // "the driver asked me to" is the forced-cancellation trick, and is free.
+  $("btnCancel").addEventListener("click", () => {
+    const ride = ui.ride;
+    if (ride && ride.driver && ride.cancelFee > 0) {
+      $("cancelFeeNote").textContent = "Rs." + ride.cancelFee + " fee (10% of fare, max Rs.100)";
+      $("cancelAsk").hidden = false;
+    } else {
+      facade.cancelRide();
+    }
+  });
+  $("btnCancelPlans").addEventListener("click", () => { $("cancelAsk").hidden = true; facade.cancelRide("CHANGED_PLANS"); });
+  $("btnCancelAsked").addEventListener("click", () => { $("cancelAsk").hidden = true; facade.cancelRide("DRIVER_ASKED"); });
+  $("btnCancelKeep").addEventListener("click", () => { $("cancelAsk").hidden = true; });
+
+  // The real-world problems, on demand.
+  $("btnDriverCancel").addEventListener("click", () => facade.driverCancelRide());
+  $("btnStop").addEventListener("click", () => facade.simulateUnexpectedStop());
+  $("btnDetour").addEventListener("click", () => facade.simulateDetour());
+
+  $("btnSafeOk").addEventListener("click", () => answerSafetyCheck("OK"));
+  $("btnSos").addEventListener("click", () => answerSafetyCheck("SOS"));
 
   $("btnClear").addEventListener("click", () => {
     $("terminal").innerHTML = "";

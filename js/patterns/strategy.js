@@ -44,11 +44,13 @@ class FareStrategy {
 
   /** Shared helper: fees and 5% GST, applied the same way by every strategy. */
   finalise(lines, platformFee = 9) {
-    if (platformFee > 0) lines.push({ label: "Platform fee", amount: platformFee, kind: "add" });
+    // `tag` lets a decorator (decorator.js) tell the ride price apart
+    // from the fee and tax lines without knowing which rule made them.
+    if (platformFee > 0) lines.push({ label: "Platform fee", amount: platformFee, kind: "add", tag: "fee" });
 
     const subtotal = lines.reduce((sum, l) => sum + l.amount, 0);
     const gst = subtotal * 0.05;
-    lines.push({ label: "GST 5%", amount: gst, kind: "add" });
+    lines.push({ label: "GST 5%", amount: gst, kind: "add", tag: "tax" });
 
     return { lines, total: Math.round(subtotal + gst) };
   }
@@ -82,7 +84,7 @@ class SurgePricingFare extends FareStrategy {
     const base = this.rideCost(trip);
     const lines = [
       { label: "Ride cost",                          amount: base },
-      { label: `Surge x${this.multiplier} (peak hour)`, amount: base * (this.multiplier - 1), kind: "add" },
+      { label: `Surge x${this.multiplier} (peak hour)`, amount: base * (this.multiplier - 1), kind: "add", tag: "surge" },
     ];
     return this.finalise(lines);
   }
@@ -160,6 +162,9 @@ class FareCalculator {
 const FARE_STRATEGIES = {
   STANDARD: () => new StandardFare(),
   SURGE:    () => new SurgePricingFare(1.8),
+  // What some platforms tried on festival nights. The rule itself is
+  // left untouched - SurgeCapGuard in decorator.js holds it to 2x.
+  FESTIVAL: () => new SurgePricingFare(3),
   NIGHT:    () => new NightFare(),
   PASS:     () => new RidePassFare(),
   POOL:     () => new SharedPoolFare(),

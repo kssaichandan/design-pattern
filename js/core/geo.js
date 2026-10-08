@@ -405,6 +405,17 @@ class RoutePath {
     return out;
   }
 
+  /** Shortest distance from a point to this route, in map pixels. */
+  distanceFrom(pt) {
+    let best = Infinity;
+    this.segments.forEach(({ a, b, len }) => {
+      const t = len === 0 ? 0
+        : Math.max(0, Math.min(1, ((pt.x - a.x) * (b.x - a.x) + (pt.y - a.y) * (b.y - a.y)) / (len * len)));
+      best = Math.min(best, Math.hypot(pt.x - (a.x + (b.x - a.x) * t), pt.y - (a.y + (b.y - a.y) * t)));
+    });
+    return best;
+  }
+
   toSvgPath() {
     return this.points.map((p, i) => (i === 0 ? "M" : "L") + " " + p.x.toFixed(1) + " " + p.y.toFixed(1)).join(" ");
   }

@@ -22,7 +22,7 @@
    SOLUTION: one class in front of the whole booking subsystem,
    with one simple method. The UI says bookRide(request) and knows
    nothing else. Note the payoff: the facade is where the other
-   four patterns are wired together, so the UI never touches them.
+   five patterns are wired together, so the UI never touches them.
    ============================================================ */
 
 class RideBookingFacade {
@@ -33,8 +33,14 @@ class RideBookingFacade {
     this.payments      = new PaymentGateway();
     this.notifications = new NotificationService(pushToast);
 
-    this.calculator = new FareCalculator(FARE_STRATEGIES.STANDARD());
+    // Every pricing rule goes in wrapped by the legal guards (DECORATOR).
+    this.calculator = new FareCalculator(regulated(FARE_STRATEGIES.STANDARD()));
     this.publisher  = new DriverLocationPublisher();   // the Observer subject
+
+    // What the app knows about the rider's phone. It travels with the
+    // pricing request - and FairInputGuard makes sure no rule can use it.
+    const ua = typeof navigator !== "undefined" ? navigator.userAgent : "";
+    this.device = /iPhone|iPad/.test(ua) ? "iOS" : /Android/.test(ua) ? "Android" : "Desktop";
 
     this.onRideUpdate = onRideUpdate;
     this.activeRide   = null;
@@ -43,7 +49,7 @@ class RideBookingFacade {
   /* ---------- simple pass-throughs so the UI has ONE contact point ---------- */
 
   useFareStrategy(key) {
-    this.calculator.setStrategy(FARE_STRATEGIES[key]());
+    this.calculator.setStrategy(regulated(FARE_STRATEGIES[key]()));
   }
 
   attachObserver(observer)  { this.publisher.subscribe(observer); }
@@ -59,10 +65,11 @@ class RideBookingFacade {
     const drop    = findLocation(dropId);
     const vehicle = VehicleFactory.create(vehicleType);          // <- FACTORY
     const trip    = this.geo.route(pickup, drop, vehicle);
-    const quote   = this.calculator.calculate({                   // <- STRATEGY
+    const quote   = this.calculator.calculate({                   // <- STRATEGY (+ DECORATOR guards)
       vehicle,
       km: trip.km,
       minutes: trip.minutes,
+      device: this.device,                                        // stripped by FairInputGuard
     });
 
     return { pickup, drop, vehicle, quote, ...trip };
@@ -79,19 +86,14 @@ class RideBookingFacade {
     // 1 + 2 + 3. Vehicle, route and price (Factory + Strategy inside quote()).
     const priced = this.quote({ pickupId, dropId, vehicleType });
 
-    // 4. Work out the two legs the driver will drive: to you, then to your drop.
-    const driverStart = this.geo.randomPointNear(priced.pickup);
-    const toPickup    = buildRoute(driverStart, priced.pickup);
-    const toPickupKm  = roadKm(toPickup);
-
-    // Demo timing: a real 29 km airport run takes an hour. Only the
-    // CLOCK is compressed - traffic.js still drives at real speeds, so
-    // the ETA and speedometer stay honest while the animation stays
-    // short. Longer trips get proportionally longer on screen.
+    // 4. The drop leg is known now. The leg TO the pickup is planned the
+    //    moment a driver accepts, from wherever that driver really is -
+    //    so a re-matched driver drives in from their own street.
+    //    Demo timing: a real 29 km airport run takes an hour. Only the
+    //    CLOCK is compressed - traffic.js still drives at real speeds, so
+    //    the ETA and speedometer stay honest while the animation stays
+    //    short. Longer trips get proportionally longer on screen.
     const legs = {
-      toPickup,
-      toPickupKm,
-      toPickupSeconds: Math.min(11, Math.max(5, 3 + toPickupKm * 0.7)),
       toDrop: priced.path,
       toDropKm: priced.km,
       toDropSeconds: Math.min(26, Math.max(9, 6 + priced.km * 0.6)),
@@ -123,10 +125,59 @@ class RideBookingFacade {
     return ride;
   }
 
-  cancelRide() {
+  /** @param {string} reason  "CHANGED_PLANS" | "DRIVER_ASKED" */
+  cancelRide(reason = "CHANGED_PLANS") {
     if (this.activeRide) {
-      log("FACADE", "RideBookingFacade.cancelRide() -> delegating to the ride's current state");
-      this.activeRide.cancel();
+      log("FACADE", `RideBookingFacade.cancelRide(${reason}) -> delegating to the ride's current state`);
+      this.activeRide.cancel(reason);
     }
+  }
+
+  /* ---------- the driver's side, and the safety desk ---------- */
+
+  /** The driver presses "cancel trip" on their phone. */
+  driverCancelRide() {
+    if (this.activeRide) {
+      log("FACADE", "RideBookingFacade.driverCancelRide() -> delegating to the ride's current state");
+      this.activeRide.driverCancel();
+    }
+  }
+
+  /** Demo: the car stops for four minutes with no red light to explain it. */
+  simulateUnexpectedStop() {
+    const ride = this.activeRide;
+    if (!ride || !ride.riderOnboard) return;
+    log("FACADE", "Demo: the driver pulls over and stays there - watch SafetyMonitorObserver");
+    this.publisher.holdCar(240);
+  }
+
+  /** Demo: the driver leaves the planned route. */
+  simulateDetour() {
+    const ride = this.activeRide;
+    if (!ride || !ride.riderOnboard || !this.publisher.isTracking || ride.detourKm > 0) return;
+    const path = this.geo.detourRoute(this.publisher.currentPoint(), ride.legs.toDrop, ride.drop, this.publisher.motion.progress);
+    const extra = +Math.max(0, roadKm(path) - ride.legs.toDropKm * (1 - this.publisher.motion.progress)).toFixed(1);
+    ride.detourKm = +(ride.detourKm + extra).toFixed(1);
+    log("FACADE", `Demo: the driver turns off the planned route (+${extra} km) - watch SafetyMonitorObserver`);
+    this.publisher.reroute(path);
+    this.onRideUpdate(ride, { detour: path });
+  }
+
+  /**
+   * The rider answers the "Are you okay?" check.
+   * @param {string} answer  "OK" | "SOS"
+   */
+  respondToSafetyCheck(answer) {
+    const ride = this.activeRide;
+    if (!ride) return;
+    if (answer === "OK") {
+      log("SYSTEM", `Safety desk: rider on ${ride.id} confirmed they are okay. Monitoring continues.`);
+      return;
+    }
+    const fix = this.publisher.lastFix || {};
+    const where = fix.point ? `(${fix.point.x.toFixed(0)}, ${fix.point.y.toFixed(0)}) on ${fix.road || "a side lane"}` : "unknown";
+    log("SYSTEM", `SOS on {{${ride.id}}}: driver ${ride.driver.name}, ${ride.driver.model} ${ride.driver.plate}, ` +
+      `live location ${where} -> shared with 112 and the rider's emergency contact; control room calling the rider.`);
+    this.notifications.send("<b>SOS sent.</b> Police (112) and your emergency contact have your live location and the car details.");
   }
 }

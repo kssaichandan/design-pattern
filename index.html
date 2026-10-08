@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>RideFlow Pattern Lab</title>
-<meta name="description" content="A working ride-booking app built on five design patterns, with a live console showing each pattern as it runs.">
+<meta name="description" content="A working ride-booking app built on six design patterns, with a live console showing each pattern as it runs - and fixes for three real problems riders face on Uber, Ola and Rapido.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
@@ -35,6 +35,7 @@
       <span class="pchip" data-tag="OBSERVER">Observer</span>
       <span class="pchip" data-tag="STATE">State</span>
       <span class="pchip" data-tag="FACADE">Facade</span>
+      <span class="pchip" data-tag="DECORATOR">Decorator</span>
       <span class="pchip" data-tag="SINGLETON">Singleton</span>
     </div>
   </div>
@@ -79,6 +80,7 @@
           <select id="strategy">
             <option value="STANDARD">Standard fare</option>
             <option value="SURGE">Surge pricing &times;1.8 (peak hour)</option>
+            <option value="FESTIVAL">Festival surge &times;3 (watch the legal cap)</option>
             <option value="NIGHT">Night fare (+25%)</option>
             <option value="PASS">RidePass subscriber (-20%)</option>
             <option value="POOL">Shared pool (split fare)</option>
@@ -105,7 +107,28 @@
         </div>
         <div class="dcard" id="driverCard" hidden></div>
         <div class="lifecycle" id="lifecycle"></div>
+        <div class="rematch" id="rematchNote" hidden></div>
         <button class="btn btn--ghost" id="btnCancel" type="button" disabled>Cancel ride</button>
+
+        <div class="cancelask" id="cancelAsk" hidden>
+          <span class="cancelask__q">Why are you cancelling?</span>
+          <button class="btn btn--ghost cancelask__opt" id="btnCancelPlans" type="button">
+            I changed my plans <small id="cancelFeeNote"></small>
+          </button>
+          <button class="btn btn--ghost cancelask__opt" id="btnCancelAsked" type="button">
+            The driver asked me to cancel <small>no fee for you &middot; driver penalised</small>
+          </button>
+          <button class="linkbtn" id="btnCancelKeep" type="button">Keep my ride</button>
+        </div>
+
+        <div class="demo">
+          <span class="field__label">Simulate real-world problems &middot; the fixes respond on their own</span>
+          <div class="demo__row">
+            <button class="btn btn--sim" id="btnDriverCancel" type="button" disabled title="The driver cancels after accepting">Driver cancels</button>
+            <button class="btn btn--sim" id="btnStop" type="button" disabled title="The car stops for 4 minutes with no red light">Unexpected stop</button>
+            <button class="btn btn--sim" id="btnDetour" type="button" disabled title="The driver leaves the planned route">Route detour</button>
+          </div>
+        </div>
       </div>
     </section>
 
@@ -143,6 +166,14 @@
           <div class="hudchip hudchip--status"><span class="hudchip__v" id="hudStatus" data-status="IDLE">idle</span></div>
         </div>
         <div class="toasts" id="toasts"></div>
+        <div class="safety" id="safetyCard" role="alertdialog" aria-labelledby="safetyTitle" hidden>
+          <b id="safetyTitle">Are you okay?</b>
+          <span id="safetyText"></span>
+          <div class="safety__row">
+            <button class="btn btn--sim" id="btnSafeOk" type="button">I'm okay</button>
+            <button class="btn btn--sos" id="btnSos" type="button">SOS</button>
+          </div>
+        </div>
       </div>
       <div class="panel__body">
         <div class="field">
@@ -172,11 +203,50 @@
 
     <div class="ref__lede">
       <span class="eyebrow">How the app is built</span>
-      <h2>Five patterns, one booking flow</h2>
+      <h2>Six patterns, one booking flow</h2>
       <p>Each pattern below solves a specific problem this app would otherwise have. The
          code is the real code running above &mdash; open the dispatch console and you can
          watch each one announce itself as you click.</p>
     </div>
+
+    <!-- ---------- REAL-WORLD PROBLEMS ---------- -->
+    <article class="pat">
+      <div class="pat__head">
+        <span class="pat__tag pt-problem">Real-world problems</span>
+        <h3 class="pat__name">What riders on Uber, Ola and Rapido complain about<small>and how this app answers it</small></h3>
+        <p class="pat__body">Three complaints keep coming up in consumer surveys, regulator notices and
+           the 2025 Motor Vehicle Aggregator Guidelines. Each fix below is built on a pattern, which is
+           why it took so little code &mdash; and each can be triggered from the
+           <em>Simulate real-world problems</em> buttons above.</p>
+        <div class="qa">
+          <span class="qa__q">1 &middot; Drivers cancel after accepting &mdash; State</span>
+          <p class="qa__a">A LocalCircles survey found 84% of app-cab users had been pushed into
+             cancelling, so the <em>rider</em> paid the fee. Here a driver cancel sends the ride into a new
+             <code>RematchingState</code>: same fare, a different driver, Rs.0 for the rider and a
+             penalty for the driver. Riders can also cancel with <em>"the driver asked me to"</em> at no
+             cost. Every other cancellation fee is 10% of the fare, capped at Rs.100, as the guidelines set.</p>
+        </div>
+        <div class="qa">
+          <span class="qa__q">2 &middot; Fares you cannot trust &mdash; Decorator</span>
+          <p class="qa__a">Festival surges of 3x-4x, charges missing from the quote, and an alleged (and
+             denied) iPhone-vs-Android price gap. Every pricing rule is wrapped by
+             <code>FairInputGuard</code> (the device never reaches the rule) and
+             <code>SurgeCapGuard</code> (at most 2x, never below 50%). The upfront quote is what is
+             charged &mdash; even after a detour.</p>
+        </div>
+        <div class="qa">
+          <span class="qa__q">3 &middot; Safety during the trip &mdash; Observer</span>
+          <p class="qa__a">The NCW's 2026 guidelines ask for route-deviation alerts and checks on long
+             stops. <code>SafetyMonitorObserver</code> is a fifth subscriber to the driver's GPS: it raises
+             <em>"Are you okay?"</em> after 3 minutes stood still or 0.8 km off the route, with an SOS that
+             sends the car details and live location. Nothing else in the app changed to add it.</p>
+        </div>
+      </div>
+      <div class="code">
+        <div class="code__hd">state.js &mdash; the new stage a driver cancellation leads to</div>
+        <pre data-src="src-rematch"></pre>
+      </div>
+    </article>
 
     <!-- ---------- FACTORY ---------- -->
     <article class="pat">
@@ -247,7 +317,7 @@
         <div class="qa">
           <span class="qa__q">Where it runs</span>
           <p class="qa__a">The driver's GPS. <code>DriverLocationPublisher</code> emits a fix about
-             eleven times a second; four observers act on it.</p>
+             eleven times a second; five observers act on it, including the safety monitor.</p>
         </div>
         <div class="qa">
           <span class="qa__q">What it replaces</span>
@@ -285,9 +355,10 @@
         </div>
         <div class="qa">
           <span class="qa__q">See it live</span>
-          <p class="qa__a">Cancel during <em>Driver arriving</em> &mdash; allowed, with a fee. Wait
-             for <em>Ride in progress</em> and the button disables itself, because
-             <code>InProgressState.canCancel</code> is false.</p>
+          <p class="qa__a">Cancel during <em>Driver arriving</em> &mdash; allowed, with a fee. Press
+             <em>Driver cancels</em> and the ride moves to <code>RematchingState</code> instead of dying.
+             Wait for <em>Ride in progress</em> and both buttons disable themselves, because
+             <code>InProgressState</code> says so.</p>
         </div>
       </div>
       <div class="code">
@@ -325,6 +396,36 @@
       </div>
     </article>
 
+    <!-- ---------- DECORATOR ---------- -->
+    <article class="pat">
+      <div class="pat__head">
+        <span class="pat__tag pt-decorator">Structural</span>
+        <h3 class="pat__name">Decorator<small>js/patterns/decorator.js</small></h3>
+        <p class="pat__body">Wrap an object in another with the same interface, adding one duty around
+           the call. The caller cannot tell, and the wrapped object never changes.</p>
+        <div class="qa">
+          <span class="qa__q">Where it runs</span>
+          <p class="qa__a">Every pricing rule. The facade hands the calculator
+             <code>regulated(rule)</code> &mdash; the rule inside <code>FairInputGuard</code> and
+             <code>SurgeCapGuard</code>. The receipt shows the chain.</p>
+        </div>
+        <div class="qa">
+          <span class="qa__q">What it replaces</span>
+          <p class="qa__a">The legal cap copied into every strategy (one forgets, one fine), or an
+             <code>if</code> ladder creeping back into <code>FareCalculator</code>.</p>
+        </div>
+        <div class="qa">
+          <span class="qa__q">See it live</span>
+          <p class="qa__a">Pick <em>Festival surge &times;3</em>. The rule asks for 3x; the receipt gains a
+             green <em>Surge capped at 2x</em> line and the console prints a <em>DECORATOR</em> correction.</p>
+        </div>
+      </div>
+      <div class="code">
+        <div class="code__hd">decorator.js &mdash; the base wrapper and the legal cap</div>
+        <pre data-src="src-decorator"></pre>
+      </div>
+    </article>
+
     <!-- ---------- SINGLETON ---------- -->
     <article class="pat">
       <div class="pat__head">
@@ -334,7 +435,7 @@
            times and you get the same object back every time.</p>
         <div class="qa">
           <span class="qa__q">Where it runs</span>
-          <p class="qa__a">The dispatch console itself. Five pattern files write to it and the UI
+          <p class="qa__a">The dispatch console itself. Six pattern files write to it and the UI
              reads from it &mdash; they must all be pointing at one log.</p>
         </div>
         <div class="qa">
@@ -344,7 +445,7 @@
         </div>
         <div class="qa">
           <span class="qa__q">See it live</span>
-          <p class="qa__a">Every line in the console is proof &mdash; five separate files wrote
+          <p class="qa__a">Every line in the console is proof &mdash; six separate files wrote
              into one shared list.</p>
         </div>
       </div>
@@ -359,6 +460,7 @@
 
 <footer class="wrap foot">
   <span>RideFlow &mdash; ride-booking app built for a Design Patterns course.</span>
+  <span>Problem sources: LocalCircles surveys, CCPA notices, MoRTH Aggregator Guidelines 2025, NCW 2026 guidelines.</span>
   <span>Open <code>index.html</code> in any browser. No build step, no dependencies.</span>
 </footer>
 
@@ -504,8 +606,9 @@ class ArrivingState extends RideState {
     ride.publisher.startTracking({ path: ride.legs.toPickup, leg: "TO_PICKUP",
                                    onArrive: () => this.next(ride) });
   }
-  next(ride)   { ride.transitionTo(new InProgressState()); }
-  cancel(ride) { ride.transitionTo(new CancelledState("Rs.35 cancellation fee.")); }
+  next(ride)         { ride.transitionTo(new InProgressState()); }
+  cancel(ride, why)  { riderCancels(ride, why, "ArrivingState"); }   // 10% fee, or free if the driver asked
+  driverCancel(ride) { driverWalksAway(ride, "ArrivingState"); }     // -> RematchingState
 }
 
 // 3. A state that refuses - it simply does not override cancel().
@@ -566,6 +669,68 @@ class RideBookingFacade {
 facade.bookRide({ pickupId, dropId, vehicleType });
 </script>
 
+<script type="text/plain" id="src-rematch">
+// The driver walked away. The rider did nothing wrong, so the ride
+// does not die: the driver is penalised and matching starts again.
+function driverWalksAway(ride, stage) {
+  const fee = cancellationFee(ride.quote.total);       // 10% of fare, max Rs.100
+  ride.services.matching.penalise(ride.driver, fee, "cancelled an accepted ride");
+  ride.walkedAway.push(ride.driver);
+  ride.driver = null;
+
+  if (ride.walkedAway.length > MAX_REMATCHES) {
+    ride.transitionTo(new CancelledState("Ride closed - you have not been charged.", 0));
+    return;
+  }
+  ride.transitionTo(new RematchingState());
+}
+
+// One new class is the whole new stage. No if-else elsewhere learnt about it.
+class RematchingState extends RideState {
+  get label()     { return "Finding you another driver"; }
+  get canCancel() { return true; }                    // and free: not the rider's fault
+
+  onEnter(ride) { ride.after(1200, () => this.next(ride)); }
+
+  next(ride) { assignDriver(ride); }                  // anyone but the drivers who left;
+                                                      // ride.quote is never touched
+  cancel(ride) {
+    ride.transitionTo(new CancelledState("Cancelled while re-matching - no fee.", 0));
+  }
+}
+</script>
+
+<script type="text/plain" id="src-decorator">
+// 1. Same interface as every strategy; forwards to the one it wraps.
+class FareStrategyDecorator extends FareStrategy {
+  constructor(inner) { super(); this.inner = inner; }
+  get name()      { return this.inner.name; }          // looks exactly like the rule
+  calculate(trip) { return this.inner.calculate(trip); }
+}
+
+// 2. Only vehicle, distance and time may reach a pricing rule.
+class FairInputGuard extends FareStrategyDecorator {
+  calculate(trip) {
+    const { vehicle, km, minutes } = trip;              // device, etc. are dropped
+    return this.inner.calculate({ vehicle, km, minutes });
+  }
+}
+
+// 3. The 2025 guidelines: at most 2x the base fare, never under 50%.
+class SurgeCapGuard extends FareStrategyDecorator {
+  calculate(trip) {
+    const quote = this.inner.calculate(trip);
+    const base  = this.rideCost(trip);
+    const fare  = sumOfFareLines(quote);
+    if (fare > base * 2) return withCorrection(quote, base * 2 - fare, "Surge capped at 2x");
+    return quote;                                       // already legal - untouched
+  }
+}
+
+// 4. Every rule goes in wrapped. No strategy changed to make room.
+calculator.setStrategy(new FairInputGuard(new SurgeCapGuard(new SurgePricingFare(3))));
+</script>
+
 <script type="text/plain" id="src-singleton">
 class DispatchLog {
   constructor() {
@@ -603,6 +768,7 @@ new DispatchLog()         === DispatchLog.getInstance();   // also true
 <script src="js/core/services.js"></script>
 <script src="js/patterns/factory.js"></script>
 <script src="js/patterns/strategy.js"></script>
+<script src="js/patterns/decorator.js"></script>
 <script src="js/patterns/observer.js"></script>
 <script src="js/patterns/state.js"></script>
 <script src="js/patterns/facade.js"></script>

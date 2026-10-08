@@ -1,7 +1,7 @@
 /* ============================================================
    app.js - THE USER INTERFACE ONLY
    ------------------------------------------------------------
-   Read this file to see the payoff of the five patterns. It draws
+   Read this file to see the payoff of the six patterns. It draws
    things and handles clicks. It never prices a ride, never decides
    what a ride is allowed to do next, never constructs a vehicle,
    and never talks to a subsystem. It calls the Facade and renders
@@ -38,6 +38,7 @@ const ui = {
   strategyKey: "STANDARD",
   ride: null,
   filter: "ALL",
+  shownState: null,      // the state object last drawn, to spot real transitions
 };
 
 let facade;
@@ -284,7 +285,7 @@ function moveCar(point, heading, progress, status) {
 }
 
 /* ============================================================
-   OBSERVER WIRING - the four subscribers and their checkboxes
+   OBSERVER WIRING - the five subscribers and their checkboxes
    ============================================================ */
 
 function showTelemetry(fix) {
@@ -294,7 +295,7 @@ function showTelemetry(fix) {
   $("hudRoad").textContent = fix.road || "side lane";
 
   const chip = $("hudStatus");
-  chip.textContent = fix.status === "STOPPED" ? "at a signal"
+  chip.textContent = fix.status === "STOPPED" ? (fix.stillSec > 30 ? "stopped" : "at a signal")
     : fix.status === "CRAWLING" ? "slow traffic"
     : fix.status === "CRUISING" ? "clear road" : "moving";
   chip.dataset.status = fix.status;
@@ -306,6 +307,7 @@ function buildObservers() {
     new EtaPanelObserver(showTelemetry),
     new TripLogObserver(),
     new PushNotificationObserver(pushToast),
+    new SafetyMonitorObserver(showSafetyCheck),
   ];
 
   const box = $("observers");
@@ -327,12 +329,35 @@ function buildObservers() {
 }
 
 /* ============================================================
+   SAFETY CHECK  (raised by SafetyMonitorObserver, answered via the Facade)
+   ============================================================ */
+
+function showSafetyCheck(alert) {
+  $("safetyText").textContent = alert.text;
+  $("safetyCard").dataset.kind = alert.kind;
+  $("safetyCard").hidden = false;
+}
+
+function answerSafetyCheck(answer) {
+  $("safetyCard").hidden = true;
+  facade.respondToSafetyCheck(answer);
+}
+
+/** The road the driver actually took, drawn over the one promised. */
+function drawDetour(path) {
+  const g = $("routelayer");
+  const done = $("routedone");
+  if (done) done.remove();            // progress no longer maps onto the planned line
+  g.insertBefore(mk("path", { d: path.toSvgPath(), class: "mp-detour" }), g.querySelector("circle"));
+}
+
+/* ============================================================
    THE DRIVER CARD
    ============================================================ */
 
 function renderDriver(ride) {
   const card = $("driverCard");
-  if (!ride || !ride.driver || ride.state.key === "RequestedState") {
+  if (!ride || !ride.driver) {
     card.hidden = true;
     return;
   }
@@ -370,7 +395,7 @@ function pushToast(html) {
    THE DISPATCH CONSOLE  (renders whatever the Singleton log holds)
    ============================================================ */
 
-const TAGS = ["ALL", "FACTORY", "STRATEGY", "OBSERVER", "STATE", "FACADE"];
+const TAGS = ["ALL", "FACTORY", "STRATEGY", "DECORATOR", "OBSERVER", "STATE", "FACADE"];
 
 function appendLogLine(entry) {
   const body = $("terminal");
@@ -508,7 +533,8 @@ function refreshQuote() {
 
   const active = facade.calculator.strategy;
   $("receiptStrategy").innerHTML =
-    "<span>" + active.note + "</span><b>" + active.name + "</b>";
+    "<span>" + active.note + "</span><b>" + active.name + "</b>" +
+    (active.guards ? '<span class="receipt__guards">guarded by ' + active.guards.join(" › ") + "</span>" : "");
 
   $("receiptLines").innerHTML =
     priced.quote.lines.map((l) =>
@@ -540,10 +566,13 @@ function renderLifecycle(ride) {
     let cls = "step";
     if (ride && !cancelled && i < current) cls += " is-done";
     if (ride && !cancelled && i === current) cls += " is-active";
+    // The note names the class the ride really holds - which on the
+    // first row may be RematchingState rather than RequestedState.
+    const note = ride && !cancelled && i === current ? ride.state.key : s.cls;
     return '<div class="' + cls + '">' +
       '<span class="step__dot">' + (i + 1) + "</span>" +
       '<span class="step__name">' + s.label + "</span>" +
-      '<span class="step__note">' + s.cls + "</span></div>";
+      '<span class="step__note">' + note + "</span></div>";
   }).join("") +
   (cancelled
     ? '<div class="step is-dead"><span class="step__dot">&times;</span>' +
@@ -554,6 +583,20 @@ function renderLifecycle(ride) {
   $("stateNow").textContent = ride ? ride.state.key : "no active ride";
   $("stateLabel").textContent = ride ? ride.state.label : "Pick a route and book";
   $("btnCancel").disabled = !ride || !ride.canCancel;
+  if (!ride || !ride.canCancel) $("cancelAsk").hidden = true;
+
+  // Demo controls: each one is only live when the current STATE allows it.
+  $("btnDriverCancel").disabled = !ride || !ride.canDriverCancel;
+  $("btnStop").disabled = !ride || !ride.riderOnboard;
+  $("btnDetour").disabled = !ride || !ride.riderOnboard || ride.detourKm > 0;
+
+  const away = ride ? ride.walkedAway : [];
+  $("rematchNote").hidden = !away.length;
+  if (away.length) {
+    $("rematchNote").innerHTML =
+      "<b>" + away.map((d) => d.name).join(", ") + "</b> cancelled on you &middot; penalised, you pay Rs.0 &middot; " +
+      "fare locked at <b>Rs." + ride.quote.total + "</b>";
+  }
 
   const done = !ride || ride.state.isFinal;
   $("btnBook").disabled = !done;
@@ -596,15 +639,24 @@ function onRideUpdate(ride, payload) {
   renderLifecycle(ride);
   renderDriver(ride);
   if (payload && payload.toast) pushToast(payload.toast);
+  if (payload && payload.detour) drawDetour(payload.detour);
 
-  if (ride.state.key === "ArrivingState") {
+  // Redraw the map only when the ride actually ENTERS a new state, not
+  // on every toast a state sends while it is running.
+  const entered = ui.shownState !== ride.state;
+  ui.shownState = ride.state;
+
+  if (entered && ride.state.key === "ArrivingState") {
     drawRoute({ ...ride.legs.toPickup.points[0], name: ride.driver.name }, ride.pickup, ride.legs.toPickup);
+    observerList.forEach((o) => { if (o.reset) o.reset(); });   // a re-matched driver gets fresh alerts
   }
-  if (ride.state.key === "InProgressState") {
+  if (entered && ride.state.key === "InProgressState") {
     drawRoute(ride.pickup, ride.drop, ride.legs.toDrop);
     observerList.forEach((o) => { if (o.reset) o.reset(); });
   }
+  if (ride.state.key === "RematchingState") $("car").style.opacity = 0;
   if (ride.state.isFinal) {
+    $("safetyCard").hidden = true;
     $("hudEta").textContent = "--";
     $("hudSpeed").textContent = "0 km/h";
     $("hudStatus").textContent = "idle";
@@ -634,6 +686,7 @@ function init() {
 
   $("btnBook").addEventListener("click", () => {
     $("toasts").innerHTML = "";
+    $("safetyCard").hidden = true;
     observerList.forEach((o) => { if (o.reset) o.reset(); });
     facade.bookRide({
       pickupId: ui.pickupId,
@@ -642,7 +695,28 @@ function init() {
     });
   });
 
-  $("btnCancel").addEventListener("click", () => facade.cancelRide());
+  // Cancelling once a driver has accepted costs a fee, so ask why first:
+  // "the driver asked me to" is the forced-cancellation trick, and is free.
+  $("btnCancel").addEventListener("click", () => {
+    const ride = ui.ride;
+    if (ride && ride.driver && ride.cancelFee > 0) {
+      $("cancelFeeNote").textContent = "Rs." + ride.cancelFee + " fee (10% of fare, max Rs.100)";
+      $("cancelAsk").hidden = false;
+    } else {
+      facade.cancelRide();
+    }
+  });
+  $("btnCancelPlans").addEventListener("click", () => { $("cancelAsk").hidden = true; facade.cancelRide("CHANGED_PLANS"); });
+  $("btnCancelAsked").addEventListener("click", () => { $("cancelAsk").hidden = true; facade.cancelRide("DRIVER_ASKED"); });
+  $("btnCancelKeep").addEventListener("click", () => { $("cancelAsk").hidden = true; });
+
+  // The real-world problems, on demand.
+  $("btnDriverCancel").addEventListener("click", () => facade.driverCancelRide());
+  $("btnStop").addEventListener("click", () => facade.simulateUnexpectedStop());
+  $("btnDetour").addEventListener("click", () => facade.simulateDetour());
+
+  $("btnSafeOk").addEventListener("click", () => answerSafetyCheck("OK"));
+  $("btnSos").addEventListener("click", () => answerSafetyCheck("SOS"));
 
   $("btnClear").addEventListener("click", () => {
     $("terminal").innerHTML = "";

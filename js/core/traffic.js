@@ -60,6 +60,16 @@ class VehicleMotion {
     this.cleared = new Set();
     this.recentSpeed = [];
     this.stops = 0;
+    this.stillSec = 0;        // how long the car has been standing still, in one go
+  }
+
+  /**
+   * Stand still for `seconds` without a red light to explain it - the
+   * stop a safety monitor exists to notice. Used by the safety demo.
+   */
+  hold(seconds) {
+    this.stoppedFor = Math.max(this.stoppedFor, seconds);
+    this.speedKmph = 0;
   }
 
   /**
@@ -191,6 +201,7 @@ class VehicleMotion {
     // Sitting at a red light.
     if (this.stoppedFor > 0) {
       this.stoppedFor -= dtSec;
+      this.stillSec += dtSec;
       this.speedKmph = 0;
       this.recentSpeed.push(0);
       if (this.recentSpeed.length > 40) this.recentSpeed.shift();
@@ -210,6 +221,7 @@ class VehicleMotion {
     }
 
     // Ease toward the speed this stretch allows.
+    this.stillSec = 0;
     const target = this.targetKmph();
     const rate = target > this.speedKmph ? MOTION.accelKmphPerSec : MOTION.brakeKmphPerSec;
     const delta = Math.sign(target - this.speedKmph) * rate * dtSec;
@@ -233,7 +245,7 @@ class VehicleMotion {
     const snapshot = {
       travelledKm: this.travelledKm, speedKmph: this.speedKmph, elapsedSec: this.elapsedSec,
       stoppedFor: this.stoppedFor, cleared: new Set(this.cleared),
-      recentSpeed: this.recentSpeed.slice(), stops: this.stops,
+      recentSpeed: this.recentSpeed.slice(), stops: this.stops, stillSec: this.stillSec,
     };
 
     this.reset();
