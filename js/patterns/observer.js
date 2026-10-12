@@ -111,7 +111,8 @@ class DriverLocationPublisher {
     let lastStops = 0;
 
     this.timer = setInterval(() => {
-      motion.step((tickMs / 1000) * timeScale);
+      if (SimClock.paused) return;              // the guided demo's Pause button
+      motion.step((tickMs / 1000) * timeScale * SimClock.rate);
 
       if (motion.stops > lastStops) {
         lastStops = motion.stops;

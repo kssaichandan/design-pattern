@@ -38,6 +38,10 @@
       <span class="pchip" data-tag="DECORATOR">Decorator</span>
       <span class="pchip" data-tag="SINGLETON">Singleton</span>
     </div>
+
+    <button class="btn btn--tour" id="btnTour" type="button" title="Runs one complete ride and explains every stage">
+      &#9654; Guided demo
+    </button>
   </div>
 </header>
 
@@ -464,6 +468,27 @@
   <span>Open <code>index.html</code> in any browser. No build step, no dependencies.</span>
 </footer>
 
+<!-- ================= the guided demo's narration card ================= -->
+<aside class="tour" id="tour" aria-live="polite" aria-label="Guided demo" hidden>
+  <div class="tour__bar"><span id="tourBar"></span></div>
+  <div class="tour__hd">
+    <span class="tour__count" id="tourCount"></span>
+    <span class="tour__tag" id="tourTag"></span>
+  </div>
+  <h3 class="tour__title" id="tourTitle"></h3>
+  <p class="tour__problem" id="tourProblem" hidden></p>
+  <div class="tour__body" id="tourBody"></div>
+  <span class="tour__k">What to notice</span>
+  <ul class="tour__notice" id="tourNotice"></ul>
+  <div class="tour__file" id="tourFile"></div>
+  <div class="tour__status" id="tourStatus"></div>
+  <div class="tour__ctl">
+    <button class="tour__btn" id="tourPause" type="button">Pause</button>
+    <button class="tour__btn tour__btn--go" id="tourNext" type="button">Next &#9656;</button>
+    <button class="tour__btn" id="tourExit" type="button">Exit</button>
+  </div>
+</aside>
+
 <!-- ================= code samples shown in the reference ================= -->
 
 <script type="text/plain" id="src-factory">
@@ -763,6 +788,7 @@ new DispatchLog()         === DispatchLog.getInstance();   // also true
 
 <!-- ================= application scripts, in dependency order ================= -->
 <script src="js/core/dispatchLog.js"></script>
+<script src="js/core/clock.js"></script>
 <script src="js/core/geo.js"></script>
 <script src="js/core/traffic.js"></script>
 <script src="js/core/services.js"></script>
@@ -773,5 +799,6 @@ new DispatchLog()         === DispatchLog.getInstance();   // also true
 <script src="js/patterns/state.js"></script>
 <script src="js/patterns/facade.js"></script>
 <script src="js/app.js"></script>
+<script src="js/ui/tour.js"></script>
 </body>
 </html>

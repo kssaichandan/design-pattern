@@ -349,17 +349,18 @@ class Ride {
   get riderOnboard()    { return this.state ? this.state.riderOnboard : false; }
   get cancelFee()       { return this.state ? this.state.cancelFee(this) : 0; }
 
-  /** Run `fn` later - but only if the ride is still in the state that asked. */
+  /** Run `fn` later - but only if the ride is still in the state that asked.
+      Uses the simulation clock, so the guided demo can slow or pause it. */
   after(ms, fn) {
     const owner = this.state;
-    const t = setTimeout(() => {
+    const t = SimClock.after(ms, () => {
       if (this.state === owner && !this.state.isFinal) fn();
-    }, ms);
+    });
     this.timers.push(t);
   }
 
   dispose() {
-    this.timers.forEach(clearTimeout);
+    this.timers.forEach((t) => SimClock.cancel(t));
     this.timers = [];
     this.publisher.stopTracking();
   }

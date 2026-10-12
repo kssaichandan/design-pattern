@@ -226,7 +226,7 @@ function drawAmbient() {
 }
 
 function tickAmbient() {
-  ambient.tick(0.016);
+  ambient.tick(SimClock.paused ? 0 : 0.016 * SimClock.rate);
   const g = $("ambient");
   const pos = ambient.positions();
   for (let i = 0; i < g.children.length; i++) {
@@ -600,6 +600,8 @@ function renderLifecycle(ride) {
 
   const done = !ride || ride.state.isFinal;
   $("btnBook").disabled = !done;
+  // The guided demo books its own ride, so it waits until none is active.
+  $("btnTour").disabled = !done || (typeof Tour !== "undefined" && Tour.running);
   $("btnBook").textContent = ride && ride.state.isFinal ? "Book another ride" : "Book ride";
 }
 

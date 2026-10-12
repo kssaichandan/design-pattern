@@ -24,6 +24,10 @@ the patterns are not just described — they are visible while the app runs.
 Double-click **`index.html`**. That is the whole setup — no install, no server,
 no build step, no internet connection needed (fonts fall back gracefully offline).
 
+**Press ▶ Guided demo** (top right) for a narrated walkthrough: it books one
+ride from Kukatpally to RGIA Airport by itself and explains every stage —
+see [Guided demo](#guided-demo).
+
 A flattened single-file copy for emailing or a USB stick lives at
 **`dist/rideflow.html`**. Rebuild it after any edit with:
 
@@ -44,6 +48,7 @@ js/
     geo.js                  the city: roads, terrain, road graph, routing (helper, not a pattern)
     traffic.js              how a car drives it: speed, congestion, signals (helper, not a pattern)
     services.js             the four subsystems the Facade hides
+    clock.js                the simulation clock - lets the guided demo slow or pause the ride
   patterns/
     factory.js              FACTORY    - Vehicle + Bike/Auto/SedanCab/SuvCab + VehicleFactory
     strategy.js             STRATEGY   - FareStrategy + 5 pricing rules + FareCalculator
@@ -52,6 +57,8 @@ js/
     state.js                STATE      - RideState + 7 states (incl. Rematching) + Ride context
     facade.js               FACADE     - RideBookingFacade
   app.js                    the user interface ONLY - no business logic at all
+  ui/
+    tour.js                 the guided demo - narrates one complete ride
 build-single-file.js        flattens everything into dist/ for sharing
 ```
 
@@ -410,6 +417,53 @@ Opening ETAs land within about 4% of the actual drive.
 hour at these speeds, so the publisher measures the leg first and scales the
 demo clock to finish it in a few seconds. The speedometer and the ETA stay
 honest; only time runs fast.
+
+---
+
+## Guided demo
+
+The **▶ Guided demo** button runs one complete ride, start to finish, and
+explains it as it goes. It drives the app the way a person would — it picks the
+options and clicks the real buttons — so every console line is the real pattern
+doing its real job. The tour only decides *when* to click and *what to say*.
+
+At each of its 13 stages a narration card shows:
+
+- **what is happening** right now, in plain words, with live values (the
+  driver's name, the locked fare, the detour distance);
+- **the problem**, for the three real-world fixes;
+- **what to notice** on screen and in the console;
+- **the file** the code lives in.
+
+The part of the app the stage is about gets an **amber glow**, and the console
+is filtered to that pattern's lines.
+
+| # | Stage | Pattern |
+|---|---|---|
+| 1 | Intro — route Kukatpally → RGIA Airport, Sedan | — |
+| 2 | One shared log | Singleton |
+| 3 | Bike, then Sedan, built by the factory | Factory |
+| 4 | Pricing rule swapped to Surge ×1.8 | Strategy |
+| 5 | **Real problem #2:** Festival ×3 held to the legal 2x | Decorator |
+| 6 | Book ride — one call | Facade |
+| 7 | A driver accepts | State |
+| 8 | **Real problem #1:** the driver cancels → `RematchingState`, rider pays Rs.0 | State |
+| 9 | The new driver drives in, GPS to five subscribers | Observer |
+| 10 | Rider aboard — Cancel disables itself | State |
+| 11 | **Real problem #3:** route detour → "Are you okay?" | Observer |
+| 12 | Trip complete — charged the upfront fare | State |
+| 13 | Recap | — |
+
+**Controls.** While a stage is being read the ride **holds still**, so the car
+never races ahead of the explanation. **Next** moves on, **Pause** freezes the
+whole simulation (car, timers, traffic), **Exit** stops the tour and lets the
+ride finish at normal speed. The button is disabled while another ride is
+active, because the tour books its own.
+
+**How the ride can hold still.** The State timers and the GPS stream ask
+`SimClock` (`js/core/clock.js`) for time instead of the browser. The tour slows
+that clock a little and pauses it while you read; no pattern knows a demo is
+running.
 
 ---
 
