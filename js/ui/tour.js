@@ -60,8 +60,8 @@ const TOUR_STEPS = [
     body: `I'll book a <b>Sedan from Kukatpally to RGIA Airport</b> by clicking the real buttons.
            Each stage says what is happening and which pattern is doing it.`,
     notice: [
-      "The <b>amber glow</b> shows where to look; the chips up top light up as each pattern runs.",
-      "Dull driving is fast-forwarded &#9193;. Pause or skip ahead whenever you like.",
+      "The <b>amber outline</b> shows where to look; panels a stage is not about fade back (hover to bring one back).",
+      "The chip up top marks the pattern being explained. Dull driving is fast-forwarded &#9193;.",
     ],
     async run() {
       $("btnClear").click();
@@ -87,7 +87,7 @@ const TOUR_STEPS = [
     title: "Pick a vehicle - the Factory builds it",
     file: "js/patterns/factory.js",
     view: "plan",
-    focus: ["#vehicles"],
+    focus: ["#vehicles", "#term"],
     filter: "FACTORY",
     body: `I tap <b>Bike</b>, then <b>Sedan</b>. Each tap calls <code>VehicleFactory.create("SEDAN")</code>,
            which returns a <code>SedanCab</code> carrying its own rates. The screen never says <code>new</code>.`,
@@ -240,7 +240,7 @@ const TOUR_STEPS = [
     title: "Real problem #3 - the car leaves the route",
     file: "js/patterns/observer.js",
     view: "trip",
-    focus: ["#map"],
+    focus: ["#map", "#term"],
     filter: "OBSERVER",
     hold: true,
     problem: "The NCW's 2026 guidelines ask app cabs for route-deviation alerts and checks on long stops.",
@@ -263,7 +263,7 @@ const TOUR_STEPS = [
     title: "Trip done - you pay the upfront fare",
     file: "js/patterns/state.js",
     view: "trip",
-    focus: ["#tripFare", "#lifecycle"],
+    focus: ["#tripFare", "#lifecycle", "#term"],
     filter: "ALL",
     body: () => `I tapped <b>I'm okay</b> and the trip finished. <code>CompletedState</code> charged
            <b>${fare()}</b> - the exact quote - even after the <b>${ui.ride ? ui.ride.detourKm : 0} km</b>
@@ -331,7 +331,7 @@ const Tour = {
     let left = ms;
     this.skip = false;
     while (left > 0 && !this.skip) {
-      $("tourTimer").style.width = (left / ms) * 100 + "%";
+      $("tourTimer").style.width = (left / ms) * 100 + "%";   // Next empties as time runs out
       $("tourStatusText").textContent = (this.frozen ? "Ride paused while you read · " : "") +
         "next in " + Math.ceil(left / 1000) + "s";
       await this.tick();
@@ -420,6 +420,8 @@ const Tour = {
     this.running = false;
     this.step = null;
     document.querySelectorAll(".tour-focus").forEach((n) => n.classList.remove("tour-focus"));
+    document.querySelectorAll(".is-dim").forEach((n) => n.classList.remove("is-dim"));
+    document.querySelectorAll(".pchip.is-current").forEach((n) => n.classList.remove("is-current"));
     applyFilter("ALL");
     $("btnTour").disabled = !!(ui.ride && !ui.ride.state.isFinal);
     $("tourPause").hidden = true;
@@ -480,7 +482,7 @@ const Tour = {
 
     const status = $("tourStatus");
     status.dataset.phase = phase;
-    $("tourTimer").style.width = "100%";
+    $("tourTimer").style.width = "0%";
     $("tourStatusText").textContent = phase === "done" ? "Tour complete"
       : phase === "working" ? "Working - watch the glow..." : "";
 
@@ -492,6 +494,8 @@ const Tour = {
 
     applyFilter(step.filter || "ALL");
     this.renderFeed();
+    document.querySelectorAll(".pchip").forEach((c) =>
+      c.classList.toggle("is-current", c.dataset.tag === step.tag));
 
     this.point(phase === "working" && step.focusFirst ? step.focusFirst : step.focus);
   },
@@ -501,6 +505,7 @@ const Tour = {
     document.querySelectorAll(".tour-focus").forEach((n) => n.classList.remove("tour-focus"));
     const nodes = (selectors || []).map((sel) => document.querySelector(sel)).filter(Boolean);
     nodes.forEach((n) => n.classList.add("tour-focus"));
+    this.spotlight(nodes);
     if (!nodes.length) return;
 
     const docked = window.innerWidth < 1024;
@@ -526,6 +531,16 @@ const Tour = {
     const unionBottom = Math.max(...rects.map((r) => r.bottom));
     const from = unionBottom - unionTop <= free ? unionTop : rects[0].top;
     window.scrollTo({ top: Math.max(0, window.scrollY + from - top - 10), behavior: "smooth" });
+  },
+
+  /** Fade back every panel this stage is not about (all of them come back afterwards). */
+  spotlight(nodes) {
+    const panels = ["#sheet", "#stage", "#obsPanel", "#term"]
+      .map((sel) => document.querySelector(sel)).filter(Boolean);
+    panels.forEach((panel) => {
+      const relevant = !nodes.length || nodes.some((n) => panel.contains(n) || n.contains(panel));
+      panel.classList.toggle("is-dim", !relevant);
+    });
   },
 
   /** The latest console lines for this stage - shown where the console is out of view. */

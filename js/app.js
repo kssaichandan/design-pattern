@@ -226,8 +226,17 @@ function drawAmbient() {
   ambient.positions().forEach(() => g.appendChild(mk("rect", { x: -2.6, y: -1.5, width: 5.2, height: 3, rx: 1, class: "mp-ambient" })));
 }
 
+/** Phones and reduced-motion settings get a map without the decorative traffic. */
+const calmMap = window.matchMedia("(max-width: 699px), (prefers-reduced-motion: reduce)");
+
+function trafficShown() {
+  const b = document.body.classList;
+  return !b.contains("no-traffic") && !b.contains("is-touring") && !calmMap.matches;
+}
+
 function tickAmbient() {
   ambient.tick(SimClock.paused ? 0 : 0.016 * SimClock.rate);
+  if (!trafficShown()) { requestAnimationFrame(tickAmbient); return; }
   const g = $("ambient");
   const pos = ambient.positions();
   for (let i = 0; i < g.children.length; i++) {
@@ -430,7 +439,8 @@ function pushToast(html) {
   t.className = "toast";
   t.innerHTML = html;
   wrap.appendChild(t);
-  while (wrap.children.length > 3) wrap.removeChild(wrap.firstChild);
+  // One notification at a time: a stack of them only repeats itself.
+  while (wrap.children.length > 1) wrap.removeChild(wrap.firstChild);
   setTimeout(() => t.remove(), 5200);
 }
 
@@ -466,6 +476,9 @@ function appendLogLine(entry) {
 
 let pulseTimers = {};
 function pulseChip(tag) {
+  // During the guided demo the chips mark the pattern being explained
+  // instead of flickering with every console line.
+  if (typeof Tour !== "undefined" && Tour.running) return;
   const chip = document.querySelector('.pchip[data-tag="' + tag + '"]');
   if (!chip) return;
   chip.classList.add("is-hot");
@@ -717,7 +730,7 @@ function init() {
   facade = new RideBookingFacade({ pushToast, onRideUpdate });
 
   drawCity();
-  ambient = new AmbientTraffic(CITY, 22);
+  ambient = new AmbientTraffic(CITY, 10);       // a few faint cars - enough to feel alive
   drawAmbient();
   requestAnimationFrame(tickAmbient);
 
@@ -741,6 +754,13 @@ function init() {
       vehicleType: ui.vehicleType,
     });
     setView("trip");                     // the sheet follows the ride
+  });
+
+  // The other cars are decoration: let anyone switch them off (WCAG 2.2.2).
+  $("btnTraffic").addEventListener("click", () => {
+    const off = document.body.classList.toggle("no-traffic");
+    $("btnTraffic").setAttribute("aria-pressed", String(!off));
+    $("btnTraffic").textContent = "City traffic: " + (off ? "off" : "on");
   });
 
   $("tabPlan").addEventListener("click", () => setView("plan"));

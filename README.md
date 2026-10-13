@@ -458,9 +458,10 @@ At each of its 13 stages a narration card shows:
 - **what to notice** on screen and in the console;
 - **the file** the code lives in.
 
-The part of the app the stage is about gets an **amber glow**, the ride panel
-switches to the right tab by itself, and the console is filtered to that
-pattern's lines.
+The part of the app the stage is about gets an **amber outline**, the panels it
+is *not* about fade back (hover one and it returns), the ride panel switches to
+the right tab by itself, the chip of the pattern being explained is the only
+one lit, and the console is filtered to that pattern's lines.
 
 **Where the narration sits.** On a laptop it has its own place above the
 console, so it never covers the app. On a phone or tablet it docks in a strip
@@ -498,6 +499,28 @@ own.
 `SimClock` (`js/core/clock.js`) for time instead of the browser. The tour slows
 that clock up to fast-forward, and pauses it where a stage must hold; no
 pattern knows a demo is running.
+
+---
+
+## Calm by design
+
+A screen that runs six patterns at once can easily shout. Every visual choice
+below follows a published guideline for keeping attention on what matters —
+and none of them removes information; they change *when* and *how loudly* it
+is shown.
+
+| Guideline | What it says | What RideFlow does |
+|---|---|---|
+| **Signalling** (Mayer, multimedia learning) | Cue the essential material; don't make everything compete | During the demo the panels a stage is not about fade back; amber is kept for "look here / do this" (Book, the current ride stage, the demo's outline and Next) |
+| **Coherence** (Mayer) | Remove extraneous decoration | The decorative city traffic is down to 10 faint cars, hidden during the demo and on phones, and has an on/off switch |
+| **Redundancy** (Mayer) | Don't present the same words twice at once | One notification at a time; during the demo the chips mark the current pattern instead of flashing with every console line |
+| **Segmenting** (Mayer) | Learner-paced chunks beat a continuous stream | 13 short stages, each with Next / Pause; reading time follows the text |
+| **Progressive disclosure** | Show the essentials, reveal detail on demand | The map's five telemetry boxes are one quiet line; on phones the demo card shows the gist, **Details** opens the rest; subscriber descriptions sit in a muted line with the full text on hover |
+| **WCAG 2.2.2 Pause, Stop, Hide** | Nothing should move or blink indefinitely without a way to stop it | No endless animations: the outline pulses twice then holds; the console light and status dot no longer blink; traffic can be switched off; the demo can be paused |
+| **Reduced motion** (`prefers-reduced-motion`) | Respect the user's system setting | Decorative traffic and the car's halo are dropped; transitions become instant |
+
+Nothing was taken away: every number, button, log line and explanation is
+still on screen or one hover / tap away.
 
 ---
 

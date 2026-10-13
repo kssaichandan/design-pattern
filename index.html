@@ -28,8 +28,7 @@
       </span>
     </div>
 
-    <div class="chiprack" aria-label="Patterns wired in - each one lights up when it runs">
-      <span class="chiprack__label">Lights up when it runs</span>
+    <div class="chiprack" aria-label="Patterns wired in" title="Each chip lights up softly when its pattern runs">
       <span class="pchip" data-tag="FACTORY">Factory</span>
       <span class="pchip" data-tag="STRATEGY">Strategy</span>
       <span class="pchip" data-tag="DECORATOR">Decorator</span>
@@ -147,7 +146,9 @@
   <section class="panel stage" id="stage" aria-label="Live map">
     <div class="panel__hd">
       <h2 class="panel__title">Live map <i>&middot; Observer subject</i></h2>
-      <span class="panel__title panel__title--via" id="viaLine">Hyderabad</span>
+      <span class="panel__via" id="viaLine">Hyderabad</span>
+      <button class="minibtn" id="btnTraffic" type="button" aria-pressed="true"
+              title="The other cars are decoration only - switch them off for a calmer map">City traffic: on</button>
     </div>
     <div class="mapwrap">
       <svg id="map" viewBox="0 0 720 420" role="img" aria-label="Simulated Hyderabad street map showing the driver moving along the routed roads">
@@ -165,12 +166,12 @@
           <rect class="lamp" x="7.4" y="2.4" width="2" height="2" rx="1"></rect>
         </g>
       </svg>
-      <div class="hud">
-        <div class="hudchip"><span class="hudchip__k">ETA</span><span class="hudchip__v" id="hudEta">--</span></div>
-        <div class="hudchip"><span class="hudchip__k">Dist</span><span class="hudchip__v" id="hudKm">--</span></div>
-        <div class="hudchip"><span class="hudchip__k">Speed</span><span class="hudchip__v" id="hudSpeed">0 km/h</span></div>
-        <div class="hudchip hudchip--road"><span class="hudchip__k">On</span><span class="hudchip__v" id="hudRoad">--</span></div>
-        <div class="hudchip hudchip--status"><span class="hudchip__v" id="hudStatus" data-status="IDLE">idle</span></div>
+      <div class="hud" aria-label="Trip telemetry">
+        <span class="hud__item"><span class="hud__k">ETA</span><span class="hud__v" id="hudEta">--</span></span>
+        <span class="hud__item"><span class="hud__k">Dist</span><span class="hud__v" id="hudKm">--</span></span>
+        <span class="hud__item"><span class="hud__k">Speed</span><span class="hud__v" id="hudSpeed">0 km/h</span></span>
+        <span class="hud__item hud__item--road"><span class="hud__k">On</span><span class="hud__v" id="hudRoad">--</span></span>
+        <span class="hud__status" id="hudStatus" data-status="IDLE">idle</span>
       </div>
       <div class="toasts" id="toasts"></div>
       <div class="safety" id="safetyCard" role="alertdialog" aria-labelledby="safetyTitle" hidden>
@@ -212,14 +213,13 @@
       </div>
       <div class="tour__feed" id="tourFeed" aria-label="Latest console lines"></div>
       <div class="tour__foot">
-        <div class="tour__status" id="tourStatus">
-          <span id="tourStatusText"></span>
-          <span class="tour__timer" aria-hidden="true"><span id="tourTimer"></span></span>
-        </div>
+        <div class="tour__status" id="tourStatus"><span id="tourStatusText"></span></div>
         <div class="tour__ctl">
           <button class="tour__btn tour__btn--more" id="tourMore" type="button" aria-expanded="false">Details</button>
           <button class="tour__btn" id="tourPause" type="button">Pause</button>
-          <button class="tour__btn tour__btn--go" id="tourNext" type="button">Next &#9656;</button>
+          <button class="tour__btn tour__btn--go" id="tourNext" type="button">
+            <span class="tour__fill" id="tourTimer" aria-hidden="true"></span><span class="tour__lbl">Next &#9656;</span>
+          </button>
           <button class="tour__btn" id="tourRestart" type="button" hidden>Run again</button>
           <button class="tour__btn" id="tourExit" type="button">Exit</button>
         </div>

@@ -254,19 +254,20 @@ h1, h2, h3, h4 {
   border: 1px solid var(--line); background: var(--surface-2); color: var(--ink-2);
   transition: background .18s, color .18s, border-color .18s, transform .18s;
 }
-.pchip.is-hot {
-  background: var(--amber); border-color: var(--amber);
-  color: #14100A; transform: translateY(-2px);
-}
+/* A soft glow when a pattern runs - no jumping, no full-colour flash.
+   During the guided demo only the pattern being explained is marked. */
+.pchip { transition: background .45s, color .45s, border-color .45s; }
+.pchip.is-hot { background: var(--amber-soft); border-color: var(--amber); color: var(--ink); }
+.pchip.is-current { background: var(--ink); border-color: var(--ink); color: var(--surface); }
 
 .topbar .btn--tour {
   flex: none; width: auto; display: inline-flex; align-items: center; gap: 7px;
-  padding: 9px 16px; font-size: 13.5px; border-radius: 999px;
-  background: var(--amber); color: #17120A; border-color: var(--amber);
-  white-space: nowrap; box-shadow: 0 4px 14px -6px var(--amber);
+  padding: 8px 15px; font-size: 13.5px; border-radius: 999px;
+  background: var(--ink); color: var(--surface); border-color: var(--ink);
+  white-space: nowrap;
 }
 .topbar .btn--tour svg { width: 12px; height: 12px; }
-.topbar .btn--tour:hover:not(:disabled) { filter: brightness(1.07); }
+.topbar .btn--tour:hover:not(:disabled) { filter: brightness(1.25); }
 
 /* ---------------- the app grid ---------------- */
 
@@ -296,7 +297,17 @@ h1, h2, h3, h4 {
   text-transform: uppercase; color: var(--ink-3); font-weight: 500; white-space: nowrap;
 }
 .panel__title i, .field__label i, .term__title i { font-style: normal; opacity: .7; }
-.panel__title--via { min-width: 0; overflow: hidden; text-overflow: ellipsis; letter-spacing: .06em; }
+.panel__via {
+  flex: 1; min-width: 0; text-align: right; font-size: 11.5px; color: var(--ink-3);
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.minibtn {
+  flex: none; font: inherit; font-size: 11px; cursor: pointer; white-space: nowrap;
+  padding: 2px 8px; border-radius: 999px; border: 1px solid var(--line);
+  background: var(--surface); color: var(--ink-3);
+}
+.minibtn:hover { color: var(--ink); border-color: var(--ink-3); }
+.minibtn:focus-visible { outline: 2px solid var(--blue); outline-offset: 2px; }
 
 /* ---------------- the ride sheet: Plan / Trip tabs ---------------- */
 
@@ -317,8 +328,8 @@ h1, h2, h3, h4 {
   width: 19px; height: 19px; border-radius: 50%; display: grid; place-items: center;
   font-family: var(--f-mono); font-size: 10px; border: 1px solid currentColor;
 }
-.tab[aria-selected="true"] { color: var(--ink); border-bottom-color: var(--amber); }
-.tab[aria-selected="true"] .tab__n { background: var(--amber); border-color: var(--amber); color: #17120A; }
+.tab[aria-selected="true"] { color: var(--ink); border-bottom-color: var(--ink); }
+.tab[aria-selected="true"] .tab__n { background: var(--ink); border-color: var(--ink); color: var(--surface); }
 .tab:focus-visible { outline: 2px solid var(--blue); outline-offset: -2px; }
 .tabs__state {
   margin-left: auto; align-self: center; min-width: 0;
@@ -374,11 +385,11 @@ select:focus-visible, .btn:focus-visible, .vcard:focus-visible,
 }
 .vcard:hover { border-color: var(--ink-3); }
 .vcard[aria-pressed="true"] {
-  border-color: var(--amber); background: var(--amber-soft);
-  box-shadow: 0 0 0 1px var(--amber) inset;
+  border-color: var(--ink); background: var(--surface);
+  box-shadow: 0 0 0 1px var(--ink) inset;
 }
 .vcard__ico { height: 18px; color: var(--ink-2); margin-bottom: 2px; }
-.vcard[aria-pressed="true"] .vcard__ico { color: var(--amber); }
+.vcard[aria-pressed="true"] .vcard__ico { color: var(--ink); }
 .vcard__ico svg { height: 18px; width: auto; display: block; }
 .vcard__name { font-size: 12.5px; font-weight: 600; letter-spacing: -0.01em; }
 .vcard__meta {
@@ -509,29 +520,28 @@ select:focus-visible, .btn:focus-visible, .vcard:focus-visible,
 .mapwrap { position: relative; background: var(--mp-land); }
 .mapwrap svg { display: block; width: 100%; height: auto; }
 
-.hud { position: absolute; left: 10px; top: 10px; display: flex; gap: 6px; flex-wrap: wrap; max-width: 62%; }
-
-.hudchip {
-  background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-md);
-  padding: 4px 8px; box-shadow: var(--shadow-sm);
-  display: flex; align-items: baseline; gap: 5px;
+.hud {
+  position: absolute; left: 10px; top: 10px; max-width: calc(100% - 20px);
+  display: flex; align-items: baseline; gap: 4px 12px; flex-wrap: wrap;
+  padding: 5px 11px; border-radius: 999px;
+  background: color-mix(in srgb, var(--surface) 90%, transparent);
+  border: 1px solid var(--line); box-shadow: var(--shadow-sm);
+  font-family: var(--f-mono); font-variant-numeric: tabular-nums;
 }
-.hudchip__k {
-  font-family: var(--f-mono); font-size: 9px; letter-spacing: .1em;
-  text-transform: uppercase; color: var(--ink-3);
+.hud__item { display: inline-flex; align-items: baseline; gap: 5px; white-space: nowrap; }
+.hud__k { font-size: 9px; letter-spacing: .1em; text-transform: uppercase; color: var(--ink-3); }
+.hud__v { font-size: 12.5px; color: var(--ink); }
+.hud__item--road .hud__v { font-family: var(--f-body); font-size: 12px; max-width: 16ch; overflow: hidden; text-overflow: ellipsis; }
+/* traffic state as a small coloured word, not a box that flips colour */
+.hud__status {
+  font-size: 10px; letter-spacing: .08em; text-transform: uppercase; color: var(--ink-3);
+  display: inline-flex; align-items: center; gap: 5px; white-space: nowrap;
 }
-.hudchip__v {
-  font-family: var(--f-mono); font-size: 13px; font-weight: 500;
-  font-variant-numeric: tabular-nums; color: var(--ink); white-space: nowrap;
-}
-.hudchip--road .hudchip__v { font-size: 11px; letter-spacing: .01em; }
-.hudchip--status .hudchip__v { font-size: 10px; letter-spacing: .09em; text-transform: uppercase; }
-.hudchip--status:has([data-status="STOPPED"])  { background: var(--red-soft);   border-color: var(--red); }
-.hudchip--status:has([data-status="CRAWLING"]) { background: var(--amber-soft); border-color: var(--amber); }
-.hudchip--status:has([data-status="CRUISING"]) { background: var(--green-soft); border-color: var(--green); }
-.hudchip--status [data-status="STOPPED"]  { color: var(--red); }
-.hudchip--status [data-status="CRAWLING"] { color: var(--amber); }
-.hudchip--status [data-status="CRUISING"] { color: var(--green); }
+.hud__status::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+.hud__status[data-status="STOPPED"]  { color: var(--red); }
+.hud__status[data-status="CRAWLING"] { color: var(--amber); }
+.hud__status[data-status="CRUISING"] { color: var(--green); }
+.hud__status[data-status="MOVING"]   { color: var(--ink-2); }
 
 .toasts {
   position: absolute; right: 10px; top: 10px; display: grid; gap: 6px;
@@ -540,8 +550,7 @@ select:focus-visible, .btn:focus-visible, .vcard:focus-visible,
 .toast {
   background: var(--con-bg); color: var(--con-text);
   border-radius: var(--r-md); padding: 7px 10px; font-size: 12px; line-height: 1.4;
-  box-shadow: var(--shadow-md); animation: toastin .28s ease-out;
-  border-left: 3px solid var(--amber);
+  box-shadow: var(--shadow-sm); animation: toastin .28s ease-out;
 }
 .toast b { color: #fff; font-weight: 600; }
 @keyframes toastin { from { opacity: 0; transform: translateX(14px); } }
@@ -571,8 +580,9 @@ select:focus-visible, .btn:focus-visible, .vcard:focus-visible,
   display: block; font-size: 11px; color: var(--ink-3); line-height: 1.35;
   overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }
-.toggle:has(input:checked) { border-color: var(--blue); background: var(--blue-soft); }
-.toggle:has(input:checked) .toggle__name { color: var(--blue); font-weight: 500; }
+/* subscribed = normal ink; unsubscribed = faded, so the odd one out is obvious */
+.toggle:not(:has(input:checked)) { opacity: .55; }
+.toggle:not(:has(input:checked)) .toggle__name { text-decoration: line-through; }
 
 /* ---------------- dispatch console ---------------- */
 
@@ -592,7 +602,7 @@ select:focus-visible, .btn:focus-visible, .vcard:focus-visible,
 .term__live { display: flex; align-items: center; gap: 6px; font-family: var(--f-mono); font-size: 10px; color: var(--con-dim); flex: none; }
 .term__led {
   width: 7px; height: 7px; border-radius: 50%; background: #35C88F;
-  box-shadow: 0 0 8px #35C88F; animation: blip 1.6s infinite;
+  box-shadow: 0 0 6px #35C88F;
 }
 @keyframes blip { 50% { opacity: .3; } }
 
@@ -757,7 +767,11 @@ select:focus-visible, .btn:focus-visible, .vcard:focus-visible,
 .poi.is-muted .mp-poi-label { display: none; }
 
 /* The rest of the city's traffic - decoration, nothing subscribes to it. */
-.mp-ambient { fill: var(--ink-3); opacity: .38; }
+.mp-ambient { fill: var(--ink-3); opacity: .24; }
+/* Decoration only, so it steps aside whenever attention is needed elsewhere:
+   switched off by the user, during the guided demo, on phones, and for
+   anyone whose system asks for reduced motion. */
+body.no-traffic #ambient, body.is-touring #ambient { display: none; }
 
 /* The active route */
 .mp-route-case {
@@ -789,10 +803,11 @@ select:focus-visible, .btn:focus-visible, .vcard:focus-visible,
 #car .body   { fill: var(--ink); }
 #car .glass  { fill: var(--amber); }
 #car .lamp   { fill: #FFF0BE; }
-#car .pulse  { fill: var(--amber); opacity: .22; }
+#car .pulse  { fill: var(--amber); opacity: .16; }
 #car.is-stopped .pulse { fill: var(--red); opacity: .3; }
 
 @media (prefers-reduced-motion: reduce) {
+  #ambient, #car .pulse { display: none; }
   *, *::before, *::after {
     animation-duration: .001s !important;
     transition-duration: .001s !important;
@@ -803,7 +818,7 @@ select:focus-visible, .btn:focus-visible, .vcard:focus-visible,
 
 .rematch {
   font-size: 12.5px; color: var(--ink-2); line-height: 1.45;
-  background: var(--amber-soft); border: 1px solid var(--amber);
+  background: var(--surface-2); border: 1px solid var(--line); border-left: 3px solid var(--amber);
   border-radius: var(--r-md); padding: 7px 10px;
 }
 .rematch b { color: var(--ink); }
@@ -878,8 +893,8 @@ select:focus-visible, .btn:focus-visible, .vcard:focus-visible,
 
 .tour__title { margin: 0; font-size: 16px; letter-spacing: -0.02em; color: #fff; line-height: 1.25; }
 .tour__problem {
-  margin: 0; padding: 6px 9px; border-radius: var(--r-md);
-  background: rgba(240,119,106,.12); border-left: 3px solid #F0776A; font-size: 12px; line-height: 1.45;
+  margin: 0; padding: 2px 0 2px 9px;
+  border-left: 2px solid #F0776A; font-size: 12px; line-height: 1.45; color: var(--con-dim);
 }
 .tour__problem b { color: #F0776A; }
 .tour__problem[hidden] { display: none; }
@@ -914,17 +929,10 @@ select:focus-visible, .btn:focus-visible, .vcard:focus-visible,
   position: sticky; bottom: 0; margin: 0 -14px; padding: 7px 14px 11px;
   background: var(--con-bg); border-top: 1px solid var(--con-line); display: grid; gap: 7px;
 }
-.tour__status {
-  display: grid; grid-template-columns: minmax(0, 1fr) 70px; align-items: center; gap: 10px;
-  font-family: var(--f-mono); font-size: 10.5px; color: var(--con-dim);
-}
+.tour__status { font-family: var(--f-mono); font-size: 10.5px; color: var(--con-dim); min-height: 1.4em; }
 .tour__status[data-phase="working"] { color: #FFC257; }
-.tour__status[data-phase="working"] #tourStatusText::before { content: "\25CF  "; animation: blip 1s infinite; }
 .tour__status[data-phase="done"] { color: #43C39A; }
 .tour.is-paused #tourStatusText::after { content: "  ·  PAUSED"; color: #F0776A; }
-.tour__timer { height: 3px; border-radius: 3px; background: var(--con-line); overflow: hidden; }
-.tour__timer span { display: block; height: 100%; width: 0; background: #FFC257; }
-.tour__status:not([data-phase="reading"]) .tour__timer { visibility: hidden; }
 
 .tour__ctl { display: flex; gap: 6px; }
 .tour__btn {
@@ -935,15 +943,22 @@ select:focus-visible, .btn:focus-visible, .vcard:focus-visible,
 .tour__btn[hidden] { display: none; }
 .tour__btn:hover:not(:disabled) { border-color: var(--con-dim); color: #fff; }
 .tour__btn:disabled { opacity: .4; cursor: not-allowed; }
-.tour__btn--go { flex: 1.4; background: var(--amber); border-color: var(--amber); color: #17120A; }
+.tour__btn--go {
+  flex: 1.4; position: relative; overflow: hidden;
+  background: var(--amber); border-color: var(--amber); color: #17120A;
+}
+/* the countdown: the button quietly empties until the card moves on */
+.tour__fill { position: absolute; left: 0; top: 0; bottom: 0; width: 0; background: rgba(255,255,255,.28); }
+.tour__lbl { position: relative; }
 .tour__btn--go:hover:not(:disabled) { color: #17120A; filter: brightness(1.08); }
 .tour__btn--more { display: none; }
 
 /* the part of the app the current stage is about */
+/* pulses twice to catch the eye, then holds still */
 .tour-focus {
   outline: 3px solid var(--amber-hi); outline-offset: 2px;
   border-radius: var(--r-md);
-  animation: tourglow 1.6s ease-in-out infinite;
+  animation: tourglow 1s ease-in-out 2;
 }
 #map.tour-focus, .panel.tour-focus, .term.tour-focus { outline-offset: -3px; }
 @keyframes tourglow { 50% { outline-color: rgba(240,164,35,.3); } }
@@ -980,9 +995,10 @@ select:focus-visible, .btn:focus-visible, .vcard:focus-visible,
   .toggle__desc { display: none; }                 /* full description stays in the tooltip */
   .obs__hint { display: none; }
   .hud { gap: 4px; max-width: 70%; }
-  .hudchip { padding: 2px 6px; }
-  .hudchip__v { font-size: 11.5px; }
-  .hudchip--road { display: none; }
+  .hud { gap: 3px 9px; padding: 4px 9px; }
+  .hud__v { font-size: 11.5px; }
+  .hud__item--road { display: none; }
+  .minibtn { font-size: 10.5px; padding: 2px 6px; }
   .toasts { width: min(220px, 46%); }
   .vcard__meta:first-of-type { display: none; }    /* seats are in the factory log line */
 }
@@ -1041,10 +1057,11 @@ select:focus-visible, .btn:focus-visible, .vcard:focus-visible,
   .stage .panel__hd { display: none; }
 
   .hud { top: auto; bottom: 8px; left: 8px; gap: 4px; max-width: calc(100% - 16px); }
-  .hudchip { padding: 2px 6px; gap: 4px; }
-  .hudchip__k { font-size: 8px; }
-  .hudchip__v { font-size: 11px; }
-  .hudchip--road { display: none; }
+  .hud { gap: 2px 9px; padding: 3px 9px; }
+  .hud__k { font-size: 8px; }
+  .hud__v { font-size: 11px; }
+  .hud__item--road { display: none; }
+  #ambient, #btnTraffic { display: none; }   /* a small screen gets the calm map */
   .toasts { top: 8px; right: 8px; width: min(240px, 66%); }
   .toast { font-size: 11.5px; padding: 6px 9px; }
   .safety { top: 50%; bottom: auto; transform: translate(-50%, -50%); }
@@ -1058,3 +1075,13 @@ select:focus-visible, .btn:focus-visible, .vcard:focus-visible,
   .logline__t { display: none; }
   .step__note { font-size: 9px; }
 }
+
+/* ---------------- guided demo spotlight ----------------
+   Signalling: while a stage is explained, the panels it is not about
+   step back so the eye has one place to go. Nothing is hidden - hover
+   (or tap) a faded panel and it comes straight back.              */
+.is-dim { opacity: .38; filter: saturate(.35); transition: opacity .35s, filter .35s; }
+.is-dim:hover, .is-dim:focus-within { opacity: 1; filter: none; }
+.sheet, .stage, .obs, .term { transition: opacity .35s, filter .35s; }
+/* in the top bar only the pattern being explained stays lit */
+body.is-touring .pchip:not(.is-current) { opacity: .4; }
