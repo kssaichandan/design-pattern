@@ -12,9 +12,9 @@
 </head>
 <body>
 
-<!-- ============================ MASTHEAD ============================ -->
-<header class="masthead">
-  <div class="wrap masthead__in">
+<!-- ============================ TOP BAR ============================ -->
+<header class="topbar" id="topbar">
+  <div class="topbar__in">
     <div class="brand">
       <span class="brand__lamp">
         <svg viewBox="0 0 24 24" fill="none" stroke="#17120A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -24,181 +24,219 @@
       </span>
       <span>
         <span class="brand__name">RideFlow</span>
-        <span class="brand__sub">Design Patterns Lab &middot; live instrumentation</span>
+        <span class="brand__sub">Design Patterns Lab</span>
       </span>
     </div>
 
-    <div class="chiprack">
-      <span class="chiprack__label">Patterns wired in</span>
+    <div class="chiprack" aria-label="Patterns wired in - each one lights up when it runs">
+      <span class="chiprack__label">Lights up when it runs</span>
       <span class="pchip" data-tag="FACTORY">Factory</span>
       <span class="pchip" data-tag="STRATEGY">Strategy</span>
-      <span class="pchip" data-tag="OBSERVER">Observer</span>
-      <span class="pchip" data-tag="STATE">State</span>
-      <span class="pchip" data-tag="FACADE">Facade</span>
       <span class="pchip" data-tag="DECORATOR">Decorator</span>
+      <span class="pchip" data-tag="FACADE">Facade</span>
+      <span class="pchip" data-tag="STATE">State</span>
+      <span class="pchip" data-tag="OBSERVER">Observer</span>
       <span class="pchip" data-tag="SINGLETON">Singleton</span>
     </div>
 
-    <button class="btn btn--tour" id="btnTour" type="button" title="Runs one complete ride and explains every stage">
-      &#9654; Guided demo
+    <button class="btn btn--tour" id="btnTour" type="button" title="Runs one complete ride by itself and explains every stage">
+      <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4 2.5v11l9.5-5.5z" fill="currentColor"/></svg>
+      Guided demo
     </button>
   </div>
 </header>
 
-<!-- ============================ THE APP ============================ -->
-<main class="wrap console">
+<!-- ============================ THE APP ============================
+     Laptop: three columns that fit one screen - ride | map | lab.
+     Phone: the map stays pinned on top, everything else scrolls
+     beneath it, and the guided demo docks in its own strip.        -->
+<main class="app" id="app">
 
-  <!-- ---------- left column: the rider app ---------- -->
-  <div class="rightcol">
+  <!-- ---------- 1. the rider's phone: plan a ride, then follow it ---------- -->
+  <section class="panel sheet" id="sheet" aria-label="Ride">
+    <div class="tabs" role="tablist">
+      <button class="tab" id="tabPlan" type="button" role="tab" aria-selected="true" aria-controls="viewPlan">
+        <span class="tab__n">1</span><span class="tab__t">Plan</span>
+      </button>
+      <button class="tab" id="tabTrip" type="button" role="tab" aria-selected="false" aria-controls="viewTrip">
+        <span class="tab__n">2</span><span class="tab__t">Trip</span>
+      </button>
+      <span class="tabs__state" id="stateNow" title="The State object the ride is holding right now">no active ride</span>
+    </div>
 
-    <section class="panel">
-      <div class="panel__hd">
-        <h2 class="panel__title">Book a ride</h2>
-        <span class="panel__title" id="stateNow">no active ride</span>
-      </div>
-      <div class="panel__body">
-
-        <div class="route-row">
-          <div class="field">
-            <label class="field__label" for="pickup">Pickup</label>
-            <select id="pickup"></select>
-          </div>
-          <button class="swap" id="swap" type="button" title="Swap pickup and drop" aria-label="Swap pickup and drop">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M7 4v16M7 20l-3-3M7 20l3-3M17 20V4M17 4l-3 3M17 4l3 3"/>
-            </svg>
-          </button>
-          <div class="field">
-            <label class="field__label" for="drop">Drop</label>
-            <select id="drop"></select>
-          </div>
-        </div>
-
+    <!-- PLAN: Factory, Strategy, Decorator, Facade -->
+    <div class="view" id="viewPlan" role="tabpanel" aria-labelledby="tabPlan">
+      <div class="route-row">
         <div class="field">
-          <span class="field__label">Vehicle &middot; built by VehicleFactory</span>
-          <div class="vgrid" id="vehicles"></div>
+          <label class="field__label" for="pickup">Pickup</label>
+          <select id="pickup"></select>
         </div>
-
+        <button class="swap" id="swap" type="button" title="Swap pickup and drop" aria-label="Swap pickup and drop">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M7 4v16M7 20l-3-3M7 20l3-3M17 20V4M17 4l-3 3M17 4l3 3"/>
+          </svg>
+        </button>
         <div class="field">
-          <label class="field__label" for="strategy">Pricing rule &middot; swap the Strategy live</label>
-          <select id="strategy">
-            <option value="STANDARD">Standard fare</option>
-            <option value="SURGE">Surge pricing &times;1.8 (peak hour)</option>
-            <option value="FESTIVAL">Festival surge &times;3 (watch the legal cap)</option>
-            <option value="NIGHT">Night fare (+25%)</option>
-            <option value="PASS">RidePass subscriber (-20%)</option>
-            <option value="POOL">Shared pool (split fare)</option>
-          </select>
-        </div>
-
-        <div class="receipt">
-          <div class="receipt__strategy" id="receiptStrategy"></div>
-          <div class="receipt__lines" id="receiptLines"></div>
-        </div>
-
-        <button class="btn btn--go" id="btnBook" type="button">Book ride</button>
-      </div>
-    </section>
-
-    <section class="panel">
-      <div class="panel__hd">
-        <h2 class="panel__title">Ride lifecycle &middot; State pattern</h2>
-      </div>
-      <div class="panel__body">
-        <div class="statebar">
-          <span class="statebar__k">now</span>
-          <span class="statebar__v" id="stateLabel">Pick a route and book</span>
-        </div>
-        <div class="dcard" id="driverCard" hidden></div>
-        <div class="lifecycle" id="lifecycle"></div>
-        <div class="rematch" id="rematchNote" hidden></div>
-        <button class="btn btn--ghost" id="btnCancel" type="button" disabled>Cancel ride</button>
-
-        <div class="cancelask" id="cancelAsk" hidden>
-          <span class="cancelask__q">Why are you cancelling?</span>
-          <button class="btn btn--ghost cancelask__opt" id="btnCancelPlans" type="button">
-            I changed my plans <small id="cancelFeeNote"></small>
-          </button>
-          <button class="btn btn--ghost cancelask__opt" id="btnCancelAsked" type="button">
-            The driver asked me to cancel <small>no fee for you &middot; driver penalised</small>
-          </button>
-          <button class="linkbtn" id="btnCancelKeep" type="button">Keep my ride</button>
-        </div>
-
-        <div class="demo">
-          <span class="field__label">Simulate real-world problems &middot; the fixes respond on their own</span>
-          <div class="demo__row">
-            <button class="btn btn--sim" id="btnDriverCancel" type="button" disabled title="The driver cancels after accepting">Driver cancels</button>
-            <button class="btn btn--sim" id="btnStop" type="button" disabled title="The car stops for 4 minutes with no red light">Unexpected stop</button>
-            <button class="btn btn--sim" id="btnDetour" type="button" disabled title="The driver leaves the planned route">Route detour</button>
-          </div>
+          <label class="field__label" for="drop">Drop</label>
+          <select id="drop"></select>
         </div>
       </div>
-    </section>
 
-  </div>
-
-  <!-- ---------- right column: instrumentation ---------- -->
-  <div class="rightcol">
-
-    <section class="panel">
-      <div class="panel__hd">
-        <h2 class="panel__title">Live map &middot; Observer subject broadcasting</h2>
-        <span class="panel__title" id="viaLine">Hyderabad</span>
+      <div class="field">
+        <span class="field__label">Vehicle <i>&middot; Factory</i></span>
+        <div class="vgrid" id="vehicles"></div>
       </div>
-      <div class="mapwrap">
-        <svg id="map" viewBox="0 0 720 420" role="img" aria-label="Simulated Hyderabad street map showing the driver moving along the routed roads">
-          <g id="terrain"></g>
-          <g id="roads"></g>
-          <g id="pois"></g>
-          <g id="ambient"></g>
-          <g id="routelayer"></g>
-          <g id="car">
-            <circle class="pulse" r="15"></circle>
-            <rect class="shadow" x="-9" y="-5" width="19" height="11" rx="3.5"></rect>
-            <rect class="body" x="-9" y="-6" width="18" height="12" rx="3.5"></rect>
-            <rect class="glass" x="0" y="-4" width="6" height="8" rx="1.5"></rect>
-            <rect class="lamp" x="7.4" y="-4.4" width="2" height="2" rx="1"></rect>
-            <rect class="lamp" x="7.4" y="2.4" width="2" height="2" rx="1"></rect>
-          </g>
-        </svg>
-        <div class="hud">
-          <div class="hudchip"><span class="hudchip__k">ETA</span><span class="hudchip__v" id="hudEta">--</span></div>
-          <div class="hudchip"><span class="hudchip__k">Dist</span><span class="hudchip__v" id="hudKm">--</span></div>
-          <div class="hudchip"><span class="hudchip__k">Speed</span><span class="hudchip__v" id="hudSpeed">0 km/h</span></div>
-          <div class="hudchip hudchip--road"><span class="hudchip__k">On</span><span class="hudchip__v" id="hudRoad">--</span></div>
-          <div class="hudchip hudchip--status"><span class="hudchip__v" id="hudStatus" data-status="IDLE">idle</span></div>
-        </div>
-        <div class="toasts" id="toasts"></div>
-        <div class="safety" id="safetyCard" role="alertdialog" aria-labelledby="safetyTitle" hidden>
-          <b id="safetyTitle">Are you okay?</b>
-          <span id="safetyText"></span>
-          <div class="safety__row">
-            <button class="btn btn--sim" id="btnSafeOk" type="button">I'm okay</button>
-            <button class="btn btn--sos" id="btnSos" type="button">SOS</button>
-          </div>
-        </div>
-      </div>
-      <div class="panel__body">
-        <div class="field">
-          <span class="field__label">Subscribers &middot; untick one to unsubscribe it mid-ride</span>
-          <div class="obsgrid" id="observers"></div>
-        </div>
-      </div>
-    </section>
 
-    <section class="term">
+      <div class="field">
+        <label class="field__label" for="strategy">Pricing rule <i>&middot; Strategy</i></label>
+        <select id="strategy">
+          <option value="STANDARD">Standard fare</option>
+          <option value="SURGE">Surge pricing &times;1.8 (peak hour)</option>
+          <option value="FESTIVAL">Festival surge &times;3 (watch the legal cap)</option>
+          <option value="NIGHT">Night fare (+25%)</option>
+          <option value="PASS">RidePass subscriber (-20%)</option>
+          <option value="POOL">Shared pool (split fare)</option>
+        </select>
+      </div>
+
+      <div class="receipt" id="receipt">
+        <div class="receipt__strategy" id="receiptStrategy"></div>
+        <div class="receipt__lines" id="receiptLines"></div>
+      </div>
+
+      <button class="btn btn--go" id="btnBook" type="button">Book ride</button>
+    </div>
+
+    <!-- TRIP: State -->
+    <div class="view" id="viewTrip" role="tabpanel" aria-labelledby="tabTrip" hidden>
+      <div class="statebar">
+        <span class="statebar__k">now</span>
+        <span class="statebar__v" id="stateLabel">Pick a route and book</span>
+      </div>
+      <div class="dcard" id="driverCard" hidden></div>
+      <div class="lifecycle" id="lifecycle"></div>
+      <div class="rematch" id="rematchNote" hidden></div>
+
+      <div class="tripfare" id="tripFare"></div>
+      <button class="btn btn--go" id="btnAgain" type="button" hidden>Plan another ride</button>
+
+      <button class="btn btn--ghost" id="btnCancel" type="button" disabled>Cancel ride</button>
+      <div class="cancelask" id="cancelAsk" hidden>
+        <span class="cancelask__q">Why are you cancelling?</span>
+        <button class="btn btn--ghost cancelask__opt" id="btnCancelPlans" type="button">
+          I changed my plans <small id="cancelFeeNote"></small>
+        </button>
+        <button class="btn btn--ghost cancelask__opt" id="btnCancelAsked" type="button">
+          The driver asked me to cancel <small>no fee for you &middot; driver penalised</small>
+        </button>
+        <button class="linkbtn" id="btnCancelKeep" type="button">Keep my ride</button>
+      </div>
+
+      <div class="demo" id="simulate">
+        <span class="field__label">Simulate a real-world problem</span>
+        <div class="demo__row">
+          <button class="btn btn--sim" id="btnDriverCancel" type="button" disabled title="The driver cancels after accepting">Driver cancels</button>
+          <button class="btn btn--sim" id="btnStop" type="button" disabled title="The car stops for 4 minutes with no red light">Unexpected stop</button>
+          <button class="btn btn--sim" id="btnDetour" type="button" disabled title="The driver leaves the planned route">Route detour</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ---------- 2. the city: the Observer subject broadcasting ---------- -->
+  <section class="panel stage" id="stage" aria-label="Live map">
+    <div class="panel__hd">
+      <h2 class="panel__title">Live map <i>&middot; Observer subject</i></h2>
+      <span class="panel__title panel__title--via" id="viaLine">Hyderabad</span>
+    </div>
+    <div class="mapwrap">
+      <svg id="map" viewBox="0 0 720 420" role="img" aria-label="Simulated Hyderabad street map showing the driver moving along the routed roads">
+        <g id="terrain"></g>
+        <g id="roads"></g>
+        <g id="pois"></g>
+        <g id="ambient"></g>
+        <g id="routelayer"></g>
+        <g id="car">
+          <circle class="pulse" r="15"></circle>
+          <rect class="shadow" x="-9" y="-5" width="19" height="11" rx="3.5"></rect>
+          <rect class="body" x="-9" y="-6" width="18" height="12" rx="3.5"></rect>
+          <rect class="glass" x="0" y="-4" width="6" height="8" rx="1.5"></rect>
+          <rect class="lamp" x="7.4" y="-4.4" width="2" height="2" rx="1"></rect>
+          <rect class="lamp" x="7.4" y="2.4" width="2" height="2" rx="1"></rect>
+        </g>
+      </svg>
+      <div class="hud">
+        <div class="hudchip"><span class="hudchip__k">ETA</span><span class="hudchip__v" id="hudEta">--</span></div>
+        <div class="hudchip"><span class="hudchip__k">Dist</span><span class="hudchip__v" id="hudKm">--</span></div>
+        <div class="hudchip"><span class="hudchip__k">Speed</span><span class="hudchip__v" id="hudSpeed">0 km/h</span></div>
+        <div class="hudchip hudchip--road"><span class="hudchip__k">On</span><span class="hudchip__v" id="hudRoad">--</span></div>
+        <div class="hudchip hudchip--status"><span class="hudchip__v" id="hudStatus" data-status="IDLE">idle</span></div>
+      </div>
+      <div class="toasts" id="toasts"></div>
+      <div class="safety" id="safetyCard" role="alertdialog" aria-labelledby="safetyTitle" hidden>
+        <b id="safetyTitle">Are you okay?</b>
+        <span id="safetyText"></span>
+        <div class="safety__row">
+          <button class="btn btn--sim" id="btnSafeOk" type="button">I'm okay</button>
+          <button class="btn btn--sos" id="btnSos" type="button">SOS</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ---------- 3. who is listening to the driver's GPS ---------- -->
+  <section class="panel obs" id="obsPanel" aria-label="GPS subscribers">
+    <div class="obs__hd">
+      <span class="panel__title">GPS subscribers <i>&middot; Observer</i></span>
+      <span class="obs__hint">untick one &mdash; only it goes quiet</span>
+    </div>
+    <div class="obsgrid" id="observers"></div>
+  </section>
+
+  <!-- ---------- 4. the lab: guided-demo narration + the dispatch console ---------- -->
+  <section class="lab" id="lab" aria-label="Guided demo and dispatch console">
+
+    <aside class="tour" id="tour" aria-live="polite" aria-label="Guided demo" hidden>
+      <div class="tour__bar" aria-hidden="true"><span id="tourBar"></span></div>
+      <div class="tour__hd">
+        <span class="tour__count" id="tourCount"></span>
+        <span class="tour__tag" id="tourTag"></span>
+      </div>
+      <h3 class="tour__title" id="tourTitle"></h3>
+      <p class="tour__problem tour__extra" id="tourProblem" hidden></p>
+      <div class="tour__body" id="tourBody"></div>
+      <div class="tour__extra tour__more">
+        <span class="tour__k">What to notice</span>
+        <ul class="tour__notice" id="tourNotice"></ul>
+        <div class="tour__file" id="tourFile"></div>
+      </div>
+      <div class="tour__feed" id="tourFeed" aria-label="Latest console lines"></div>
+      <div class="tour__foot">
+        <div class="tour__status" id="tourStatus">
+          <span id="tourStatusText"></span>
+          <span class="tour__timer" aria-hidden="true"><span id="tourTimer"></span></span>
+        </div>
+        <div class="tour__ctl">
+          <button class="tour__btn tour__btn--more" id="tourMore" type="button" aria-expanded="false">Details</button>
+          <button class="tour__btn" id="tourPause" type="button">Pause</button>
+          <button class="tour__btn tour__btn--go" id="tourNext" type="button">Next &#9656;</button>
+          <button class="tour__btn" id="tourRestart" type="button" hidden>Run again</button>
+          <button class="tour__btn" id="tourExit" type="button">Exit</button>
+        </div>
+      </div>
+    </aside>
+
+    <section class="term" id="term">
       <div class="term__hd">
-        <span class="term__title">Dispatch console &middot; every line is a pattern doing its job</span>
-        <span class="term__live"><span class="term__led"></span>streaming</span>
+        <span class="term__title">Dispatch console <i>&middot; every line is a pattern at work</i></span>
+        <span class="term__live"><span class="term__led"></span>live</span>
       </div>
       <div class="term__body" id="terminal"></div>
       <div class="term__ft" id="filters">
-        <button class="filter" id="btnClear" type="button" style="margin-left:auto">CLEAR</button>
+        <button class="filter" id="btnClear" type="button">CLEAR</button>
       </div>
     </section>
-
-  </div>
+  </section>
 </main>
 
 <!-- ============================ REFERENCE ============================ -->
@@ -467,27 +505,6 @@
   <span>Problem sources: LocalCircles surveys, CCPA notices, MoRTH Aggregator Guidelines 2025, NCW 2026 guidelines.</span>
   <span>Open <code>index.html</code> in any browser. No build step, no dependencies.</span>
 </footer>
-
-<!-- ================= the guided demo's narration card ================= -->
-<aside class="tour" id="tour" aria-live="polite" aria-label="Guided demo" hidden>
-  <div class="tour__bar"><span id="tourBar"></span></div>
-  <div class="tour__hd">
-    <span class="tour__count" id="tourCount"></span>
-    <span class="tour__tag" id="tourTag"></span>
-  </div>
-  <h3 class="tour__title" id="tourTitle"></h3>
-  <p class="tour__problem" id="tourProblem" hidden></p>
-  <div class="tour__body" id="tourBody"></div>
-  <span class="tour__k">What to notice</span>
-  <ul class="tour__notice" id="tourNotice"></ul>
-  <div class="tour__file" id="tourFile"></div>
-  <div class="tour__status" id="tourStatus"></div>
-  <div class="tour__ctl">
-    <button class="tour__btn" id="tourPause" type="button">Pause</button>
-    <button class="tour__btn tour__btn--go" id="tourNext" type="button">Next &#9656;</button>
-    <button class="tour__btn" id="tourExit" type="button">Exit</button>
-  </div>
-</aside>
 
 <!-- ================= code samples shown in the reference ================= -->
 

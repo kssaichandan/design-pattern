@@ -208,43 +208,59 @@ h1, h2, h3, h4 {
 
 .wrap { max-width: 1320px; margin: 0 auto; padding: 0 28px; }
 
-/* ---------------- masthead ---------------- */
+/* ================================================================
+   LAYOUT
+   Laptop (>= 1024px): one screen, three columns, nothing to scroll -
+       ride sheet | map + GPS subscribers | guided demo + console
+   Tablet (700-1023px): two columns, the demo docks at the bottom.
+   Phone (< 700px): the map stays pinned on top, the rest scrolls
+       beneath it, and the demo docks in its own strip at the bottom.
+   ================================================================ */
 
-.masthead { border-bottom: 1px solid var(--line); background: var(--surface); }
+:root { --topbar-h: 59px; --gap: 12px; }   /* top bar incl. its 1px border */
 
-.masthead__in {
-  display: flex; align-items: flex-end; justify-content: space-between;
-  gap: 32px; flex-wrap: wrap; padding-block: 22px 20px;
+/* ---------------- top bar ---------------- */
+
+.topbar { background: var(--surface); border-bottom: 1px solid var(--line); position: relative; z-index: 8; }
+
+.topbar__in {
+  max-width: 1680px; margin: 0 auto; min-height: calc(var(--topbar-h) - 1px);   /* + 1px border */
+  display: flex; align-items: center; gap: 18px; padding: 8px 16px;
 }
 
-.brand { display: flex; align-items: center; gap: 13px; }
+.brand { display: flex; align-items: center; gap: 10px; flex: none; }
 
 .brand__lamp {
-  width: 38px; height: 38px; flex: none; border-radius: var(--r-sm);
+  width: 32px; height: 32px; flex: none; border-radius: var(--r-sm);
   background: var(--amber); display: grid; place-items: center;
   box-shadow: 0 0 0 1px rgba(0,0,0,.08) inset, 0 4px 14px -4px var(--amber);
 }
-.brand__lamp svg { width: 22px; height: 22px; display: block; }
+.brand__lamp svg { width: 19px; height: 19px; display: block; }
 
 .brand__name {
-  font-family: var(--f-display); font-weight: 700; font-size: 25px;
+  font-family: var(--f-display); font-weight: 700; font-size: 20px;
   letter-spacing: -0.035em; line-height: 1;
 }
 .brand__sub {
   display: block;
-  font-family: var(--f-mono); font-size: 10.5px; letter-spacing: .11em;
-  text-transform: uppercase; color: var(--ink-3); margin-top: 5px;
+  font-family: var(--f-mono); font-size: 9.5px; letter-spacing: .11em;
+  text-transform: uppercase; color: var(--ink-3); margin-top: 4px;
 }
 
-.chiprack { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+.chiprack {
+  flex: 1; min-width: 0; display: flex; gap: 5px; align-items: center; justify-content: center;
+  overflow-x: auto; scrollbar-width: none;
+}
+.chiprack::-webkit-scrollbar { display: none; }
 .chiprack__label {
-  font-family: var(--f-mono); font-size: 10px; letter-spacing: .1em;
+  font-family: var(--f-mono); font-size: 9.5px; letter-spacing: .1em; white-space: nowrap;
   text-transform: uppercase; color: var(--ink-3); margin-right: 4px;
 }
 .pchip {
-  font-family: var(--f-mono); font-size: 10.5px; font-weight: 500;
+  flex: none;
+  font-family: var(--f-mono); font-size: 10px; font-weight: 500;
   letter-spacing: .06em; text-transform: uppercase;
-  padding: 5px 9px; border-radius: var(--r-sm);
+  padding: 4px 8px; border-radius: var(--r-sm);
   border: 1px solid var(--line); background: var(--surface-2); color: var(--ink-2);
   transition: background .18s, color .18s, border-color .18s, transform .18s;
 }
@@ -253,14 +269,29 @@ h1, h2, h3, h4 {
   color: #14100A; transform: translateY(-2px);
 }
 
-/* ---------------- main grid ---------------- */
-
-.console {
-  display: grid;
-  grid-template-columns: minmax(0, 400px) minmax(0, 1fr);
-  gap: 22px; padding-block: 24px 40px; align-items: start;
+.topbar .btn--tour {
+  flex: none; width: auto; display: inline-flex; align-items: center; gap: 7px;
+  padding: 9px 16px; font-size: 13.5px; border-radius: 999px;
+  background: var(--amber); color: #17120A; border-color: var(--amber);
+  white-space: nowrap; box-shadow: 0 4px 14px -6px var(--amber);
 }
-@media (max-width: 1040px) { .console { grid-template-columns: minmax(0, 1fr); } }
+.topbar .btn--tour svg { width: 12px; height: 12px; }
+.topbar .btn--tour:hover:not(:disabled) { filter: brightness(1.07); }
+
+/* ---------------- the app grid ---------------- */
+
+.app {
+  max-width: 1680px; margin: 0 auto;
+  padding: var(--gap) 16px 18px;
+  display: grid; gap: var(--gap);
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-areas: "stage" "sheet" "obs" "lab";
+  align-items: start;
+}
+.sheet { grid-area: sheet; }
+.stage { grid-area: stage; }
+.obs   { grid-area: obs; }
+.lab   { grid-area: lab; display: flex; flex-direction: column; gap: var(--gap); min-width: 0; }
 
 .panel {
   background: var(--surface); border: 1px solid var(--line);
@@ -268,17 +299,52 @@ h1, h2, h3, h4 {
 }
 .panel__hd {
   display: flex; align-items: center; justify-content: space-between; gap: 12px;
-  padding: 13px 16px; border-bottom: 1px solid var(--line-2);
+  padding: 9px 14px; border-bottom: 1px solid var(--line-2);
 }
 .panel__title {
   font-family: var(--f-mono); font-size: 10.5px; letter-spacing: .12em;
-  text-transform: uppercase; color: var(--ink-3); font-weight: 500;
+  text-transform: uppercase; color: var(--ink-3); font-weight: 500; white-space: nowrap;
 }
-.panel__body { padding: 16px; display: grid; gap: 16px; }
+.panel__title i, .field__label i, .term__title i { font-style: normal; opacity: .7; }
+.panel__title--via { min-width: 0; overflow: hidden; text-overflow: ellipsis; letter-spacing: .06em; }
+
+/* ---------------- the ride sheet: Plan / Trip tabs ---------------- */
+
+.sheet { display: flex; flex-direction: column; }
+
+.tabs {
+  display: flex; align-items: stretch; gap: 2px; padding: 0 10px;
+  border-bottom: 1px solid var(--line-2); background: var(--surface);
+}
+.tab {
+  font: inherit; cursor: pointer; background: none; border: 0;
+  display: flex; align-items: center; gap: 7px;
+  padding: 11px 10px 9px; border-bottom: 2px solid transparent; margin-bottom: -1px;
+  color: var(--ink-3); font-size: 13.5px; font-weight: 600;
+}
+.tab:hover { color: var(--ink-2); }
+.tab__n {
+  width: 19px; height: 19px; border-radius: 50%; display: grid; place-items: center;
+  font-family: var(--f-mono); font-size: 10px; border: 1px solid currentColor;
+}
+.tab[aria-selected="true"] { color: var(--ink); border-bottom-color: var(--amber); }
+.tab[aria-selected="true"] .tab__n { background: var(--amber); border-color: var(--amber); color: #17120A; }
+.tab:focus-visible { outline: 2px solid var(--blue); outline-offset: -2px; }
+.tabs__state {
+  margin-left: auto; align-self: center; min-width: 0;
+  font-family: var(--f-mono); font-size: 10.5px; color: var(--violet);
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+
+/* A column that never squashes its children - if a short screen can't
+   fit them, the panel scrolls instead. */
+.view { padding: 12px 14px; display: flex; flex-direction: column; gap: 10px; }
+.view > * { flex: none; }
+.view[hidden] { display: none; }
 
 /* ---------------- form controls ---------------- */
 
-.field { display: grid; gap: 6px; }
+.field { display: grid; gap: 4px; }
 .field__label {
   font-family: var(--f-mono); font-size: 10px; letter-spacing: .11em;
   text-transform: uppercase; color: var(--ink-3);
@@ -288,7 +354,7 @@ select, .btn {
   font-family: var(--f-body); font-size: 14px;
   border-radius: var(--r-md); border: 1px solid var(--line);
   background: var(--surface-2); color: var(--ink);
-  padding: 9px 11px; width: 100%;
+  padding: 7px 10px; width: 100%;
 }
 
 select:focus-visible, .btn:focus-visible, .vcard:focus-visible,
@@ -296,10 +362,10 @@ select:focus-visible, .btn:focus-visible, .vcard:focus-visible,
   outline: 2px solid var(--blue); outline-offset: 2px;
 }
 
-.route-row { display: grid; grid-template-columns: 1fr auto 1fr; gap: 10px; align-items: end; }
+.route-row { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); gap: 8px; align-items: end; }
 
 .swap {
-  width: 34px; height: 34px; flex: none; padding: 0; margin-bottom: 2px;
+  width: 32px; height: 34px; flex: none; padding: 0; margin-bottom: 1px;
   display: grid; place-items: center; cursor: pointer;
   border: 1px solid var(--line); border-radius: var(--r-md);
   background: var(--surface-2); color: var(--ink-2);
@@ -308,12 +374,12 @@ select:focus-visible, .btn:focus-visible, .vcard:focus-visible,
 .swap svg { width: 15px; height: 15px; }
 
 /* vehicle tiles - Factory output */
-.vgrid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 7px; }
+.vgrid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; }
 .vcard {
-  cursor: pointer; text-align: left; font-family: var(--f-body);
+  cursor: pointer; text-align: left; font-family: var(--f-body); min-width: 0;
   border: 1px solid var(--line); border-radius: var(--r-md);
   background: var(--surface-2); color: var(--ink);
-  padding: 9px 8px 8px; display: grid; gap: 3px;
+  padding: 7px 7px 6px; display: grid; gap: 1px;
   transition: border-color .15s, background .15s, box-shadow .15s;
 }
 .vcard:hover { border-color: var(--ink-3); }
@@ -321,83 +387,82 @@ select:focus-visible, .btn:focus-visible, .vcard:focus-visible,
   border-color: var(--amber); background: var(--amber-soft);
   box-shadow: 0 0 0 1px var(--amber) inset;
 }
-.vcard__ico { height: 22px; color: var(--ink-2); }
+.vcard__ico { height: 18px; color: var(--ink-2); margin-bottom: 2px; }
 .vcard[aria-pressed="true"] .vcard__ico { color: var(--amber); }
-.vcard__ico svg { height: 22px; width: auto; display: block; }
+.vcard__ico svg { height: 18px; width: auto; display: block; }
 .vcard__name { font-size: 12.5px; font-weight: 600; letter-spacing: -0.01em; }
 .vcard__meta {
-  font-family: var(--f-mono); font-size: 10px; color: var(--ink-3);
-  line-height: 1.35; white-space: nowrap;
+  font-family: var(--f-mono); font-size: 9.5px; color: var(--ink-3);
+  line-height: 1.35; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
 
-/* fare receipt - Strategy output */
+/* fare receipt - Strategy output, guarded by the Decorators */
 .receipt {
   border: 1px solid var(--line); border-radius: var(--r-md);
   background: var(--surface-2); overflow: hidden;
 }
 .receipt__strategy {
-  padding: 8px 12px; border-bottom: 1px dashed var(--line);
+  padding: 7px 11px; border-bottom: 1px dashed var(--line);
   font-family: var(--f-mono); font-size: 10.5px; color: var(--ink-2);
-  display: flex; justify-content: space-between; gap: 10px;
+  display: flex; flex-wrap: wrap; justify-content: space-between; gap: 2px 10px;
 }
 .receipt__strategy b { color: var(--blue); font-weight: 500; }
-.receipt__strategy { flex-wrap: wrap; }
 .receipt__guards { flex-basis: 100%; color: var(--violet); }
-.receipt__lines { padding: 9px 12px; display: grid; gap: 5px; }
+.receipt__lines { padding: 6px 11px 7px; display: grid; gap: 2px; }
 
 .rline {
   display: flex; justify-content: space-between; gap: 12px;
-  font-size: 13px; color: var(--ink-2);
+  font-size: 12.8px; color: var(--ink-2);
 }
 .rline span:last-child {
-  font-family: var(--f-mono); font-variant-numeric: tabular-nums; color: var(--ink);
+  font-family: var(--f-mono); font-variant-numeric: tabular-nums; color: var(--ink); white-space: nowrap;
 }
 .rline--add span:last-child { color: var(--red); }
 .rline--cut span:last-child { color: var(--green); }
 .rline--total {
-  border-top: 1px solid var(--line); margin-top: 3px; padding-top: 8px;
-  font-family: var(--f-display); font-weight: 600; font-size: 16px; color: var(--ink);
+  border-top: 1px solid var(--line); margin-top: 3px; padding-top: 6px;
+  font-family: var(--f-display); font-weight: 600; font-size: 15px; color: var(--ink); align-items: baseline;
 }
 .rline--total span:last-child {
-  font-family: var(--f-display); font-size: 22px; letter-spacing: -0.03em;
+  font-family: var(--f-display); font-size: 21px; letter-spacing: -0.03em;
 }
 
 .btn {
   cursor: pointer; font-weight: 600; text-align: center;
-  border: 1px solid transparent; padding: 12px;
+  border: 1px solid transparent; padding: 10px;
   transition: filter .15s, background .15s;
 }
 .btn--go { background: var(--amber); color: #17120A; border-color: var(--amber); font-size: 15px; }
 .btn--go:hover:not(:disabled) { filter: brightness(1.07); }
 .btn--ghost {
   background: transparent; border-color: var(--line); color: var(--ink-2);
-  padding: 9px; font-size: 13px;
+  padding: 8px; font-size: 13px;
 }
 .btn--ghost:hover:not(:disabled) { border-color: var(--red); color: var(--red); }
 .btn:disabled { opacity: .42; cursor: not-allowed; }
+.btn[hidden] { display: none; }
 
-/* ---------------- ride lifecycle - State ---------------- */
+/* ---------------- the trip view - State ---------------- */
 
 .lifecycle { display: grid; }
 
 .step {
-  display: grid; grid-template-columns: 26px 1fr auto; gap: 10px;
-  align-items: start; padding: 7px 0; position: relative;
+  display: grid; grid-template-columns: 24px minmax(0, 1fr) auto; gap: 9px;
+  align-items: center; padding: 4px 0; position: relative;
 }
 .step:not(:last-child)::before {
-  content: ""; position: absolute; left: 12.5px; top: 26px; bottom: -3px;
+  content: ""; position: absolute; left: 11.5px; top: 26px; bottom: -6px;
   width: 1px; background: var(--line);
 }
 .step__dot {
-  width: 26px; height: 26px; border-radius: 50%; display: grid; place-items: center;
-  font-family: var(--f-mono); font-size: 11px; font-weight: 500;
+  width: 24px; height: 24px; border-radius: 50%; display: grid; place-items: center;
+  font-family: var(--f-mono); font-size: 10.5px; font-weight: 500;
   border: 1px solid var(--line); background: var(--surface); color: var(--ink-3);
   position: relative; z-index: 1;
 }
-.step__name { font-size: 13.5px; color: var(--ink-3); padding-top: 3px; }
+.step__name { font-size: 13px; color: var(--ink-3); }
 .step__note {
-  font-family: var(--f-mono); font-size: 10px; color: var(--ink-3);
-  padding-top: 5px; text-align: right;
+  font-family: var(--f-mono); font-size: 9.5px; color: var(--ink-3); text-align: right;
 }
 .step.is-done .step__dot { background: var(--green-soft); border-color: var(--green); color: var(--green); }
 .step.is-done .step__name { color: var(--ink-2); }
@@ -406,11 +471,12 @@ select:focus-visible, .btn:focus-visible, .vcard:focus-visible,
   box-shadow: 0 0 0 4px var(--amber-soft);
 }
 .step.is-active .step__name { color: var(--ink); font-weight: 600; }
+.step.is-active .step__note { color: var(--violet); }
 .step.is-dead .step__dot { background: var(--red-soft); border-color: var(--red); color: var(--red); }
 
 .statebar {
   display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
-  padding: 9px 12px; border-radius: var(--r-md);
+  padding: 7px 11px; border-radius: var(--r-md);
   background: var(--surface-2); border: 1px solid var(--line);
 }
 .statebar__k {
@@ -419,35 +485,57 @@ select:focus-visible, .btn:focus-visible, .vcard:focus-visible,
 }
 .statebar__v { font-family: var(--f-mono); font-size: 12px; color: var(--violet); font-weight: 500; }
 
-/* ---------------- map + observers ---------------- */
+.tripfare {
+  display: flex; align-items: baseline; justify-content: space-between; gap: 10px;
+  padding: 8px 11px; border-radius: var(--r-md);
+  border: 1px dashed var(--line); font-size: 12.5px; color: var(--ink-2);
+}
+.tripfare b { font-family: var(--f-display); font-size: 17px; color: var(--ink); letter-spacing: -0.02em; white-space: nowrap; }
+.tripfare small { display: block; font-size: 11px; color: var(--ink-3); }
+.tripfare[data-tone="ok"]  { border-style: solid; border-color: var(--green); background: var(--green-soft); }
+.tripfare[data-tone="bad"] { border-style: solid; border-color: var(--red); background: var(--red-soft); }
 
-.rightcol { display: grid; gap: 22px; }
+/* ---------------- the driver card ---------------- */
 
-.mapwrap { position: relative; background: var(--surface-2); }
+.dcard {
+  display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 10px; align-items: center;
+  padding: 8px 11px;
+  background: var(--surface-2); border: 1px solid var(--line); border-radius: var(--r-md);
+}
+.dcard__ava {
+  width: 32px; height: 32px; border-radius: 50%;
+  display: grid; place-items: center;
+  background: var(--blue-soft); color: var(--blue);
+  font-family: var(--f-display); font-size: 12px; font-weight: 700; letter-spacing: .02em;
+}
+.dcard__who, .dcard__car { display: grid; gap: 1px; min-width: 0; }
+.dcard__car { text-align: right; }
+.dcard__who b { font-size: 13.5px; color: var(--ink); }
+.dcard__car b { font-family: var(--f-mono); font-size: 12px; color: var(--ink); white-space: nowrap; }
+.dcard__meta { font-size: 11px; color: var(--ink-3); }
+
+/* ---------------- map ---------------- */
+
+.mapwrap { position: relative; background: var(--mp-land); }
 .mapwrap svg { display: block; width: 100%; height: auto; }
 
-.hud { position: absolute; left: 14px; top: 14px; display: flex; gap: 7px; flex-wrap: wrap; }
+.hud { position: absolute; left: 10px; top: 10px; display: flex; gap: 6px; flex-wrap: wrap; max-width: 62%; }
 
 .hudchip {
   background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-md);
-  padding: 5px 9px; box-shadow: var(--shadow-sm);
-  display: flex; align-items: baseline; gap: 6px;
+  padding: 4px 8px; box-shadow: var(--shadow-sm);
+  display: flex; align-items: baseline; gap: 5px;
 }
 .hudchip__k {
-  font-family: var(--f-mono); font-size: 9.5px; letter-spacing: .1em;
+  font-family: var(--f-mono); font-size: 9px; letter-spacing: .1em;
   text-transform: uppercase; color: var(--ink-3);
 }
 .hudchip__v {
-  font-family: var(--f-mono); font-size: 14px; font-weight: 500;
-  font-variant-numeric: tabular-nums; color: var(--ink);
+  font-family: var(--f-mono); font-size: 13px; font-weight: 500;
+  font-variant-numeric: tabular-nums; color: var(--ink); white-space: nowrap;
 }
-
-.hudchip--road .hudchip__v { font-size: 11.5px; letter-spacing: .01em; }
-
-.hudchip--status .hudchip__v {
-  font-size: 10px; letter-spacing: .09em; text-transform: uppercase;
-}
-.hudchip--status { border-color: var(--line); }
+.hudchip--road .hudchip__v { font-size: 11px; letter-spacing: .01em; }
+.hudchip--status .hudchip__v { font-size: 10px; letter-spacing: .09em; text-transform: uppercase; }
 .hudchip--status:has([data-status="STOPPED"])  { background: var(--red-soft);   border-color: var(--red); }
 .hudchip--status:has([data-status="CRAWLING"]) { background: var(--amber-soft); border-color: var(--amber); }
 .hudchip--status:has([data-status="CRUISING"]) { background: var(--green-soft); border-color: var(--green); }
@@ -455,69 +543,63 @@ select:focus-visible, .btn:focus-visible, .vcard:focus-visible,
 .hudchip--status [data-status="CRAWLING"] { color: var(--amber); }
 .hudchip--status [data-status="CRUISING"] { color: var(--green); }
 
-/* ---------------- the driver card ---------------- */
-
-.dcard {
-  display: grid; grid-template-columns: auto 1fr auto; gap: 11px; align-items: center;
-  padding: 11px 12px; margin-bottom: 14px;
-  background: var(--surface-2); border: 1px solid var(--line); border-radius: var(--r-md);
-}
-.dcard__ava {
-  width: 34px; height: 34px; border-radius: 50%;
-  display: grid; place-items: center;
-  background: var(--blue-soft); color: var(--blue);
-  font-family: var(--f-display); font-size: 12.5px; font-weight: 700; letter-spacing: .02em;
-}
-.dcard__who, .dcard__car { display: grid; gap: 2px; min-width: 0; }
-.dcard__car { text-align: right; }
-.dcard__who b { font-size: 13.5px; color: var(--ink); }
-.dcard__car b { font-family: var(--f-mono); font-size: 12px; color: var(--ink); }
-.dcard__meta { font-size: 11px; color: var(--ink-3); }
-
 .toasts {
-  position: absolute; right: 14px; top: 14px; display: grid; gap: 6px;
-  width: min(255px, 55%); justify-items: end;
+  position: absolute; right: 10px; top: 10px; display: grid; gap: 6px;
+  width: min(250px, 38%); justify-items: end; pointer-events: none;
 }
 .toast {
   background: var(--con-bg); color: var(--con-text);
-  border-radius: var(--r-md); padding: 8px 11px; font-size: 12.5px;
+  border-radius: var(--r-md); padding: 7px 10px; font-size: 12px; line-height: 1.4;
   box-shadow: var(--shadow-md); animation: toastin .28s ease-out;
   border-left: 3px solid var(--amber);
 }
 .toast b { color: #fff; font-weight: 600; }
 @keyframes toastin { from { opacity: 0; transform: translateX(14px); } }
 
-.obsgrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(168px, 1fr)); gap: 8px; }
+/* ---------------- GPS subscribers - Observer ---------------- */
+
+.obs { padding: 9px 12px 11px; display: grid; gap: 7px; }
+.obs__hd { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+.obs__hint { font-size: 11.5px; color: var(--ink-3); }
+
+.obsgrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(176px, 1fr)); gap: 6px; }
 
 .toggle {
-  display: flex; gap: 9px; align-items: flex-start; cursor: pointer;
+  display: flex; gap: 8px; align-items: flex-start; cursor: pointer; min-width: 0;
   border: 1px solid var(--line); border-radius: var(--r-md);
-  background: var(--surface-2); padding: 9px 10px;
+  background: var(--surface-2); padding: 6px 8px;
   transition: border-color .15s, background .15s;
 }
 .toggle:hover { border-color: var(--ink-3); }
-.toggle input { margin: 2px 0 0; accent-color: var(--blue); width: 15px; height: 15px; flex: none; }
+.toggle input { margin: 2px 0 0; accent-color: var(--blue); width: 14px; height: 14px; flex: none; }
+.toggle > span { min-width: 0; }
 .toggle__name {
-  font-family: var(--f-mono); font-size: 11.5px; color: var(--ink);
+  font-family: var(--f-mono); font-size: 11px; color: var(--ink); line-height: 1.3;
   display: block; overflow-wrap: anywhere;
 }
-.toggle__desc { font-size: 11.5px; color: var(--ink-3); line-height: 1.35; }
+.toggle__desc {
+  display: block; font-size: 11px; color: var(--ink-3); line-height: 1.35;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
 .toggle:has(input:checked) { border-color: var(--blue); background: var(--blue-soft); }
 .toggle:has(input:checked) .toggle__name { color: var(--blue); font-weight: 500; }
 
 /* ---------------- dispatch console ---------------- */
 
-.term { background: var(--con-bg); border: 1px solid var(--con-line); border-radius: var(--r-lg); overflow: hidden; }
+.term {
+  background: var(--con-bg); border: 1px solid var(--con-line); border-radius: var(--r-lg);
+  overflow: hidden; display: flex; flex-direction: column; min-height: 0;
+}
 
 .term__hd {
   display: flex; align-items: center; justify-content: space-between; gap: 12px;
-  padding: 10px 14px; border-bottom: 1px solid var(--con-line); background: var(--con-bg-2);
+  padding: 9px 12px; border-bottom: 1px solid var(--con-line); background: var(--con-bg-2);
 }
 .term__title {
-  font-family: var(--f-mono); font-size: 10.5px; letter-spacing: .12em;
-  text-transform: uppercase; color: var(--con-dim);
+  font-family: var(--f-mono); font-size: 10px; letter-spacing: .1em; min-width: 0;
+  text-transform: uppercase; color: var(--con-dim); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
-.term__live { display: flex; align-items: center; gap: 6px; font-family: var(--f-mono); font-size: 10px; color: var(--con-dim); }
+.term__live { display: flex; align-items: center; gap: 6px; font-family: var(--f-mono); font-size: 10px; color: var(--con-dim); flex: none; }
 .term__led {
   width: 7px; height: 7px; border-radius: 50%; background: #35C88F;
   box-shadow: 0 0 8px #35C88F; animation: blip 1.6s infinite;
@@ -525,12 +607,12 @@ select:focus-visible, .btn:focus-visible, .vcard:focus-visible,
 @keyframes blip { 50% { opacity: .3; } }
 
 .term__body {
-  height: 268px; overflow-y: auto; padding: 10px 14px;
-  font-family: var(--f-mono); font-size: 12px; line-height: 1.65;
+  height: 300px; overflow-y: auto; padding: 8px 12px;
+  font-family: var(--f-mono); font-size: 11.5px; line-height: 1.6;
   scrollbar-width: thin; scrollbar-color: var(--con-line) transparent;
 }
 .logline {
-  display: grid; grid-template-columns: 64px 78px 1fr; gap: 9px;
+  display: grid; grid-template-columns: 58px 76px minmax(0, 1fr); gap: 8px;
   padding: 1px 0; animation: fadein .2s;
 }
 @keyframes fadein { from { opacity: 0; } }
@@ -547,17 +629,19 @@ select:focus-visible, .btn:focus-visible, .vcard:focus-visible,
 .tag-DECORATOR { color: #5FD3E0; }
 .tag-SINGLETON { color: #E4E0A0; }
 .tag-SYSTEM    { color: #6C7E93; }
+.tag-TOUR      { color: #FFC257; }
 
 .term__ft {
-  display: flex; gap: 5px; flex-wrap: wrap; padding: 9px 14px;
+  display: flex; gap: 4px; flex-wrap: wrap; padding: 7px 10px;
   border-top: 1px solid var(--con-line); background: var(--con-bg-2);
 }
 .filter {
-  font-family: var(--f-mono); font-size: 10px; letter-spacing: .05em;
-  padding: 3px 8px; border-radius: 999px; cursor: pointer;
+  font-family: var(--f-mono); font-size: 9.5px; letter-spacing: .05em;
+  padding: 3px 7px; border-radius: 999px; cursor: pointer;
   border: 1px solid var(--con-line); background: transparent; color: var(--con-dim);
 }
 .filter[aria-pressed="true"] { background: var(--con-line); color: #fff; }
+#btnClear { margin-left: auto; }
 
 /* ---------------- pattern reference ---------------- */
 
@@ -725,157 +809,272 @@ select:focus-visible, .btn:focus-visible, .vcard:focus-visible,
   }
 }
 
-/* ---------------- real-world fixes: cancel reasons, re-match, demo, safety ---------------- */
+/* ---------------- real-world fixes: cancel reasons, re-match, simulate, safety ---------------- */
 
 .rematch {
   font-size: 12.5px; color: var(--ink-2); line-height: 1.45;
   background: var(--amber-soft); border: 1px solid var(--amber);
-  border-radius: var(--r-md); padding: 8px 11px;
+  border-radius: var(--r-md); padding: 7px 10px;
 }
 .rematch b { color: var(--ink); }
 
 .cancelask {
-  display: grid; gap: 7px; padding: 11px;
+  display: grid; gap: 6px; padding: 10px;
   border: 1px solid var(--line); border-radius: var(--r-md); background: var(--surface-2);
 }
 .dcard[hidden], .cancelask[hidden], .rematch[hidden], .safety[hidden] { display: none; }
 .cancelask__q { font-size: 13px; font-weight: 600; color: var(--ink); }
-.cancelask__opt { display: grid; gap: 2px; text-align: left; background: var(--surface); }
+.cancelask__opt { display: grid; gap: 1px; text-align: left; background: var(--surface); }
 .cancelask__opt small { font-weight: 400; font-size: 11.5px; color: var(--ink-3); }
 .linkbtn {
-  background: none; border: 0; padding: 4px; cursor: pointer;
+  background: none; border: 0; padding: 3px; cursor: pointer;
   font: inherit; font-size: 12.5px; color: var(--blue); justify-self: start;
 }
 
-.demo { display: grid; gap: 6px; padding-top: 4px; border-top: 1px dashed var(--line); }
-.demo__row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 7px; }
-@media (max-width: 480px) { .demo__row { grid-template-columns: 1fr; } }
+.demo { display: grid; gap: 5px; padding-top: 10px; border-top: 1px dashed var(--line); }
+.demo__row { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
 .btn--sim {
   background: var(--surface-2); border-color: var(--line); color: var(--ink-2);
-  padding: 8px 6px; font-size: 12.5px; border-radius: var(--r-md);
+  padding: 7px 4px; font-size: 12px; border-radius: var(--r-md);
 }
 .btn--sim:hover:not(:disabled) { border-color: var(--ink-3); color: var(--ink); }
 .btn--sos {
   background: var(--red); border-color: var(--red); color: #fff;
-  padding: 8px 6px; font-size: 12.5px; border-radius: var(--r-md);
+  padding: 7px 4px; font-size: 12.5px; border-radius: var(--r-md);
 }
 .btn--sos:hover { filter: brightness(1.08); }
 
 .safety {
-  position: absolute; left: 50%; bottom: 14px; transform: translateX(-50%);
-  width: min(320px, calc(100% - 28px)); display: grid; gap: 6px;
+  position: absolute; left: 50%; bottom: 12px; transform: translateX(-50%); z-index: 3;
+  width: min(310px, calc(100% - 24px)); display: grid; gap: 5px;
   background: var(--surface); color: var(--ink); border: 2px solid var(--red);
-  border-radius: var(--r-md); padding: 11px 12px; box-shadow: var(--shadow-md);
-  font-size: 13px; animation: toastin .28s ease-out;
+  border-radius: var(--r-md); padding: 10px 11px; box-shadow: var(--shadow-md);
+  font-size: 13px; line-height: 1.4; animation: safetyin .28s ease-out;
 }
+@keyframes safetyin { from { opacity: 0; transform: translate(-50%, 10px); } }
 .safety b { color: var(--red); font-size: 14px; }
-.safety__row { display: grid; grid-template-columns: 1fr 1fr; gap: 7px; margin-top: 3px; }
+.safety__row { display: grid; grid-template-columns: 1fr 1fr; gap: 7px; margin-top: 2px; }
 
 .mp-detour {
   fill: none; stroke: var(--red); stroke-width: 3.2; stroke-dasharray: 6 4;
   stroke-linecap: round; stroke-linejoin: round;
 }
 
-/* ---------------- guided demo ---------------- */
-
-.btn--tour {
-  width: auto; padding: 9px 16px; font-size: 13.5px; border-radius: 999px;
-  background: var(--ink); color: var(--surface); border-color: var(--ink);
-  white-space: nowrap;
-}
-.btn--tour:hover:not(:disabled) { filter: brightness(1.15); }
+/* ---------------- guided demo: the narration panel ----------------
+   On a laptop it sits ABOVE the console in its own column - it never
+   floats over the app. On tablets and phones it docks in a strip at
+   the bottom, and the page reserves that space so nothing hides
+   under it.                                                          */
 
 .tour {
-  position: fixed; bottom: 18px; right: 18px; z-index: 50;
-  width: min(410px, calc(100vw - 32px)); max-height: min(72vh, 640px); overflow-y: auto;
   background: var(--con-bg); color: var(--con-text);
   border: 1px solid var(--con-line); border-radius: var(--r-lg);
-  box-shadow: 0 18px 50px rgba(0,0,0,.35);
-  padding: 0 16px 14px; display: grid; gap: 9px;
-  font-size: 13.5px; line-height: 1.5;
-  animation: toastin .28s ease-out;
+  padding: 0 14px; display: grid; gap: 7px; align-content: start;
+  font-size: 13px; line-height: 1.5;
+  box-shadow: 0 0 0 3px rgba(240,164,35,.18);
+  overflow-y: auto; scrollbar-width: thin; scrollbar-color: var(--con-line) transparent;
 }
 .tour[hidden] { display: none; }
-.tour[data-side="left"] { right: auto; left: 18px; }
 
-.tour__bar { height: 4px; margin: 0 -16px; background: var(--con-line); position: sticky; top: 0; }
+.tour__bar { height: 3px; margin: 0 -14px; background: var(--con-line); position: sticky; top: 0; z-index: 1; }
 .tour__bar span { display: block; height: 100%; width: 0; background: var(--amber-hi); transition: width .4s ease; }
 
-.tour__hd { display: flex; justify-content: space-between; align-items: center; padding-top: 8px; }
-.tour__count { font-family: var(--f-mono); font-size: 11px; color: var(--con-dim); letter-spacing: .04em; }
+.tour__hd { display: flex; justify-content: space-between; align-items: center; gap: 8px; padding-top: 7px; }
+.tour__count { font-family: var(--f-mono); font-size: 10.5px; color: var(--con-dim); letter-spacing: .04em; }
 .tour__tag {
-  font-family: var(--f-mono); font-size: 10.5px; letter-spacing: .06em;
-  border: 1px solid currentColor; border-radius: 999px; padding: 2px 9px;
+  font-family: var(--f-mono); font-size: 10px; letter-spacing: .06em; font-weight: 500;
+  border: 1px solid currentColor; border-radius: 999px; padding: 1px 8px;
 }
-.tour__tag.tag-TOUR { color: var(--amber-hi); }
 
-.tour__title { margin: 0; font-size: 17px; letter-spacing: -0.02em; color: #fff; line-height: 1.25; }
+.tour__title { margin: 0; font-size: 16px; letter-spacing: -0.02em; color: #fff; line-height: 1.25; }
 .tour__problem {
-  margin: 0; padding: 8px 10px; border-radius: var(--r-md);
-  background: rgba(240,119,106,.12); border-left: 3px solid #F0776A; font-size: 12.5px;
+  margin: 0; padding: 6px 9px; border-radius: var(--r-md);
+  background: rgba(240,119,106,.12); border-left: 3px solid #F0776A; font-size: 12px; line-height: 1.45;
 }
 .tour__problem b { color: #F0776A; }
+.tour__problem[hidden] { display: none; }
+.tour__body { font-size: 13px; }
 .tour__body b, .tour__notice b { color: #fff; }
 .tour__body code, .tour__notice code, .tour__file code {
-  font-family: var(--f-mono); font-size: 12px; color: #FFC257;
+  font-family: var(--f-mono); font-size: 11.5px; color: #FFC257;
   background: rgba(255,255,255,.06); padding: 0 4px; border-radius: 3px;
 }
-.tour__k { font-family: var(--f-mono); font-size: 10.5px; letter-spacing: .08em; text-transform: uppercase; color: var(--con-dim); }
-.tour__notice { margin: -4px 0 0; padding-left: 18px; display: grid; gap: 4px; font-size: 12.8px; }
-.tour__notice:empty, .tour__notice:empty + .tour__file { display: none; }
-.tour__file { font-size: 12px; color: var(--con-dim); }
-.tour__file[hidden] { display: none; }
+.tour__more { display: grid; gap: 4px; }
+.tour__k { font-family: var(--f-mono); font-size: 9.5px; letter-spacing: .1em; text-transform: uppercase; color: var(--con-dim); }
+.tour__notice { margin: 0; padding-left: 16px; display: grid; gap: 2px; font-size: 12.3px; }
+.tour__more:has(.tour__notice:empty) .tour__k { display: none; }
+.tour__file { font-size: 11.5px; color: var(--con-dim); }
+.tour__file:empty { display: none; }
 
-.tour__recap { width: 100%; border-collapse: collapse; font-size: 12.8px; }
-.tour__recap td { padding: 4px 0; border-bottom: 1px solid var(--con-line); vertical-align: top; }
+/* the latest console lines, for screens where the console is out of view */
+.tour__feed {
+  display: none; gap: 2px; padding: 6px 8px; border-radius: var(--r-md);
+  background: rgba(255,255,255,.04); border: 1px solid var(--con-line);
+  font-family: var(--f-mono); font-size: 10.5px; line-height: 1.45;
+}
+.tour__feed:empty { display: none !important; }
+.tour__feed div { display: grid; grid-template-columns: 68px minmax(0, 1fr); gap: 6px; }
+.tour__feed span:last-child { color: var(--con-text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+.tour__recap { width: 100%; border-collapse: collapse; font-size: 12.3px; }
+.tour__recap td { padding: 3px 0; border-bottom: 1px solid var(--con-line); vertical-align: top; }
 .tour__recap td:first-child { font-family: var(--f-mono); color: #FFC257; padding-right: 10px; white-space: nowrap; }
 
-.tour__status { font-family: var(--f-mono); font-size: 11px; color: var(--con-dim); }
-.tour__status[data-phase="working"] { color: #FFC257; }
-.tour__status[data-phase="working"]::before { content: "\25CF  "; animation: blip 1s infinite; }
-.tour__status[data-phase="done"] { color: #43C39A; }
-.tour.is-paused .tour__status::after { content: "  ·  PAUSED"; color: #F0776A; }
-
-.tour__ctl {
-  display: grid; grid-template-columns: 1fr 1.3fr 1fr; gap: 7px;
-  /* always reachable, even when the card's text has to scroll */
-  position: sticky; bottom: -14px; margin: 0 -16px -14px; padding: 9px 16px 14px;
-  background: var(--con-bg); border-top: 1px solid var(--con-line);
+.tour__foot {
+  position: sticky; bottom: 0; margin: 0 -14px; padding: 7px 14px 11px;
+  background: var(--con-bg); border-top: 1px solid var(--con-line); display: grid; gap: 7px;
 }
-.tour__ctl:has(#tourNext[hidden]) { grid-template-columns: 1fr; }
+.tour__status {
+  display: grid; grid-template-columns: minmax(0, 1fr) 70px; align-items: center; gap: 10px;
+  font-family: var(--f-mono); font-size: 10.5px; color: var(--con-dim);
+}
+.tour__status[data-phase="working"] { color: #FFC257; }
+.tour__status[data-phase="working"] #tourStatusText::before { content: "\25CF  "; animation: blip 1s infinite; }
+.tour__status[data-phase="done"] { color: #43C39A; }
+.tour.is-paused #tourStatusText::after { content: "  ·  PAUSED"; color: #F0776A; }
+.tour__timer { height: 3px; border-radius: 3px; background: var(--con-line); overflow: hidden; }
+.tour__timer span { display: block; height: 100%; width: 0; background: #FFC257; }
+.tour__status:not([data-phase="reading"]) .tour__timer { visibility: hidden; }
+
+.tour__ctl { display: flex; gap: 6px; }
 .tour__btn {
-  font: inherit; font-size: 12.5px; font-weight: 600; cursor: pointer;
-  padding: 8px; border-radius: var(--r-md);
+  flex: 1; font: inherit; font-size: 12.5px; font-weight: 600; cursor: pointer;
+  padding: 7px 6px; border-radius: var(--r-md);
   background: transparent; color: var(--con-text); border: 1px solid var(--con-line);
 }
 .tour__btn[hidden] { display: none; }
 .tour__btn:hover:not(:disabled) { border-color: var(--con-dim); color: #fff; }
 .tour__btn:disabled { opacity: .4; cursor: not-allowed; }
-.tour__btn--go { background: var(--amber); border-color: var(--amber); color: #17120A; }
+.tour__btn--go { flex: 1.4; background: var(--amber); border-color: var(--amber); color: #17120A; }
 .tour__btn--go:hover:not(:disabled) { color: #17120A; filter: brightness(1.08); }
+.tour__btn--more { display: none; }
 
 /* the part of the app the current stage is about */
 .tour-focus {
-  outline: 3px solid var(--amber-hi); outline-offset: 3px;
+  outline: 3px solid var(--amber-hi); outline-offset: 2px;
   border-radius: var(--r-md);
   animation: tourglow 1.6s ease-in-out infinite;
 }
-.tour-focus { scroll-margin-top: 14px; }
-@keyframes tourglow {
-  50% { outline-color: rgba(240,164,35,.35); }
+#map.tour-focus, .panel.tour-focus, .term.tour-focus { outline-offset: -3px; }
+@keyframes tourglow { 50% { outline-color: rgba(240,164,35,.3); } }
+
+/* ================================================================
+   LAPTOP - one screen, three columns, no page scrolling
+   ================================================================ */
+@media (min-width: 1024px) {
+  .app {
+    height: calc(100vh - var(--topbar-h));
+    height: calc(100dvh - var(--topbar-h));
+    min-height: 560px;
+    grid-template-columns: clamp(300px, 25vw, 380px) minmax(0, 1fr) clamp(300px, 27vw, 420px);
+    grid-template-rows: auto minmax(0, 1fr);
+    grid-template-areas: "sheet stage lab" "sheet obs lab";
+    align-items: stretch;
+  }
+  .sheet { min-height: 0; }
+  .view { flex: 1; min-height: 0; overflow-y: auto; scrollbar-width: thin; }
+  .obs { align-self: start; max-height: 100%; overflow-y: auto; }
+  .lab { min-height: 0; }
+  .tour { flex: 0 1 auto; max-height: 64%; min-height: 0; }
+  .term { flex: 1 1 160px; }
+  .term__body { flex: 1; height: auto; min-height: 0; }
+  /* the map shrinks before anything has to scroll */
+  .mapwrap svg { max-height: calc(100dvh - var(--topbar-h) - 210px); min-height: 200px; }
 }
 
-@media (max-width: 640px) {
-  .tour, .tour[data-side="left"] { left: 12px; right: 12px; bottom: 12px; width: auto; max-height: 52vh; }
-  body.is-touring { padding-bottom: 54vh; }
+/* a small laptop (or a big one with display scaling): tighter columns */
+@media (min-width: 1024px) and (max-width: 1279px) {
+  .app { grid-template-columns: 296px minmax(0, 1fr) 300px; padding-inline: 12px; }
+  .chiprack__label { display: none; }
+  .obsgrid { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); }
+  .toggle__desc { display: none; }                 /* full description stays in the tooltip */
+  .obs__hint { display: none; }
+  .hud { gap: 4px; max-width: 70%; }
+  .hudchip { padding: 2px 6px; }
+  .hudchip__v { font-size: 11.5px; }
+  .hudchip--road { display: none; }
+  .toasts { width: min(220px, 46%); }
+  .vcard__meta:first-of-type { display: none; }    /* seats are in the factory log line */
+}
+
+/* a laptop with a short screen: drop the clock column from the console */
+@media (min-width: 1024px) and (max-width: 1499px) {
+  .logline { grid-template-columns: 72px minmax(0, 1fr); }
+  .logline__t { display: none; }
+}
+
+/* ================================================================
+   TABLET + PHONE - the demo docks at the bottom in its own strip
+   ================================================================ */
+@media (max-width: 1023px) {
+  .tour {
+    position: fixed; left: 0; right: 0; bottom: 0; z-index: 40;
+    border-radius: 14px 14px 0 0; border-bottom: 0;
+    max-height: min(48vh, 420px);
+    box-shadow: 0 -10px 30px rgba(0,0,0,.28);
+    animation: dockin .25s ease-out;
+  }
+  @keyframes dockin { from { transform: translateY(30px); opacity: 0; } }
+  /* the page keeps that strip free, so the app is never hidden under it */
+  body.is-touring { padding-bottom: var(--tour-h, 240px); }
+  .tour__extra { display: none; }
+  .tour.is-open .tour__extra { display: grid; }
+  .tour.is-open .tour__problem:not([hidden]) { display: block; }
+  .tour__feed { display: grid; }
+  .tour__btn--more { display: block; flex: .9; }
+}
+
+@media (min-width: 700px) and (max-width: 1023px) {
+  .app {
+    grid-template-columns: minmax(0, 340px) minmax(0, 1fr);
+    grid-template-areas: "sheet stage" "sheet obs" "lab lab";
+  }
+}
+
+/* ================================================================
+   PHONE - map pinned on top, everything else scrolls beneath it
+   ================================================================ */
+@media (max-width: 699px) {
+  :root { --gap: 10px; }
+  .topbar__in { flex-wrap: wrap; gap: 8px 12px; padding: 8px 12px; }
+  .brand__sub { display: none; }
+  .topbar .btn--tour { margin-left: auto; padding: 8px 14px; font-size: 13px; }
+  .chiprack { order: 3; flex-basis: 100%; justify-content: flex-start; }
+  .chiprack__label { display: none; }
+
+  .app { padding: 0 10px 16px; }
+  .stage {
+    position: sticky; top: 0; z-index: 6;
+    margin: 0 -10px; border-radius: 0 0 14px 14px; border-top: 0;
+    box-shadow: 0 6px 18px rgba(15,22,32,.18);
+  }
+  .stage .panel__hd { display: none; }
+
+  .hud { top: auto; bottom: 8px; left: 8px; gap: 4px; max-width: calc(100% - 16px); }
+  .hudchip { padding: 2px 6px; gap: 4px; }
+  .hudchip__k { font-size: 8px; }
+  .hudchip__v { font-size: 11px; }
+  .hudchip--road { display: none; }
+  .toasts { top: 8px; right: 8px; width: min(240px, 66%); }
+  .toast { font-size: 11.5px; padding: 6px 9px; }
+  .safety { top: 50%; bottom: auto; transform: translate(-50%, -50%); }
+  @keyframes safetyin { from { opacity: 0; transform: translate(-50%, -40%); } }
+
+  .demo__row { grid-template-columns: 1fr 1fr 1fr; }
+  .btn--sim { font-size: 11.5px; }
+  .obsgrid { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); }
+  .term__body { height: 280px; }
+  .logline { grid-template-columns: 68px minmax(0, 1fr); }
+  .logline__t { display: none; }
+  .step__note { font-size: 9px; }
 }
 
 </style>
 
 
-<!-- ============================ MASTHEAD ============================ -->
-<header class="masthead">
-  <div class="wrap masthead__in">
+<!-- ============================ TOP BAR ============================ -->
+<header class="topbar" id="topbar">
+  <div class="topbar__in">
     <div class="brand">
       <span class="brand__lamp">
         <svg viewBox="0 0 24 24" fill="none" stroke="#17120A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -885,181 +1084,219 @@ select:focus-visible, .btn:focus-visible, .vcard:focus-visible,
       </span>
       <span>
         <span class="brand__name">RideFlow</span>
-        <span class="brand__sub">Design Patterns Lab &middot; live instrumentation</span>
+        <span class="brand__sub">Design Patterns Lab</span>
       </span>
     </div>
 
-    <div class="chiprack">
-      <span class="chiprack__label">Patterns wired in</span>
+    <div class="chiprack" aria-label="Patterns wired in - each one lights up when it runs">
+      <span class="chiprack__label">Lights up when it runs</span>
       <span class="pchip" data-tag="FACTORY">Factory</span>
       <span class="pchip" data-tag="STRATEGY">Strategy</span>
-      <span class="pchip" data-tag="OBSERVER">Observer</span>
-      <span class="pchip" data-tag="STATE">State</span>
-      <span class="pchip" data-tag="FACADE">Facade</span>
       <span class="pchip" data-tag="DECORATOR">Decorator</span>
+      <span class="pchip" data-tag="FACADE">Facade</span>
+      <span class="pchip" data-tag="STATE">State</span>
+      <span class="pchip" data-tag="OBSERVER">Observer</span>
       <span class="pchip" data-tag="SINGLETON">Singleton</span>
     </div>
 
-    <button class="btn btn--tour" id="btnTour" type="button" title="Runs one complete ride and explains every stage">
-      &#9654; Guided demo
+    <button class="btn btn--tour" id="btnTour" type="button" title="Runs one complete ride by itself and explains every stage">
+      <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4 2.5v11l9.5-5.5z" fill="currentColor"/></svg>
+      Guided demo
     </button>
   </div>
 </header>
 
-<!-- ============================ THE APP ============================ -->
-<main class="wrap console">
+<!-- ============================ THE APP ============================
+     Laptop: three columns that fit one screen - ride | map | lab.
+     Phone: the map stays pinned on top, everything else scrolls
+     beneath it, and the guided demo docks in its own strip.        -->
+<main class="app" id="app">
 
-  <!-- ---------- left column: the rider app ---------- -->
-  <div class="rightcol">
+  <!-- ---------- 1. the rider's phone: plan a ride, then follow it ---------- -->
+  <section class="panel sheet" id="sheet" aria-label="Ride">
+    <div class="tabs" role="tablist">
+      <button class="tab" id="tabPlan" type="button" role="tab" aria-selected="true" aria-controls="viewPlan">
+        <span class="tab__n">1</span><span class="tab__t">Plan</span>
+      </button>
+      <button class="tab" id="tabTrip" type="button" role="tab" aria-selected="false" aria-controls="viewTrip">
+        <span class="tab__n">2</span><span class="tab__t">Trip</span>
+      </button>
+      <span class="tabs__state" id="stateNow" title="The State object the ride is holding right now">no active ride</span>
+    </div>
 
-    <section class="panel">
-      <div class="panel__hd">
-        <h2 class="panel__title">Book a ride</h2>
-        <span class="panel__title" id="stateNow">no active ride</span>
-      </div>
-      <div class="panel__body">
-
-        <div class="route-row">
-          <div class="field">
-            <label class="field__label" for="pickup">Pickup</label>
-            <select id="pickup"></select>
-          </div>
-          <button class="swap" id="swap" type="button" title="Swap pickup and drop" aria-label="Swap pickup and drop">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M7 4v16M7 20l-3-3M7 20l3-3M17 20V4M17 4l-3 3M17 4l3 3"/>
-            </svg>
-          </button>
-          <div class="field">
-            <label class="field__label" for="drop">Drop</label>
-            <select id="drop"></select>
-          </div>
-        </div>
-
+    <!-- PLAN: Factory, Strategy, Decorator, Facade -->
+    <div class="view" id="viewPlan" role="tabpanel" aria-labelledby="tabPlan">
+      <div class="route-row">
         <div class="field">
-          <span class="field__label">Vehicle &middot; built by VehicleFactory</span>
-          <div class="vgrid" id="vehicles"></div>
+          <label class="field__label" for="pickup">Pickup</label>
+          <select id="pickup"></select>
         </div>
-
+        <button class="swap" id="swap" type="button" title="Swap pickup and drop" aria-label="Swap pickup and drop">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M7 4v16M7 20l-3-3M7 20l3-3M17 20V4M17 4l-3 3M17 4l3 3"/>
+          </svg>
+        </button>
         <div class="field">
-          <label class="field__label" for="strategy">Pricing rule &middot; swap the Strategy live</label>
-          <select id="strategy">
-            <option value="STANDARD">Standard fare</option>
-            <option value="SURGE">Surge pricing &times;1.8 (peak hour)</option>
-            <option value="FESTIVAL">Festival surge &times;3 (watch the legal cap)</option>
-            <option value="NIGHT">Night fare (+25%)</option>
-            <option value="PASS">RidePass subscriber (-20%)</option>
-            <option value="POOL">Shared pool (split fare)</option>
-          </select>
-        </div>
-
-        <div class="receipt">
-          <div class="receipt__strategy" id="receiptStrategy"></div>
-          <div class="receipt__lines" id="receiptLines"></div>
-        </div>
-
-        <button class="btn btn--go" id="btnBook" type="button">Book ride</button>
-      </div>
-    </section>
-
-    <section class="panel">
-      <div class="panel__hd">
-        <h2 class="panel__title">Ride lifecycle &middot; State pattern</h2>
-      </div>
-      <div class="panel__body">
-        <div class="statebar">
-          <span class="statebar__k">now</span>
-          <span class="statebar__v" id="stateLabel">Pick a route and book</span>
-        </div>
-        <div class="dcard" id="driverCard" hidden></div>
-        <div class="lifecycle" id="lifecycle"></div>
-        <div class="rematch" id="rematchNote" hidden></div>
-        <button class="btn btn--ghost" id="btnCancel" type="button" disabled>Cancel ride</button>
-
-        <div class="cancelask" id="cancelAsk" hidden>
-          <span class="cancelask__q">Why are you cancelling?</span>
-          <button class="btn btn--ghost cancelask__opt" id="btnCancelPlans" type="button">
-            I changed my plans <small id="cancelFeeNote"></small>
-          </button>
-          <button class="btn btn--ghost cancelask__opt" id="btnCancelAsked" type="button">
-            The driver asked me to cancel <small>no fee for you &middot; driver penalised</small>
-          </button>
-          <button class="linkbtn" id="btnCancelKeep" type="button">Keep my ride</button>
-        </div>
-
-        <div class="demo">
-          <span class="field__label">Simulate real-world problems &middot; the fixes respond on their own</span>
-          <div class="demo__row">
-            <button class="btn btn--sim" id="btnDriverCancel" type="button" disabled title="The driver cancels after accepting">Driver cancels</button>
-            <button class="btn btn--sim" id="btnStop" type="button" disabled title="The car stops for 4 minutes with no red light">Unexpected stop</button>
-            <button class="btn btn--sim" id="btnDetour" type="button" disabled title="The driver leaves the planned route">Route detour</button>
-          </div>
+          <label class="field__label" for="drop">Drop</label>
+          <select id="drop"></select>
         </div>
       </div>
-    </section>
 
-  </div>
-
-  <!-- ---------- right column: instrumentation ---------- -->
-  <div class="rightcol">
-
-    <section class="panel">
-      <div class="panel__hd">
-        <h2 class="panel__title">Live map &middot; Observer subject broadcasting</h2>
-        <span class="panel__title" id="viaLine">Hyderabad</span>
+      <div class="field">
+        <span class="field__label">Vehicle <i>&middot; Factory</i></span>
+        <div class="vgrid" id="vehicles"></div>
       </div>
-      <div class="mapwrap">
-        <svg id="map" viewBox="0 0 720 420" role="img" aria-label="Simulated Hyderabad street map showing the driver moving along the routed roads">
-          <g id="terrain"></g>
-          <g id="roads"></g>
-          <g id="pois"></g>
-          <g id="ambient"></g>
-          <g id="routelayer"></g>
-          <g id="car">
-            <circle class="pulse" r="15"></circle>
-            <rect class="shadow" x="-9" y="-5" width="19" height="11" rx="3.5"></rect>
-            <rect class="body" x="-9" y="-6" width="18" height="12" rx="3.5"></rect>
-            <rect class="glass" x="0" y="-4" width="6" height="8" rx="1.5"></rect>
-            <rect class="lamp" x="7.4" y="-4.4" width="2" height="2" rx="1"></rect>
-            <rect class="lamp" x="7.4" y="2.4" width="2" height="2" rx="1"></rect>
-          </g>
-        </svg>
-        <div class="hud">
-          <div class="hudchip"><span class="hudchip__k">ETA</span><span class="hudchip__v" id="hudEta">--</span></div>
-          <div class="hudchip"><span class="hudchip__k">Dist</span><span class="hudchip__v" id="hudKm">--</span></div>
-          <div class="hudchip"><span class="hudchip__k">Speed</span><span class="hudchip__v" id="hudSpeed">0 km/h</span></div>
-          <div class="hudchip hudchip--road"><span class="hudchip__k">On</span><span class="hudchip__v" id="hudRoad">--</span></div>
-          <div class="hudchip hudchip--status"><span class="hudchip__v" id="hudStatus" data-status="IDLE">idle</span></div>
-        </div>
-        <div class="toasts" id="toasts"></div>
-        <div class="safety" id="safetyCard" role="alertdialog" aria-labelledby="safetyTitle" hidden>
-          <b id="safetyTitle">Are you okay?</b>
-          <span id="safetyText"></span>
-          <div class="safety__row">
-            <button class="btn btn--sim" id="btnSafeOk" type="button">I'm okay</button>
-            <button class="btn btn--sos" id="btnSos" type="button">SOS</button>
-          </div>
-        </div>
-      </div>
-      <div class="panel__body">
-        <div class="field">
-          <span class="field__label">Subscribers &middot; untick one to unsubscribe it mid-ride</span>
-          <div class="obsgrid" id="observers"></div>
-        </div>
-      </div>
-    </section>
 
-    <section class="term">
+      <div class="field">
+        <label class="field__label" for="strategy">Pricing rule <i>&middot; Strategy</i></label>
+        <select id="strategy">
+          <option value="STANDARD">Standard fare</option>
+          <option value="SURGE">Surge pricing &times;1.8 (peak hour)</option>
+          <option value="FESTIVAL">Festival surge &times;3 (watch the legal cap)</option>
+          <option value="NIGHT">Night fare (+25%)</option>
+          <option value="PASS">RidePass subscriber (-20%)</option>
+          <option value="POOL">Shared pool (split fare)</option>
+        </select>
+      </div>
+
+      <div class="receipt" id="receipt">
+        <div class="receipt__strategy" id="receiptStrategy"></div>
+        <div class="receipt__lines" id="receiptLines"></div>
+      </div>
+
+      <button class="btn btn--go" id="btnBook" type="button">Book ride</button>
+    </div>
+
+    <!-- TRIP: State -->
+    <div class="view" id="viewTrip" role="tabpanel" aria-labelledby="tabTrip" hidden>
+      <div class="statebar">
+        <span class="statebar__k">now</span>
+        <span class="statebar__v" id="stateLabel">Pick a route and book</span>
+      </div>
+      <div class="dcard" id="driverCard" hidden></div>
+      <div class="lifecycle" id="lifecycle"></div>
+      <div class="rematch" id="rematchNote" hidden></div>
+
+      <div class="tripfare" id="tripFare"></div>
+      <button class="btn btn--go" id="btnAgain" type="button" hidden>Plan another ride</button>
+
+      <button class="btn btn--ghost" id="btnCancel" type="button" disabled>Cancel ride</button>
+      <div class="cancelask" id="cancelAsk" hidden>
+        <span class="cancelask__q">Why are you cancelling?</span>
+        <button class="btn btn--ghost cancelask__opt" id="btnCancelPlans" type="button">
+          I changed my plans <small id="cancelFeeNote"></small>
+        </button>
+        <button class="btn btn--ghost cancelask__opt" id="btnCancelAsked" type="button">
+          The driver asked me to cancel <small>no fee for you &middot; driver penalised</small>
+        </button>
+        <button class="linkbtn" id="btnCancelKeep" type="button">Keep my ride</button>
+      </div>
+
+      <div class="demo" id="simulate">
+        <span class="field__label">Simulate a real-world problem</span>
+        <div class="demo__row">
+          <button class="btn btn--sim" id="btnDriverCancel" type="button" disabled title="The driver cancels after accepting">Driver cancels</button>
+          <button class="btn btn--sim" id="btnStop" type="button" disabled title="The car stops for 4 minutes with no red light">Unexpected stop</button>
+          <button class="btn btn--sim" id="btnDetour" type="button" disabled title="The driver leaves the planned route">Route detour</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ---------- 2. the city: the Observer subject broadcasting ---------- -->
+  <section class="panel stage" id="stage" aria-label="Live map">
+    <div class="panel__hd">
+      <h2 class="panel__title">Live map <i>&middot; Observer subject</i></h2>
+      <span class="panel__title panel__title--via" id="viaLine">Hyderabad</span>
+    </div>
+    <div class="mapwrap">
+      <svg id="map" viewBox="0 0 720 420" role="img" aria-label="Simulated Hyderabad street map showing the driver moving along the routed roads">
+        <g id="terrain"></g>
+        <g id="roads"></g>
+        <g id="pois"></g>
+        <g id="ambient"></g>
+        <g id="routelayer"></g>
+        <g id="car">
+          <circle class="pulse" r="15"></circle>
+          <rect class="shadow" x="-9" y="-5" width="19" height="11" rx="3.5"></rect>
+          <rect class="body" x="-9" y="-6" width="18" height="12" rx="3.5"></rect>
+          <rect class="glass" x="0" y="-4" width="6" height="8" rx="1.5"></rect>
+          <rect class="lamp" x="7.4" y="-4.4" width="2" height="2" rx="1"></rect>
+          <rect class="lamp" x="7.4" y="2.4" width="2" height="2" rx="1"></rect>
+        </g>
+      </svg>
+      <div class="hud">
+        <div class="hudchip"><span class="hudchip__k">ETA</span><span class="hudchip__v" id="hudEta">--</span></div>
+        <div class="hudchip"><span class="hudchip__k">Dist</span><span class="hudchip__v" id="hudKm">--</span></div>
+        <div class="hudchip"><span class="hudchip__k">Speed</span><span class="hudchip__v" id="hudSpeed">0 km/h</span></div>
+        <div class="hudchip hudchip--road"><span class="hudchip__k">On</span><span class="hudchip__v" id="hudRoad">--</span></div>
+        <div class="hudchip hudchip--status"><span class="hudchip__v" id="hudStatus" data-status="IDLE">idle</span></div>
+      </div>
+      <div class="toasts" id="toasts"></div>
+      <div class="safety" id="safetyCard" role="alertdialog" aria-labelledby="safetyTitle" hidden>
+        <b id="safetyTitle">Are you okay?</b>
+        <span id="safetyText"></span>
+        <div class="safety__row">
+          <button class="btn btn--sim" id="btnSafeOk" type="button">I'm okay</button>
+          <button class="btn btn--sos" id="btnSos" type="button">SOS</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ---------- 3. who is listening to the driver's GPS ---------- -->
+  <section class="panel obs" id="obsPanel" aria-label="GPS subscribers">
+    <div class="obs__hd">
+      <span class="panel__title">GPS subscribers <i>&middot; Observer</i></span>
+      <span class="obs__hint">untick one &mdash; only it goes quiet</span>
+    </div>
+    <div class="obsgrid" id="observers"></div>
+  </section>
+
+  <!-- ---------- 4. the lab: guided-demo narration + the dispatch console ---------- -->
+  <section class="lab" id="lab" aria-label="Guided demo and dispatch console">
+
+    <aside class="tour" id="tour" aria-live="polite" aria-label="Guided demo" hidden>
+      <div class="tour__bar" aria-hidden="true"><span id="tourBar"></span></div>
+      <div class="tour__hd">
+        <span class="tour__count" id="tourCount"></span>
+        <span class="tour__tag" id="tourTag"></span>
+      </div>
+      <h3 class="tour__title" id="tourTitle"></h3>
+      <p class="tour__problem tour__extra" id="tourProblem" hidden></p>
+      <div class="tour__body" id="tourBody"></div>
+      <div class="tour__extra tour__more">
+        <span class="tour__k">What to notice</span>
+        <ul class="tour__notice" id="tourNotice"></ul>
+        <div class="tour__file" id="tourFile"></div>
+      </div>
+      <div class="tour__feed" id="tourFeed" aria-label="Latest console lines"></div>
+      <div class="tour__foot">
+        <div class="tour__status" id="tourStatus">
+          <span id="tourStatusText"></span>
+          <span class="tour__timer" aria-hidden="true"><span id="tourTimer"></span></span>
+        </div>
+        <div class="tour__ctl">
+          <button class="tour__btn tour__btn--more" id="tourMore" type="button" aria-expanded="false">Details</button>
+          <button class="tour__btn" id="tourPause" type="button">Pause</button>
+          <button class="tour__btn tour__btn--go" id="tourNext" type="button">Next &#9656;</button>
+          <button class="tour__btn" id="tourRestart" type="button" hidden>Run again</button>
+          <button class="tour__btn" id="tourExit" type="button">Exit</button>
+        </div>
+      </div>
+    </aside>
+
+    <section class="term" id="term">
       <div class="term__hd">
-        <span class="term__title">Dispatch console &middot; every line is a pattern doing its job</span>
-        <span class="term__live"><span class="term__led"></span>streaming</span>
+        <span class="term__title">Dispatch console <i>&middot; every line is a pattern at work</i></span>
+        <span class="term__live"><span class="term__led"></span>live</span>
       </div>
       <div class="term__body" id="terminal"></div>
       <div class="term__ft" id="filters">
-        <button class="filter" id="btnClear" type="button" style="margin-left:auto">CLEAR</button>
+        <button class="filter" id="btnClear" type="button">CLEAR</button>
       </div>
     </section>
-
-  </div>
+  </section>
 </main>
 
 <!-- ============================ REFERENCE ============================ -->
@@ -1328,27 +1565,6 @@ select:focus-visible, .btn:focus-visible, .vcard:focus-visible,
   <span>Problem sources: LocalCircles surveys, CCPA notices, MoRTH Aggregator Guidelines 2025, NCW 2026 guidelines.</span>
   <span>Open <code>index.html</code> in any browser. No build step, no dependencies.</span>
 </footer>
-
-<!-- ================= the guided demo's narration card ================= -->
-<aside class="tour" id="tour" aria-live="polite" aria-label="Guided demo" hidden>
-  <div class="tour__bar"><span id="tourBar"></span></div>
-  <div class="tour__hd">
-    <span class="tour__count" id="tourCount"></span>
-    <span class="tour__tag" id="tourTag"></span>
-  </div>
-  <h3 class="tour__title" id="tourTitle"></h3>
-  <p class="tour__problem" id="tourProblem" hidden></p>
-  <div class="tour__body" id="tourBody"></div>
-  <span class="tour__k">What to notice</span>
-  <ul class="tour__notice" id="tourNotice"></ul>
-  <div class="tour__file" id="tourFile"></div>
-  <div class="tour__status" id="tourStatus"></div>
-  <div class="tour__ctl">
-    <button class="tour__btn" id="tourPause" type="button">Pause</button>
-    <button class="tour__btn tour__btn--go" id="tourNext" type="button">Next &#9656;</button>
-    <button class="tour__btn" id="tourExit" type="button">Exit</button>
-  </div>
-</aside>
 
 <!-- ================= code samples shown in the reference ================= -->
 
@@ -4084,6 +4300,7 @@ const ui = {
   ride: null,
   filter: "ALL",
   shownState: null,      // the state object last drawn, to spot real transitions
+  view: "plan",          // which tab of the ride sheet is showing: "plan" | "trip"
 };
 
 let facade;
@@ -4362,15 +4579,57 @@ function buildObservers() {
     label.className = "toggle";
     label.innerHTML =
       '<input type="checkbox" checked>' +
-      '<span><span class="toggle__name">' + observer.label + "</span>" +
+      '<span><span class="toggle__name">' + observer.label.replace("Observer", "<wbr>Observer") + "</span>" +
       '<span class="toggle__desc">' + observer.description + "</span></span>";
 
+    label.title = observer.label + " - " + observer.description;
     label.querySelector("input").addEventListener("change", (e) => {
       if (e.target.checked) facade.attachObserver(observer);
       else facade.detachObserver(observer);
     });
     box.appendChild(label);
   });
+}
+
+/* ============================================================
+   THE RIDE SHEET - two tabs, like a real ride app:
+   1 Plan (choose and price a ride) -> 2 Trip (follow it)
+   ============================================================ */
+
+function setView(view) {
+  ui.view = view;
+  $("viewPlan").hidden = view !== "plan";
+  $("viewTrip").hidden = view !== "trip";
+  $("tabPlan").setAttribute("aria-selected", String(view === "plan"));
+  $("tabTrip").setAttribute("aria-selected", String(view === "trip"));
+}
+
+/** The fare line on the Trip tab: what the rider was promised, then what they paid. */
+function renderTripFare(ride) {
+  const box = $("tripFare");
+  if (!ride) {
+    box.dataset.tone = "";
+    box.innerHTML = "<span>Book a ride and its fare is locked here.</span>";
+    return;
+  }
+  const key = ride.state.key;
+  let label, amount, tone = "";
+  if (key === "CompletedState") {
+    label = "Charged <small>exactly the upfront fare" +
+      (ride.detourKm ? " &middot; even after a " + ride.detourKm + " km detour" : "") + "</small>";
+    amount = ride.quote.total;
+    tone = "ok";
+  } else if (key === "CancelledState") {
+    const fee = ride.state.fee || 0;
+    label = "Cancelled <small>" + (fee ? "cancellation fee &middot; 10% of fare, max Rs.100" : "no fee charged to you") + "</small>";
+    amount = fee;
+    tone = fee ? "bad" : "ok";
+  } else {
+    label = "Upfront fare <small>locked when you booked &middot; this is the bill</small>";
+    amount = ride.quote.total;
+  }
+  box.dataset.tone = tone;
+  box.innerHTML = "<span>" + label + "</span><b>Rs." + amount + "</b>";
 }
 
 /* ============================================================
@@ -4645,6 +4904,8 @@ function renderLifecycle(ride) {
 
   const done = !ride || ride.state.isFinal;
   $("btnBook").disabled = !done;
+  $("btnAgain").hidden = !(ride && ride.state.isFinal);
+  renderTripFare(ride);
   // The guided demo books its own ride, so it waits until none is active.
   $("btnTour").disabled = !done || (typeof Tour !== "undefined" && Tour.running);
   $("btnBook").textContent = ride && ride.state.isFinal ? "Book another ride" : "Book ride";
@@ -4740,7 +5001,12 @@ function init() {
       dropId: ui.dropId,
       vehicleType: ui.vehicleType,
     });
+    setView("trip");                     // the sheet follows the ride
   });
+
+  $("tabPlan").addEventListener("click", () => setView("plan"));
+  $("tabTrip").addEventListener("click", () => setView("trip"));
+  $("btnAgain").addEventListener("click", () => setView("plan"));
 
   // Cancelling once a driver has accepted costs a fee, so ask why first:
   // "the driver asked me to" is the forced-cancellation trick, and is free.
@@ -4790,14 +5056,17 @@ document.addEventListener("DOMContentLoaded", init);
 
    It drives the app exactly the way a person would - it selects
    options and clicks the real buttons - so every console line is
-   the real pattern doing its real job. Nothing is scripted around
-   the app; the tour only decides WHEN to click and WHAT to say.
+   the real pattern doing its real job. The tour only decides WHEN
+   to click and WHAT to say.
 
-   While a stage is being read, the ride is held still (SimClock),
-   so the car can never race ahead of the explanation.
+   Pace: each stage stays up only as long as its text needs (with a
+   countdown), the dull part of the drive is fast-forwarded, and the
+   ride is held still only where it must not run ahead of the words.
    ============================================================ */
 
 const TOUR_ROUTE = { pickup: "kukatpally", drop: "airport", vehicle: "SEDAN" };
+const TOUR_RATE = 1;          // normal speed while you watch
+const TOUR_FAST = 3;          // fast-forward while waiting for the next moment
 
 /* ---------- small helpers: act like a user ---------- */
 
@@ -4815,30 +5084,35 @@ function tourVehicle(code) {
 
 const rideKey = () => (ui.ride ? ui.ride.state.key : null);
 const visible = (id) => !$(id).hidden;
+const fare = () => (ui.ride ? "Rs." + ui.ride.quote.total : "-");
+const driverName = (fallback) => (ui.ride && ui.ride.driver ? ui.ride.driver.name : fallback);
 
 /* ============================================================
    THE STAGES
-   Each stage: what to say, where to point, which console tag to
-   filter to, an optional action, and an optional condition to
-   wait for before the reading time starts.
+   tag/title/body/notice/file  what the card says
+   problem                     the real-world problem (fix stages)
+   view                        which tab of the ride sheet to show
+   focusFirst / focus          what glows while working / reading
+   filter                      the console tag to show
+   run(t)                      the clicks for this stage
+   waitFor()                   the moment to wait for (fast-forwarded)
+   hold                        keep the ride still while this is read
    ============================================================ */
 
 const TOUR_STEPS = [
   {
     tag: "TOUR",
     title: "One ride, start to finish",
+    view: "plan",
     focus: [".chiprack"],
     filter: "ALL",
-    body: `I will book a <b>Sedan from Kukatpally to RGIA Airport</b> and press the real buttons
-           for you. At every stage this card explains what is happening, which design pattern is
-           doing the work, and which file the code lives in.`,
+    body: `I'll book a <b>Sedan from Kukatpally to RGIA Airport</b> by clicking the real buttons.
+           Each stage says what is happening and which pattern is doing it.`,
     notice: [
-      "The <b>amber glow</b> shows where to look.",
-      "The <b>console</b> is filtered to the lines of the pattern being explained.",
-      "The ride <b>holds still while you read</b>. Next moves on, Pause freezes everything, Exit stops the tour.",
+      "The <b>amber glow</b> shows where to look; the chips up top light up as each pattern runs.",
+      "Dull driving is fast-forwarded &#9193;. Pause or skip ahead whenever you like.",
     ],
-    read: 9000,
-    async run(t) {
+    async run() {
       $("btnClear").click();
       tourSelect("pickup", TOUR_ROUTE.pickup);
       tourSelect("drop", TOUR_ROUTE.drop);
@@ -4848,142 +5122,128 @@ const TOUR_STEPS = [
 
   {
     tag: "SINGLETON",
-    title: "One shared log for the whole app",
+    title: "One shared log",
     file: "js/core/dispatchLog.js",
-    focus: [".term"],
+    focus: ["#term"],
     filter: "ALL",
-    body: `Every line in this console is written by a different file - the factory, the pricing
-           rules, the GPS publisher, the ride states - yet they all land in <b>one list</b>.
-           That works because <code>DispatchLog.getInstance()</code> always returns the same object.`,
-    notice: [
-      "The coloured tag on each line names the pattern that wrote it.",
-      "If each file made its own log, this console would show only a fraction of what happened.",
-    ],
+    body: `Every file - the factory, the pricing rules, the GPS, the ride states - writes into
+           <b>one</b> console. <code>DispatchLog.getInstance()</code> always hands back the same object.`,
+    notice: ["The coloured tag on each line names the pattern that wrote it."],
   },
 
   {
     tag: "FACTORY",
-    title: "Choosing a vehicle - the Factory builds it",
+    title: "Pick a vehicle - the Factory builds it",
     file: "js/patterns/factory.js",
+    view: "plan",
     focus: ["#vehicles"],
     filter: "FACTORY",
-    body: `I click <b>Bike</b>, then <b>Sedan</b>. Each click asks
-           <code>VehicleFactory.create("SEDAN")</code> for a vehicle; the factory looks the type up in
-           its registry and returns a new <code>SedanCab</code> carrying its own base fare, per-km and
-           per-minute rates. The screen never writes <code>new SedanCab()</code> itself.`,
+    body: `I tap <b>Bike</b>, then <b>Sedan</b>. Each tap calls <code>VehicleFactory.create("SEDAN")</code>,
+           which returns a <code>SedanCab</code> carrying its own rates. The screen never says <code>new</code>.`,
     notice: [
-      "Console: <code>VehicleFactory.create(\"BIKE\") -&gt; new Bike</code>, then the Sedan.",
-      "Adding an e-rickshaw = one new class + one registry line. The picker updates by itself.",
+      "Console: <code>create(\"BIKE\") -&gt; new Bike</code>, then the Sedan.",
+      "A new vehicle type = one class + one registry line.",
     ],
     async run(t) {
       tourVehicle("BIKE");
-      await t.sleep(1400);
+      await t.sleep(900);
       tourVehicle("SEDAN");
     },
   },
 
   {
     tag: "STRATEGY",
-    title: "Changing the pricing rule - Strategy",
+    title: "Swap the pricing rule - Strategy",
     file: "js/patterns/strategy.js",
-    focus: ["#strategy", ".receipt"],
+    view: "plan",
+    focus: ["#strategy", "#receipt"],
     filter: "STRATEGY",
-    body: `Same trip, same car - I switch the pricing rule to <b>Surge ×1.8</b>. The dropdown calls
-           <code>facade.useFareStrategy("SURGE")</code>, which hands the <code>FareCalculator</code> a
-           new <code>SurgePricingFare</code> object. The calculator contains no if-else about pricing:
-           it simply calls <code>strategy.calculate(trip)</code> on whatever rule it holds.`,
-    notice: [
-      "The receipt rebuilt itself with a red surge line.",
-      "Console: <code>Pricing rule swapped: StandardFare -&gt; SurgePricingFare x1.8</code>.",
-    ],
+    body: `Same trip, same car. I switch to <b>Surge ×1.8</b>: the calculator is handed a new
+           <code>SurgePricingFare</code> object and simply calls <code>calculate()</code> - it holds no
+           if-else about pricing.`,
+    notice: ["The receipt rebuilt itself with a red surge line."],
     async run(t) {
-      await t.sleep(600);
+      await t.sleep(400);
       tourSelect("strategy", "SURGE");
     },
   },
 
   {
     tag: "DECORATOR",
-    title: "Real problem #2 - unfair fares, fixed by Decorator",
+    title: "Real problem #2 - unfair fares",
     file: "js/patterns/decorator.js",
-    focus: [".receipt"],
+    view: "plan",
+    focus: ["#receipt"],
     filter: "DECORATOR",
-    problem: "Riders report 3x-4x festival surges and an alleged iPhone-vs-Android price gap. The 2025 guidelines cap surge at 2x.",
-    body: `Now <b>Festival surge ×3</b>. The rule asks for three times the normal price, but every rule
-           is wrapped in two decorators before it reaches you. <code>FairInputGuard</code> strips your
-           <b>device type</b> from the pricing input, so no rule can charge by phone.
-           <code>SurgeCapGuard</code> then cuts the fare to the <b>legal 2x</b>.`,
+    problem: "3-4x festival surges and an alleged iPhone-vs-Android price gap. The 2025 rules cap surge at 2x.",
+    body: `<b>Festival ×3</b> asks for triple. Two wrappers stand between that rule and you:
+           <code>FairInputGuard</code> drops your device type, and <code>SurgeCapGuard</code> trims the
+           fare to the <b>legal 2×</b>.`,
     notice: [
-      "Green line on the receipt: <b>Surge capped at 2x (MoRTH 2025)</b>.",
-      "Receipt header: <i>guarded by FairInputGuard › SurgeCapGuard</i>.",
-      "The surge rule itself was not edited - it was <b>wrapped</b>.",
+      "Green receipt line: <b>Surge capped at 2x (MoRTH 2025)</b>.",
+      "The surge rule was not edited - it was <b>wrapped</b>.",
     ],
     async run(t) {
-      await t.sleep(600);
+      await t.sleep(400);
       tourSelect("strategy", "FESTIVAL");
     },
   },
 
   {
     tag: "FACADE",
-    title: "Booking - one call behind one button (Facade)",
+    title: "Book - one call does it all (Facade)",
     file: "js/patterns/facade.js",
-    focus: ["#btnBook", ".receipt"],
+    view: "plan",
+    focusFirst: ["#btnBook"],
+    focus: ["#tripFare", "#term"],
     filter: "FACADE",
-    dock: "left",                        // keep the two FACADE console lines in view
-    body: () => `Back to the standard fare, and I press <b>Book ride</b>. The button makes one call,
-           <code>facade.bookRide()</code>. Behind it the facade builds the vehicle (Factory), routes and
-           prices the trip (Strategy + Decorator guards), creates the <code>Ride</code>, connects the GPS
-           publisher (Observer) and starts the state machine (State).
-           Your fare is now <b>locked at Rs.${ui.ride ? ui.ride.quote.total : "-"}</b>.`,
-    notice: [
-      "Filtered to FACADE the console shows just two lines - everything else was set off by them.",
-      "The button knows nothing about the five subsystems or the order to call them in.",
-    ],
+    hold: true,
+    body: () => `Back to the standard fare, then <b>Book ride</b>. One call,
+           <code>facade.bookRide()</code>, builds the vehicle, prices the trip, creates the ride,
+           connects the GPS and starts the state machine. Fare locked at <b>${fare()}</b>.`,
+    notice: ["Filtered to FACADE: just two lines - they set off everything else."],
     async run(t) {
       tourSelect("strategy", "STANDARD");
-      await t.sleep(1200);
+      await t.sleep(900);
       $("btnBook").click();
     },
-    waitFor: () => rideKey() !== null,
+    waitFor: () => rideKey() !== null && !ui.ride.state.isFinal,
   },
 
   {
     tag: "STATE",
-    title: "A driver accepts - the State machine moves on",
+    title: "A driver accepts - State",
     file: "js/patterns/state.js",
+    view: "trip",
     focus: ["#lifecycle", "#driverCard"],
     filter: "STATE",
-    body: () => `The ride holds a <b>state object</b>. <code>RequestedState</code> waited while matching ran,
-           then <code>DriverMatchingService</code> found <b>${ui.ride && ui.ride.driver ? ui.ride.driver.name : "a driver"}</b>
-           and the ride moved to <code>DriverAssignedState</code>. The route to you is planned from where
-           <i>this</i> driver is actually parked.`,
-    notice: [
-      "The grey label on the right of each row is the <b>real class</b> the ride is holding.",
-      "The ride never asks \"what status am I in?\" - each state decides what comes next.",
-    ],
+    hold: true,
+    body: () => `The ride holds a <b>state object</b>. <code>RequestedState</code> found
+           <b>${driverName("a driver")}</b> and handed over to <code>DriverAssignedState</code>. Their route
+           to you starts from where they are actually parked.`,
+    notice: ["The grey label on each row is the real class the ride is holding."],
     waitFor: () => rideKey() === "DriverAssignedState",
   },
 
   {
     tag: "STATE",
-    title: "Real problem #1 - the driver cancels on you",
+    title: "Real problem #1 - the driver cancels",
     file: "js/patterns/state.js",
+    view: "trip",
     focus: ["#rematchNote", "#lifecycle"],
     filter: "STATE",
-    problem: "84% of app-cab users have been pushed into cancelling, so the rider paid the fee (LocalCircles survey).",
-    body: () => `The driver was on the way - and just <b>cancelled</b>. In most apps your ride dies here.
-           In this one the state machine moved to a new state, <code>RematchingState</code>: the driver is
-           penalised (10% of the fare, max Rs.100), <b>you pay Rs.0</b>, and the fare stays
-           <b>locked at Rs.${ui.ride ? ui.ride.quote.total : "-"}</b> while a different driver is found.`,
+    hold: true,
+    problem: "84% of app-cab users have been pushed into cancelling - and paid the fee themselves (LocalCircles).",
+    body: () => `The driver set off - then <b>cancelled</b>. The ride did not die: it moved into a new
+           <code>RematchingState</code>. The driver is penalised, <b>you pay Rs.0</b>, and the fare stays
+           <b>${fare()}</b>.`,
     notice: [
-      "Row 1 now reads <b>RematchingState</b>.",
-      "The driver who cancelled is excluded from the next match.",
-      "Adding this whole stage took <b>one new class</b>.",
+      "Row 1 now reads <b>RematchingState</b> - the whole stage is one new class.",
+      "That driver is left out of the next match.",
     ],
     async run(t) {
       await t.until(() => rideKey() === "ArrivingState");
-      await t.sleep(2600);                       // let the car visibly set off first
+      await t.sleep(1300);                      // let the car visibly set off first
       if (!$("btnDriverCancel").disabled) $("btnDriverCancel").click();
     },
     waitFor: () => rideKey() === "RematchingState",
@@ -4991,39 +5251,36 @@ const TOUR_STEPS = [
 
   {
     tag: "OBSERVER",
-    title: "The new driver drives in - Observer broadcasts GPS",
+    title: "A new driver drives in - Observer",
     file: "js/patterns/observer.js",
-    focus: ["#map", "#observers"],
+    view: "trip",
+    focus: ["#map", "#obsPanel"],
     filter: "OBSERVER",
-    body: () => `<b>${ui.ride && ui.ride.driver ? ui.ride.driver.name : "A new driver"}</b> accepted and is driving in
-           from their own street. Their phone is the <b>Subject</b>: <code>DriverLocationPublisher</code>
-           sends a GPS fix about 12 times a second to <b>five subscribers</b> - the map marker, the ETA panel,
-           the trip log, push notifications and the safety monitor.`,
+    body: () => `<b>${driverName("A new driver")}</b> took the job. Their phone is the <b>Subject</b>:
+           about 12 GPS fixes a second go out to <b>5 subscribers</b> - map, ETA panel, trip log,
+           push alerts and the safety monitor.`,
     notice: [
       "The publisher never learns who is listening.",
-      "Untick any subscriber box and only that one goes quiet - try EtaPanelObserver after the tour.",
-      "Push alerts (\"5 minutes away\") are just another subscriber.",
+      "Untick a subscriber later - only that one goes quiet.",
     ],
     async run(t) {
       await t.until(() => rideKey() === "ArrivingState");
-      await t.sleep(2600);
+      await t.sleep(700);
     },
   },
 
   {
     tag: "STATE",
-    title: "You're in the car - cancelling is now refused",
+    title: "You're aboard - Cancel locks itself",
     file: "js/patterns/state.js",
-    focus: ["#lifecycle", "#btnCancel"],
+    view: "trip",
+    focus: ["#lifecycle", "#btnCancel", "#simulate"],
     filter: "STATE",
-    body: `The driver reached you and <code>ArrivingState</code> handed over to
-           <code>InProgressState</code>. Its <code>canCancel</code> is <b>false</b>, so the Cancel
-           button disabled itself - the button has no rules of its own, it asks the state. From
-           here on the safety monitor is watching, because the rider is aboard.`,
-    notice: [
-      "Cancel ride and Driver cancels are both greyed out now.",
-      "Unexpected stop and Route detour became available.",
-    ],
+    hold: true,
+    body: `<code>ArrivingState</code> handed over to <code>InProgressState</code>, whose
+           <code>canCancel</code> is <b>false</b> - so the Cancel button disabled itself. The button
+           asks the state; it has no rules of its own.`,
+    notice: ["<i>Unexpected stop</i> and <i>Route detour</i> just unlocked - the rider is in the car."],
     waitFor: () => rideKey() === "InProgressState",
   },
 
@@ -5031,20 +5288,20 @@ const TOUR_STEPS = [
     tag: "OBSERVER",
     title: "Real problem #3 - the car leaves the route",
     file: "js/patterns/observer.js",
-    focus: ["#map", "#safetyCard"],
+    view: "trip",
+    focus: ["#map"],
     filter: "OBSERVER",
+    hold: true,
     problem: "The NCW's 2026 guidelines ask app cabs for route-deviation alerts and checks on long stops.",
-    body: `The driver turned off the planned <b>blue</b> route onto the <b>red dashed</b> one.
-           <code>SafetyMonitorObserver</code> compares every GPS fix with the route you were promised; at
-           <b>0.8 km off</b> it raised <b>"Are you okay?"</b> with an SOS button that would send the car
-           details and live location to 112 and your emergency contact.`,
+    body: `The driver left the <b>blue</b> route for the <b>red dashed</b> one.
+           <code>SafetyMonitorObserver</code>, a 5th subscriber, caught it at 0.8 km off and asked
+           <b>"Are you okay?"</b> with an SOS button.`,
     notice: [
-      "Console: <b>DETOUR ALERT</b> from SafetyMonitorObserver.",
-      "The publisher and the other four observers did not change by a line to add this.",
-      "I will answer \"I'm okay\" for you when this card moves on.",
+      "Console: <b>DETOUR ALERT</b>. No other observer changed to add this.",
+      "I'll tap <i>I'm okay</i> for you next.",
     ],
     async run(t) {
-      await t.sleep(2600);
+      await t.sleep(1200);
       if (!$("btnDetour").disabled) $("btnDetour").click();
     },
     waitFor: () => visible("safetyCard"),
@@ -5052,19 +5309,16 @@ const TOUR_STEPS = [
 
   {
     tag: "STATE",
-    title: "Trip complete - you pay the upfront fare",
+    title: "Trip done - you pay the upfront fare",
     file: "js/patterns/state.js",
-    focus: ["#lifecycle", ".receipt"],
+    view: "trip",
+    focus: ["#tripFare", "#lifecycle"],
     filter: "ALL",
-    body: () => `I answered <b>I'm okay</b> and the trip finished. <code>CompletedState</code> charged
-           <b>Rs.${ui.ride ? ui.ride.quote.total : "-"}</b> - exactly the fare quoted before booking -
-           even though the detour added <b>${ui.ride ? ui.ride.detourKm : 0} km</b>.
-           The quote is the bill.`,
-    notice: [
-      "Console: <b>one</b> PaymentGateway charge - the fare. No cancellation fee, because the driver cancelled, not you.",
-      "Console: the cancelling driver's penalty is on record, and the detour is noted at completion.",
-    ],
-    async run(t) {
+    body: () => `I tapped <b>I'm okay</b> and the trip finished. <code>CompletedState</code> charged
+           <b>${fare()}</b> - the exact quote - even after the <b>${ui.ride ? ui.ride.detourKm : 0} km</b>
+           detour. The quote is the bill.`,
+    notice: ["One charge only, and no cancellation fee - the driver cancelled, not you."],
+    async run() {
       if (visible("safetyCard")) $("btnSafeOk").click();
     },
     waitFor: () => rideKey() === "CompletedState",
@@ -5077,12 +5331,12 @@ const TOUR_STEPS = [
     filter: "ALL",
     final: true,
     body: `<table class="tour__recap">
-             <tr><td>Singleton</td><td>one shared log for every line in the console</td></tr>
+             <tr><td>Singleton</td><td>one shared log behind the whole console</td></tr>
              <tr><td>Factory</td><td>built the Bike and the Sedan</td></tr>
              <tr><td>Strategy</td><td>swapped the pricing rule live</td></tr>
              <tr><td>Decorator</td><td>held a 3x festival surge to the legal 2x</td></tr>
              <tr><td>Facade</td><td>turned "Book ride" into one call</td></tr>
-             <tr><td>State</td><td>ran the lifecycle and re-matched after a driver cancelled</td></tr>
+             <tr><td>State</td><td>ran the lifecycle and re-matched after a cancel</td></tr>
              <tr><td>Observer</td><td>moved the car and caught the detour</td></tr>
            </table>`,
     notice: [
@@ -5102,8 +5356,9 @@ const Tour = {
   frozen: false,
   skip: false,
   aborted: false,
+  step: null,
 
-  /** The ride stands still if the user paused OR a stage is being read. */
+  /** The ride stands still if the user paused OR a stage asked to hold it. */
   syncClock() {
     SimClock.paused = this.userPaused || this.frozen;
   },
@@ -5120,20 +5375,45 @@ const Tour = {
     while (left > 0) { await this.tick(); if (!this.userPaused) left -= 100; }
   },
 
+  /** Reading time, with a countdown bar. Next ends it early. */
   async read(ms) {
     let left = ms;
     this.skip = false;
-    while (left > 0 && !this.skip) { await this.tick(); if (!this.userPaused) left -= 100; }
-  },
-
-  async until(cond, ms = 120000) {
-    let left = ms;
-    while (!cond()) {
-      if (left <= 0) throw new Error("tour-timeout");
-      if (ui.ride && ui.ride.state.key === "CancelledState") throw new Error("tour-cancelled");
+    while (left > 0 && !this.skip) {
+      $("tourTimer").style.width = (left / ms) * 100 + "%";
+      $("tourStatusText").textContent = (this.frozen ? "Ride paused while you read · " : "") +
+        "next in " + Math.ceil(left / 1000) + "s";
       await this.tick();
       if (!this.userPaused) left -= 100;
     }
+  },
+
+  /** Wait for a moment in the ride - fast-forwarding the drive meanwhile. */
+  async until(cond, ms = 90000) {
+    let left = ms;
+    const ride = ui.ride && !ui.ride.state.isFinal;
+    if (ride) {
+      SimClock.rate = TOUR_FAST;
+      $("tourStatusText").textContent = "⏩ Fast-forwarding to the next moment...";
+    }
+    try {
+      while (!cond()) {
+        if (left <= 0) throw new Error("tour-timeout");
+        if (ui.ride && ui.ride.state.key === "CancelledState") throw new Error("tour-cancelled");
+        await this.tick();
+        if (!this.userPaused) left -= 100;
+      }
+    } finally {
+      SimClock.rate = TOUR_RATE;
+    }
+  },
+
+  /** How long a stage stays up: enough to read it, not a second more. */
+  readTime(step) {
+    const text = [typeof step.body === "function" ? step.body() : step.body, step.problem || "", ...(step.notice || [])]
+      .join(" ").replace(/<[^>]+>/g, " ");
+    const words = text.split(/\s+/).filter(Boolean).length;
+    return Math.max(4000, Math.min(7500, 2200 + words * 70));
   },
 
   /* ---- start / stop ---- */
@@ -5145,23 +5425,28 @@ const Tour = {
     this.aborted = false;
     this.userPaused = false;
     this.frozen = false;
-    SimClock.rate = 0.7;                 // a little slower than normal, for watching
+    SimClock.rate = TOUR_RATE;
     this.syncClock();
     document.body.classList.add("is-touring");
     $("tour").hidden = false;
+    $("tour").classList.remove("is-paused", "is-open");
+    $("tourMore").setAttribute("aria-expanded", "false");
+    $("tourMore").textContent = "Details";
     $("btnTour").disabled = true;
 
     try {
       for (let i = 0; i < TOUR_STEPS.length; i++) {
         const step = TOUR_STEPS[i];
+        this.step = step;
+        if (step.view) setView(step.view);
         this.render(step, i, "working");
         if (step.run) await step.run(this);
         if (step.waitFor) await this.until(step.waitFor);
-        this.frozen = !step.final;       // hold the ride while this stage is read
+        this.frozen = !!step.hold && !step.final;
         this.syncClock();
-        this.render(step, i, "reading");
+        this.render(step, i, step.final ? "done" : "reading");
         if (step.final) break;
-        await this.read(step.read || 11000);
+        await this.read(this.readTime(step));
         this.frozen = false;
         this.syncClock();
       }
@@ -5182,14 +5467,21 @@ const Tour = {
     SimClock.rate = 1;
     this.syncClock();
     this.running = false;
-    document.body.classList.remove("is-touring");
+    this.step = null;
     document.querySelectorAll(".tour-focus").forEach((n) => n.classList.remove("tour-focus"));
     applyFilter("ALL");
     $("btnTour").disabled = !!(ui.ride && !ui.ride.state.isFinal);
     $("tourPause").hidden = true;
     $("tourNext").hidden = true;
+    $("tourRestart").hidden = false;
     $("tourExit").textContent = "Close";
-    if (closeCard) $("tour").hidden = true;
+    $("tour").classList.remove("is-paused");
+    if (closeCard) this.close();
+  },
+
+  close() {
+    $("tour").hidden = true;
+    document.body.classList.remove("is-touring");
   },
 
   exit() {
@@ -5199,15 +5491,23 @@ const Tour = {
     this.aborted = true;
     this.frozen = false;
     this.userPaused = false;
+    SimClock.rate = 1;
     this.syncClock();
-    $("tour").hidden = true;
+    this.close();
   },
 
   togglePause() {
+    if (!this.running) return;
     this.userPaused = !this.userPaused;
     this.syncClock();
     $("tourPause").textContent = this.userPaused ? "Resume" : "Pause";
     $("tour").classList.toggle("is-paused", this.userPaused);
+  },
+
+  toggleDetails() {
+    const open = $("tour").classList.toggle("is-open");
+    $("tourMore").setAttribute("aria-expanded", String(open));
+    $("tourMore").textContent = open ? "Less" : "Details";
   },
 
   /* ---- drawing the card ---- */
@@ -5218,43 +5518,76 @@ const Tour = {
 
     $("tourCount").textContent = "Step " + (i + 1) + " of " + total;
     $("tourTag").textContent = step.tag;
-    $("tourTag").className = "tour__tag logline__tag tag-" + step.tag;
+    $("tourTag").className = "tour__tag tag-" + step.tag;
     $("tourTitle").textContent = step.title;
     $("tourProblem").hidden = !step.problem;
     $("tourProblem").innerHTML = step.problem ? "<b>The problem:</b> " + step.problem : "";
     $("tourBody").innerHTML = body;
     $("tourNotice").innerHTML = (step.notice || []).map((n) => "<li>" + n + "</li>").join("");
-    $("tourFile").hidden = !step.file;
     $("tourFile").innerHTML = step.file ? "Code: <code>" + step.file + "</code>" : "";
-    $("tourBar").style.width = ((i + (phase === "reading" ? 1 : 0.5)) / total) * 100 + "%";
+    $("tourBar").style.width = ((i + (phase === "working" ? 0.5 : 1)) / total) * 100 + "%";
 
     const status = $("tourStatus");
-    status.textContent = step.final ? "Tour complete"
-      : phase === "working" ? "Working - watch the highlighted area…"
-      : ui.ride && !ui.ride.state.isFinal ? "Ride held while you read · Next to continue"
-      : "Reading time · Next to continue";
-    status.dataset.phase = step.final ? "done" : phase;
+    status.dataset.phase = phase;
+    $("tourTimer").style.width = "100%";
+    $("tourStatusText").textContent = phase === "done" ? "Tour complete"
+      : phase === "working" ? "Working - watch the glow..." : "";
 
-    $("tourPause").hidden = !!step.final;
-    $("tourNext").hidden = !!step.final;
+    $("tourPause").hidden = phase === "done";
+    $("tourNext").hidden = phase === "done";
     $("tourNext").disabled = phase !== "reading";
-    $("tourExit").textContent = step.final ? "Close" : "Exit";
+    $("tourRestart").hidden = phase !== "done";
+    $("tourExit").textContent = phase === "done" ? "Close" : "Exit";
 
-    // Point at the part of the app this stage is about.
-    if (phase === "working" || step.final) {
-      document.querySelectorAll(".tour-focus").forEach((n) => n.classList.remove("tour-focus"));
-      const nodes = step.focus.map((sel) => document.querySelector(sel)).filter(Boolean);
-      nodes.forEach((n) => n.classList.add("tour-focus"));
-      if (nodes[0]) {
-        // On a phone the card covers the bottom half, so park the highlight at the top.
-        const phone = window.innerWidth <= 640;
-        nodes[0].scrollIntoView({ behavior: "smooth", block: phone ? "start" : "center" });
-        // Dock the card on the opposite side, so it never covers what it explains.
-        const r = nodes[0].getBoundingClientRect();
-        $("tour").dataset.side = step.dock || (r.left + r.width / 2 > window.innerWidth / 2 ? "left" : "right");
-      }
-      applyFilter(step.filter || "ALL");
+    applyFilter(step.filter || "ALL");
+    this.renderFeed();
+
+    this.point(phase === "working" && step.focusFirst ? step.focusFirst : step.focus);
+  },
+
+  /** Make the stage's elements glow, and bring them into view. */
+  point(selectors) {
+    document.querySelectorAll(".tour-focus").forEach((n) => n.classList.remove("tour-focus"));
+    const nodes = (selectors || []).map((sel) => document.querySelector(sel)).filter(Boolean);
+    nodes.forEach((n) => n.classList.add("tour-focus"));
+    if (!nodes.length) return;
+
+    const docked = window.innerWidth < 1024;
+    if (!docked) {
+      // Laptop: everything is on one screen - only nudge inside a scrolling panel.
+      nodes.forEach((n) => n.scrollIntoView({ block: "nearest", behavior: "smooth" }));
+      return;
     }
+
+    // Phone / tablet: the map is pinned on top (phone) and this card is
+    // docked at the bottom. Scroll the stage's element into the space
+    // between them. The pinned map itself never needs scrolling to.
+    const stage = $("stage");
+    const pinned = getComputedStyle(stage).position === "sticky";
+    const targets = nodes.filter((n) => !(pinned && stage.contains(n)) && n.offsetParent !== null);
+    if (!targets.length) return;
+    const top = pinned ? stage.getBoundingClientRect().height : 0;
+    const free = window.innerHeight - top - $("tour").offsetHeight - 20;
+
+    // Show every highlighted part together if they fit; otherwise the first one.
+    const rects = targets.map((n) => n.getBoundingClientRect());
+    const unionTop = Math.min(...rects.map((r) => r.top));
+    const unionBottom = Math.max(...rects.map((r) => r.bottom));
+    const from = unionBottom - unionTop <= free ? unionTop : rects[0].top;
+    window.scrollTo({ top: Math.max(0, window.scrollY + from - top - 10), behavior: "smooth" });
+  },
+
+  /** The latest console lines for this stage - shown where the console is out of view. */
+  renderFeed() {
+    if (!this.step) return;
+    const filter = this.step.filter || "ALL";
+    const lines = DispatchLog.getInstance().entries
+      .filter((e) => (filter === "ALL" ? e.tag !== "SYSTEM" : e.tag === filter))
+      .slice(-2);
+    $("tourFeed").innerHTML = lines.map((e) =>
+      '<div><span class="tag-' + e.tag + '">' + e.tag + "</span><span>" +
+      e.message.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/\{\{|\}\}/g, "") +
+      "</span></div>").join("");
   },
 
   renderStopped(text) {
@@ -5262,9 +5595,9 @@ const Tour = {
     $("tourProblem").hidden = true;
     $("tourBody").textContent = text;
     $("tourNotice").innerHTML = "<li>Press <b>Guided demo</b> again once no ride is active.</li>";
-    $("tourFile").hidden = true;
-    $("tourStatus").textContent = "Stopped";
+    $("tourFile").innerHTML = "";
     $("tourStatus").dataset.phase = "done";
+    $("tourStatusText").textContent = "Stopped";
   },
 };
 
@@ -5272,7 +5605,27 @@ document.addEventListener("DOMContentLoaded", () => {
   $("btnTour").addEventListener("click", () => Tour.start());
   $("tourPause").addEventListener("click", () => Tour.togglePause());
   $("tourNext").addEventListener("click", () => { Tour.skip = true; });
+  $("tourMore").addEventListener("click", () => Tour.toggleDetails());
+  $("tourRestart").addEventListener("click", () => { Tour.close(); Tour.start(); });
   $("tourExit").addEventListener("click", () => Tour.exit());
+
+  // Keep the console lines in the card live while a stage is up.
+  DispatchLog.getInstance().onWrite(() => { if (Tour.running) Tour.renderFeed(); });
+
+  // Reserve exactly the docked card's height at the bottom of the page.
+  if (window.ResizeObserver) {
+    new ResizeObserver(() => {
+      document.body.style.setProperty("--tour-h", $("tour").offsetHeight + "px");
+    }).observe($("tour"));
+  }
+
+  // Presenter keys: -> next, P pause, Esc exit.
+  document.addEventListener("keydown", (e) => {
+    if (!Tour.running || e.target.tagName === "SELECT") return;
+    if (e.key === "ArrowRight" && !$("tourNext").disabled) Tour.skip = true;
+    else if (e.key === "p" || e.key === "P") Tour.togglePause();
+    else if (e.key === "Escape") Tour.exit();
+  });
 });
 
 </script>

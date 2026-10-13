@@ -39,6 +39,7 @@ const ui = {
   ride: null,
   filter: "ALL",
   shownState: null,      // the state object last drawn, to spot real transitions
+  view: "plan",          // which tab of the ride sheet is showing: "plan" | "trip"
 };
 
 let facade;
@@ -317,15 +318,57 @@ function buildObservers() {
     label.className = "toggle";
     label.innerHTML =
       '<input type="checkbox" checked>' +
-      '<span><span class="toggle__name">' + observer.label + "</span>" +
+      '<span><span class="toggle__name">' + observer.label.replace("Observer", "<wbr>Observer") + "</span>" +
       '<span class="toggle__desc">' + observer.description + "</span></span>";
 
+    label.title = observer.label + " - " + observer.description;
     label.querySelector("input").addEventListener("change", (e) => {
       if (e.target.checked) facade.attachObserver(observer);
       else facade.detachObserver(observer);
     });
     box.appendChild(label);
   });
+}
+
+/* ============================================================
+   THE RIDE SHEET - two tabs, like a real ride app:
+   1 Plan (choose and price a ride) -> 2 Trip (follow it)
+   ============================================================ */
+
+function setView(view) {
+  ui.view = view;
+  $("viewPlan").hidden = view !== "plan";
+  $("viewTrip").hidden = view !== "trip";
+  $("tabPlan").setAttribute("aria-selected", String(view === "plan"));
+  $("tabTrip").setAttribute("aria-selected", String(view === "trip"));
+}
+
+/** The fare line on the Trip tab: what the rider was promised, then what they paid. */
+function renderTripFare(ride) {
+  const box = $("tripFare");
+  if (!ride) {
+    box.dataset.tone = "";
+    box.innerHTML = "<span>Book a ride and its fare is locked here.</span>";
+    return;
+  }
+  const key = ride.state.key;
+  let label, amount, tone = "";
+  if (key === "CompletedState") {
+    label = "Charged <small>exactly the upfront fare" +
+      (ride.detourKm ? " &middot; even after a " + ride.detourKm + " km detour" : "") + "</small>";
+    amount = ride.quote.total;
+    tone = "ok";
+  } else if (key === "CancelledState") {
+    const fee = ride.state.fee || 0;
+    label = "Cancelled <small>" + (fee ? "cancellation fee &middot; 10% of fare, max Rs.100" : "no fee charged to you") + "</small>";
+    amount = fee;
+    tone = fee ? "bad" : "ok";
+  } else {
+    label = "Upfront fare <small>locked when you booked &middot; this is the bill</small>";
+    amount = ride.quote.total;
+  }
+  box.dataset.tone = tone;
+  box.innerHTML = "<span>" + label + "</span><b>Rs." + amount + "</b>";
 }
 
 /* ============================================================
@@ -600,6 +643,8 @@ function renderLifecycle(ride) {
 
   const done = !ride || ride.state.isFinal;
   $("btnBook").disabled = !done;
+  $("btnAgain").hidden = !(ride && ride.state.isFinal);
+  renderTripFare(ride);
   // The guided demo books its own ride, so it waits until none is active.
   $("btnTour").disabled = !done || (typeof Tour !== "undefined" && Tour.running);
   $("btnBook").textContent = ride && ride.state.isFinal ? "Book another ride" : "Book ride";
@@ -695,7 +740,12 @@ function init() {
       dropId: ui.dropId,
       vehicleType: ui.vehicleType,
     });
+    setView("trip");                     // the sheet follows the ride
   });
+
+  $("tabPlan").addEventListener("click", () => setView("plan"));
+  $("tabTrip").addEventListener("click", () => setView("trip"));
+  $("btnAgain").addEventListener("click", () => setView("plan"));
 
   // Cancelling once a driver has accepted costs a fee, so ask why first:
   // "the driver asked me to" is the forced-cancellation trick, and is free.

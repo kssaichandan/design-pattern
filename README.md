@@ -24,6 +24,25 @@ the patterns are not just described — they are visible while the app runs.
 Double-click **`index.html`**. That is the whole setup — no install, no server,
 no build step, no internet connection needed (fonts fall back gracefully offline).
 
+**The screen.** On a laptop the whole app fits one screen — nothing to scroll:
+
+```
+┌──────────────┬───────────────────────────┬──────────────────┐
+│ 1 Plan 2 Trip│  Live map (the Observer   │  Guided demo     │
+│              │  subject broadcasting)    │  narration       │
+│ route, car,  │                           ├──────────────────┤
+│ price, Book  ├───────────────────────────┤  Dispatch        │
+│   — or —     │  GPS subscribers          │  console         │
+│ driver, ride │  (tick / untick)          │  (every pattern  │
+│ stages, fare │                           │   logs here)     │
+└──────────────┴───────────────────────────┴──────────────────┘
+```
+
+The ride panel works like a real ride app: **1 Plan** (route, vehicle, price,
+Book) switches to **2 Trip** (driver, ride stages, locked fare, cancel) the
+moment you book; *Plan another ride* brings you back. On a phone the map stays
+pinned at the top and everything else scrolls beneath it.
+
 **Press ▶ Guided demo** (top right) for a narrated walkthrough: it books one
 ride from Kukatpally to RGIA Airport by itself and explains every stage —
 see [Guided demo](#guided-demo).
@@ -427,6 +446,10 @@ explains it as it goes. It drives the app the way a person would — it picks th
 options and clicks the real buttons — so every console line is the real pattern
 doing its real job. The tour only decides *when* to click and *what to say*.
 
+It takes about a minute and a half. Each stage stays up only as long as its
+text needs — a countdown bar shows when it will move on — and the dull part of
+the drive is fast-forwarded (⏩) between stages.
+
 At each of its 13 stages a narration card shows:
 
 - **what is happening** right now, in plain words, with live values (the
@@ -435,8 +458,16 @@ At each of its 13 stages a narration card shows:
 - **what to notice** on screen and in the console;
 - **the file** the code lives in.
 
-The part of the app the stage is about gets an **amber glow**, and the console
-is filtered to that pattern's lines.
+The part of the app the stage is about gets an **amber glow**, the ride panel
+switches to the right tab by itself, and the console is filtered to that
+pattern's lines.
+
+**Where the narration sits.** On a laptop it has its own place above the
+console, so it never covers the app. On a phone or tablet it docks in a strip
+at the bottom, the page keeps that strip free, and the demo scrolls the
+highlighted part into the space between the pinned map and the strip. Since
+the console is out of view there, the card also shows its latest two lines;
+**Details** opens the problem, the notes and the file name.
 
 | # | Stage | Pattern |
 |---|---|---|
@@ -448,27 +479,33 @@ is filtered to that pattern's lines.
 | 6 | Book ride — one call | Facade |
 | 7 | A driver accepts | State |
 | 8 | **Real problem #1:** the driver cancels → `RematchingState`, rider pays Rs.0 | State |
-| 9 | The new driver drives in, GPS to five subscribers | Observer |
+| 9 | A new driver drives in, GPS to five subscribers | Observer |
 | 10 | Rider aboard — Cancel disables itself | State |
 | 11 | **Real problem #3:** route detour → "Are you okay?" | Observer |
 | 12 | Trip complete — charged the upfront fare | State |
 | 13 | Recap | — |
 
-**Controls.** While a stage is being read the ride **holds still**, so the car
-never races ahead of the explanation. **Next** moves on, **Pause** freezes the
-whole simulation (car, timers, traffic), **Exit** stops the tour and lets the
-ride finish at normal speed. The button is disabled while another ride is
-active, because the tour books its own.
+**Controls.** **Next** (or the → key) moves on, **Pause** (or P) freezes the
+whole simulation — car, timers, traffic — and **Exit** (or Esc) stops the tour
+and lets the ride finish at normal speed. **Run again** replays it at the end.
+Where the next click depends on the ride being at an exact moment (a driver
+has just accepted, the rider has just got in), the ride **holds still** while
+that stage is read, so the car can never race ahead of the explanation. The
+button is disabled while another ride is active, because the tour books its
+own.
 
 **How the ride can hold still.** The State timers and the GPS stream ask
 `SimClock` (`js/core/clock.js`) for time instead of the browser. The tour slows
-that clock a little and pauses it while you read; no pattern knows a demo is
-running.
+that clock up to fast-forward, and pauses it where a stage must hold; no
+pattern knows a demo is running.
 
 ---
 
 ## A five-minute demo script
 
+0. **Short on time?** Press **▶ Guided demo** and let it run — about a minute
+   and a half, covering every step below. The manual script is for when you
+   want to take questions as you go.
 1. **Open the page.** Point at the console: it is already full. Booting the app
    built four vehicles through the Factory and subscribed five Observers.
 2. **Click SUV, then Bike.** Console prints
@@ -483,9 +520,10 @@ running.
    the car keeps moving. Say: *the publisher does not know who is listening.*
 6. **Press Cancel during "Driver arriving"** — the app asks why. *Changed my
    plans* costs 10% of the fare (max Rs.100); *the driver asked me to* is free.
-   Book again and **wait for "Ride in progress"** — the button disables itself.
+   Press *Plan another ride*, book again and **wait for "Ride in progress"** —
+   the button disables itself.
    Say: *the state object decides, not the button.*
-7. **Real-world fix 1 — book, then press *Driver cancels*.** The ride moves to
+7. **Real-world fix 1 — book, then press *Driver cancels* (Trip tab).** The ride moves to
    `RematchingState`, a different driver drives in from their own street, the
    fare stays the same and the rider pays nothing. Say: *a whole new stage was
    one class.*
