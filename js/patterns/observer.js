@@ -186,7 +186,7 @@ class DriverLocationPublisher {
 
 class MapMarkerObserver extends LocationObserver {
   constructor(moveMarker) {
-    super("map", "MapMarkerObserver", "Slides the car marker along the route.");
+    super("map", "MapMarkerObserver", "Moves the car on the map.");
     this.moveMarker = moveMarker;
   }
   update(fix) {
@@ -196,7 +196,7 @@ class MapMarkerObserver extends LocationObserver {
 
 class EtaPanelObserver extends LocationObserver {
   constructor(showEta) {
-    super("eta", "EtaPanelObserver", "Refreshes ETA, distance, speed and the road name.");
+    super("eta", "EtaPanelObserver", "Updates ETA, distance, speed.");
     this.showEta = showEta;
   }
   update(fix) {
@@ -206,7 +206,7 @@ class EtaPanelObserver extends LocationObserver {
 
 class TripLogObserver extends LocationObserver {
   constructor() {
-    super("log", "TripLogObserver", "Records position fixes into the dispatch log.");
+    super("log", "TripLogObserver", "Writes fixes to the console.");
     this.count = 0;
   }
   update(fix) {
@@ -225,7 +225,7 @@ class TripLogObserver extends LocationObserver {
 
 class PushNotificationObserver extends LocationObserver {
   constructor(pushToast) {
-    super("push", "PushNotificationObserver", "Fires the arrival alerts a rider actually sees.");
+    super("push", "PushNotificationObserver", "Sends the rider arrival alerts.");
     this.pushToast = pushToast;
     this.sent = new Set();
   }
@@ -266,7 +266,7 @@ class SafetyMonitorObserver extends LocationObserver {
    * @param {function} raiseSafetyCheck  shows the "Are you okay?" card
    */
   constructor(raiseSafetyCheck) {
-    super("safety", "SafetyMonitorObserver", "Flags long unexplained stops and route deviations once the rider is aboard.");
+    super("safety", "SafetyMonitorObserver", "Flags long stops and detours.");
     this.raiseSafetyCheck = raiseSafetyCheck;
     this.raised = new Set();
 

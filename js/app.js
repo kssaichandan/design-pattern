@@ -357,23 +357,23 @@ function renderTripFare(ride) {
   const box = $("tripFare");
   if (!ride) {
     box.dataset.tone = "";
-    box.innerHTML = "<span>Book a ride and its fare is locked here.</span>";
+    box.innerHTML = "<span>Your fare locks when you book.</span>";
     return;
   }
   const key = ride.state.key;
   let label, amount, tone = "";
   if (key === "CompletedState") {
-    label = "Charged <small>exactly the upfront fare" +
-      (ride.detourKm ? " &middot; even after a " + ride.detourKm + " km detour" : "") + "</small>";
+    label = "Charged <small>same as quoted" +
+      (ride.detourKm ? " &middot; +" + ride.detourKm + " km detour, no extra" : "") + "</small>";
     amount = ride.quote.total;
     tone = "ok";
   } else if (key === "CancelledState") {
     const fee = ride.state.fee || 0;
-    label = "Cancelled <small>" + (fee ? "cancellation fee &middot; 10% of fare, max Rs.100" : "no fee charged to you") + "</small>";
+    label = fee ? "Cancellation fee <small>10% of fare, max Rs.100</small>" : "Cancelled <small>no fee for you</small>";
     amount = fee;
     tone = fee ? "bad" : "ok";
   } else {
-    label = "Upfront fare <small>locked when you booked &middot; this is the bill</small>";
+    label = "Upfront fare <small>locked &middot; this is the bill</small>";
     amount = ride.quote.total;
   }
   box.dataset.tone = tone;
@@ -559,7 +559,7 @@ function buildVehiclePicker() {
     b.innerHTML =
       '<span class="vcard__ico">' + VEHICLE_ICONS[vehicle.iconId] + "</span>" +
       '<span class="vcard__name">' + vehicle.label + "</span>" +
-      '<span class="vcard__meta">' + vehicle.capacity + " seat</span>" +
+      '<span class="vcard__meta">' + vehicle.capacity + (vehicle.capacity === 1 ? " seat" : " seats") + "</span>" +
       '<span class="vcard__meta">Rs.' + vehicle.perKm + "/km</span>";
 
     b.addEventListener("click", () => {
@@ -589,7 +589,7 @@ function refreshQuote() {
 
   const active = facade.calculator.strategy;
   $("receiptStrategy").innerHTML =
-    "<span>" + active.note + "</span><b>" + active.name + "</b>" +
+    "<b title=\"" + active.note + "\">" + active.name + "</b>" +
     (active.guards ? '<span class="receipt__guards">guarded by ' + active.guards.join(" › ") + "</span>" : "");
 
   $("receiptLines").innerHTML =
@@ -622,10 +622,10 @@ function renderLifecycle(ride) {
     let cls = "step";
     if (ride && !cancelled && i < current) cls += " is-done";
     if (ride && !cancelled && i === current) cls += " is-active";
-    // The note names the class the ride really holds - which on the
-    // first row may be RematchingState rather than RequestedState.
-    const note = ride && !cancelled && i === current ? ride.state.key : s.cls;
-    return '<div class="' + cls + '">' +
+    // Only the current row names a class: the one the ride really holds
+    // (on row 1 that may be RematchingState). Other rows keep it as a tooltip.
+    const note = ride && !cancelled && i === current ? ride.state.key : "";
+    return '<div class="' + cls + '" title="' + s.cls + '">' +
       '<span class="step__dot">' + (i + 1) + "</span>" +
       '<span class="step__name">' + s.label + "</span>" +
       '<span class="step__note">' + note + "</span></div>";
@@ -637,7 +637,8 @@ function renderLifecycle(ride) {
     : "");
 
   $("stateNow").textContent = ride ? ride.state.key : "no active ride";
-  $("stateLabel").textContent = ride ? ride.state.label : "Pick a route and book";
+  $("stateLabel").textContent = ride ? ride.state.label : "No ride yet";
+  $("tabTrip").classList.toggle("is-live", !!(ride && !ride.state.isFinal));
   $("btnCancel").disabled = !ride || !ride.canCancel;
   if (!ride || !ride.canCancel) $("cancelAsk").hidden = true;
 
@@ -650,8 +651,8 @@ function renderLifecycle(ride) {
   $("rematchNote").hidden = !away.length;
   if (away.length) {
     $("rematchNote").innerHTML =
-      "<b>" + away.map((d) => d.name).join(", ") + "</b> cancelled on you &middot; penalised, you pay Rs.0 &middot; " +
-      "fare locked at <b>Rs." + ride.quote.total + "</b>";
+      "<b>" + away.map((d) => d.name).join(", ") + "</b> cancelled &mdash; you pay Rs.0, the driver is penalised, " +
+      "fare stays <b>Rs." + ride.quote.total + "</b>.";
   }
 
   const done = !ride || ride.state.isFinal;
@@ -760,7 +761,7 @@ function init() {
   $("btnTraffic").addEventListener("click", () => {
     const off = document.body.classList.toggle("no-traffic");
     $("btnTraffic").setAttribute("aria-pressed", String(!off));
-    $("btnTraffic").textContent = "City traffic: " + (off ? "off" : "on");
+    $("btnTraffic").textContent = "Traffic: " + (off ? "off" : "on");
   });
 
   $("tabPlan").addEventListener("click", () => setView("plan"));
@@ -772,7 +773,7 @@ function init() {
   $("btnCancel").addEventListener("click", () => {
     const ride = ui.ride;
     if (ride && ride.driver && ride.cancelFee > 0) {
-      $("cancelFeeNote").textContent = "Rs." + ride.cancelFee + " fee (10% of fare, max Rs.100)";
+      $("cancelFeeNote").textContent = "Rs." + ride.cancelFee + " fee \u00B7 10% of fare, max Rs.100";
       $("cancelAsk").hidden = false;
     } else {
       facade.cancelRide();

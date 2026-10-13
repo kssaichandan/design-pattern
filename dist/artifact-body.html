@@ -15,7 +15,7 @@
   --surface-3:   #E7ECF3;
   --ink:         #0F1620;
   --ink-2:       #46566C;
-  --ink-3:       #7B8A9E;
+  --ink-3:       #5B6879;   /* 5.2:1+ on every light surface (WCAG AA) */
   --line:        #D3DBE5;
   --line-2:      #E4EAF1;
 
@@ -65,7 +65,7 @@
   --con-bg-2:  #16212F;
   --con-line:  #24313F;
   --con-text:  #C7D3E1;
-  --con-dim:   #6C7E93;
+  --con-dim:   #91A2B7;   /* 6.2:1+ on the console */
 
   --f-display: "Archivo", "Helvetica Neue", Arial, sans-serif;
   --f-body:    "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
@@ -84,7 +84,7 @@
     --surface-3:   #212D3C;
     --ink:         #E9EEF5;
     --ink-2:       #9EADC0;
-    --ink-3:       #6C7C90;
+    --ink-3:       #8797AB;   /* 4.7:1+ on every dark surface (WCAG AA) */
     --line:        #263340;
     --line-2:      #1F2A36;
 
@@ -138,7 +138,7 @@
   --surface-3:   #212D3C;
   --ink:         #E9EEF5;
   --ink-2:       #9EADC0;
-  --ink-3:       #6C7C90;
+  --ink-3:       #8797AB;   /* 4.7:1+ on every dark surface (WCAG AA) */
   --line:        #263340;
   --line-2:      #1F2A36;
 
@@ -217,7 +217,7 @@ h1, h2, h3, h4 {
 .topbar { background: var(--surface); border-bottom: 1px solid var(--line); position: relative; z-index: 8; }
 
 .topbar__in {
-  max-width: 1680px; margin: 0 auto; min-height: calc(var(--topbar-h) - 1px);   /* + 1px border */
+  max-width: 1680px; margin: 0 auto; height: calc(var(--topbar-h) - 1px);   /* + 1px border = --topbar-h */
   display: flex; align-items: center; gap: 18px; padding: 8px 16px;
 }
 
@@ -235,9 +235,7 @@ h1, h2, h3, h4 {
   letter-spacing: -0.035em; line-height: 1;
 }
 .brand__sub {
-  display: block;
-  font-family: var(--f-mono); font-size: 9.5px; letter-spacing: .11em;
-  text-transform: uppercase; color: var(--ink-3); margin-top: 4px;
+  display: block; font-size: 11.5px; color: var(--ink-3); margin-top: 3px;
 }
 
 .chiprack {
@@ -245,17 +243,11 @@ h1, h2, h3, h4 {
   overflow-x: auto; scrollbar-width: none;
 }
 .chiprack::-webkit-scrollbar { display: none; }
-.chiprack__label {
-  font-family: var(--f-mono); font-size: 9.5px; letter-spacing: .1em; white-space: nowrap;
-  text-transform: uppercase; color: var(--ink-3); margin-right: 4px;
-}
+
 .pchip {
-  flex: none;
-  font-family: var(--f-mono); font-size: 10px; font-weight: 500;
-  letter-spacing: .06em; text-transform: uppercase;
-  padding: 4px 8px; border-radius: var(--r-sm);
-  border: 1px solid var(--line); background: var(--surface-2); color: var(--ink-2);
-  transition: background .18s, color .18s, border-color .18s, transform .18s;
+  flex: none; font-family: var(--f-body); font-size: 12px; font-weight: 500;
+  padding: 3px 9px; border-radius: 999px;
+  border: 1px solid var(--line); background: var(--surface); color: var(--ink-2);
 }
 /* A soft glow when a pattern runs - no jumping, no full-colour flash.
    During the guided demo only the pattern being explained is marked. */
@@ -276,7 +268,7 @@ h1, h2, h3, h4 {
 
 .app {
   max-width: 1680px; margin: 0 auto;
-  padding: var(--gap) 16px 18px;
+  padding: var(--gap) 16px 12px;
   display: grid; gap: var(--gap);
   grid-template-columns: minmax(0, 1fr);
   grid-template-areas: "stage" "sheet" "obs" "lab";
@@ -296,17 +288,35 @@ h1, h2, h3, h4 {
   padding: 9px 14px; border-bottom: 1px solid var(--line-2);
 }
 .panel__title {
-  font-family: var(--f-mono); font-size: 10.5px; letter-spacing: .12em;
-  text-transform: uppercase; color: var(--ink-3); font-weight: 500; white-space: nowrap;
+  display: inline-flex; align-items: center; gap: 8px; white-space: nowrap;
+  font-family: var(--f-body); font-size: 13px; font-weight: 600; color: var(--ink);
 }
-.panel__title i, .field__label i, .term__title i { font-style: normal; opacity: .7; }
+/* which pattern a part of the screen belongs to: a coloured dot + its name */
+.ptag {
+  display: inline-flex; align-items: center; gap: 5px;
+  font-family: var(--f-mono); font-size: 11px; font-weight: 400; color: var(--ink-3);
+}
+.ptag::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--ink-3); }
+.ptag[data-p="FACTORY"]::before   { background: #D9860A; }
+.ptag[data-p="STRATEGY"]::before  { background: #1E4FD8; }
+.ptag[data-p="DECORATOR"]::before { background: #1A9AA8; }
+.ptag[data-p="FACADE"]::before    { background: #B4501F; }
+.ptag[data-p="STATE"]::before     { background: #6B3FBF; }
+.ptag[data-p="OBSERVER"]::before  { background: #0E7A55; }
+.ptag[data-p="SINGLETON"]::before { background: #9C8A2A; }
+.ptag--dark { color: var(--con-dim); }
+
+.sr-only {
+  position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+  overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+}
 .panel__via {
   flex: 1; min-width: 0; text-align: right; font-size: 11.5px; color: var(--ink-3);
   overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }
 .minibtn {
-  flex: none; font: inherit; font-size: 11px; cursor: pointer; white-space: nowrap;
-  padding: 2px 8px; border-radius: 999px; border: 1px solid var(--line);
+  flex: none; font: inherit; font-size: 12px; cursor: pointer; white-space: nowrap;
+  min-height: 26px; padding: 2px 10px; border-radius: 999px; border: 1px solid var(--line);
   background: var(--surface); color: var(--ink-3);
 }
 .minibtn:hover { color: var(--ink); border-color: var(--ink-3); }
@@ -327,22 +337,21 @@ h1, h2, h3, h4 {
   color: var(--ink-3); font-size: 13.5px; font-weight: 600;
 }
 .tab:hover { color: var(--ink-2); }
+.tab.is-live::after {        /* a ride is running */
+  content: ""; width: 7px; height: 7px; border-radius: 50%; background: var(--green); margin-left: 2px;
+}
 .tab__n {
   width: 19px; height: 19px; border-radius: 50%; display: grid; place-items: center;
-  font-family: var(--f-mono); font-size: 10px; border: 1px solid currentColor;
+  font-family: var(--f-mono); font-size: 11px; border: 1px solid currentColor;
 }
 .tab[aria-selected="true"] { color: var(--ink); border-bottom-color: var(--ink); }
 .tab[aria-selected="true"] .tab__n { background: var(--ink); border-color: var(--ink); color: var(--surface); }
 .tab:focus-visible { outline: 2px solid var(--blue); outline-offset: -2px; }
-.tabs__state {
-  margin-left: auto; align-self: center; min-width: 0;
-  font-family: var(--f-mono); font-size: 10.5px; color: var(--violet);
-  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
-}
+
 
 /* A column that never squashes its children - if a short screen can't
    fit them, the panel scrolls instead. */
-.view { padding: 12px 14px; display: flex; flex-direction: column; gap: 10px; }
+.view { padding: 12px 14px; display: flex; flex-direction: column; gap: 9px; }
 .view > * { flex: none; }
 .view[hidden] { display: none; }
 
@@ -350,8 +359,8 @@ h1, h2, h3, h4 {
 
 .field { display: grid; gap: 4px; }
 .field__label {
-  font-family: var(--f-mono); font-size: 10px; letter-spacing: .11em;
-  text-transform: uppercase; color: var(--ink-3);
+  display: flex; align-items: center; gap: 10px;
+  font-size: 12.5px; font-weight: 600; color: var(--ink-2);
 }
 
 select, .btn {
@@ -383,7 +392,7 @@ select:focus-visible, .btn:focus-visible, .vcard:focus-visible,
   cursor: pointer; text-align: left; font-family: var(--f-body); min-width: 0;
   border: 1px solid var(--line); border-radius: var(--r-md);
   background: var(--surface-2); color: var(--ink);
-  padding: 7px 7px 6px; display: grid; gap: 1px;
+  padding: 5px 7px 4px; display: grid; gap: 1px;
   transition: border-color .15s, background .15s, box-shadow .15s;
 }
 .vcard:hover { border-color: var(--ink-3); }
@@ -396,7 +405,7 @@ select:focus-visible, .btn:focus-visible, .vcard:focus-visible,
 .vcard__ico svg { height: 18px; width: auto; display: block; }
 .vcard__name { font-size: 12.5px; font-weight: 600; letter-spacing: -0.01em; }
 .vcard__meta {
-  font-family: var(--f-mono); font-size: 9.5px; color: var(--ink-3);
+  font-family: var(--f-mono); font-size: 11px; color: var(--ink-3);
   line-height: 1.35; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
 
@@ -407,16 +416,16 @@ select:focus-visible, .btn:focus-visible, .vcard:focus-visible,
 }
 .receipt__strategy {
   padding: 7px 11px; border-bottom: 1px dashed var(--line);
-  font-family: var(--f-mono); font-size: 10.5px; color: var(--ink-2);
-  display: flex; flex-wrap: wrap; justify-content: space-between; gap: 2px 10px;
+  font-family: var(--f-mono); font-size: 11.5px; color: var(--ink-2);
+  display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 10px;
 }
 .receipt__strategy b { color: var(--blue); font-weight: 500; }
 .receipt__guards { flex-basis: 100%; color: var(--violet); }
-.receipt__lines { padding: 6px 11px 7px; display: grid; gap: 2px; }
+.receipt__lines { padding: 5px 11px 6px; display: grid; gap: 1px; }
 
 .rline {
   display: flex; justify-content: space-between; gap: 12px;
-  font-size: 12.8px; color: var(--ink-2);
+  font-size: 12.8px; line-height: 1.45; color: var(--ink-2);
 }
 .rline span:last-child {
   font-family: var(--f-mono); font-variant-numeric: tabular-nums; color: var(--ink); white-space: nowrap;
@@ -460,13 +469,13 @@ select:focus-visible, .btn:focus-visible, .vcard:focus-visible,
 }
 .step__dot {
   width: 24px; height: 24px; border-radius: 50%; display: grid; place-items: center;
-  font-family: var(--f-mono); font-size: 10.5px; font-weight: 500;
+  font-family: var(--f-mono); font-size: 11px; font-weight: 500;
   border: 1px solid var(--line); background: var(--surface); color: var(--ink-3);
   position: relative; z-index: 1;
 }
 .step__name { font-size: 13px; color: var(--ink-3); }
 .step__note {
-  font-family: var(--f-mono); font-size: 9.5px; color: var(--ink-3); text-align: right;
+  font-family: var(--f-mono); font-size: 11px; color: var(--violet); text-align: right;
 }
 .step.is-done .step__dot { background: var(--green-soft); border-color: var(--green); color: var(--green); }
 .step.is-done .step__name { color: var(--ink-2); }
@@ -478,33 +487,28 @@ select:focus-visible, .btn:focus-visible, .vcard:focus-visible,
 .step.is-active .step__note { color: var(--violet); }
 .step.is-dead .step__dot { background: var(--red-soft); border-color: var(--red); color: var(--red); }
 
-.statebar {
-  display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
-  padding: 7px 11px; border-radius: var(--r-md);
-  background: var(--surface-2); border: 1px solid var(--line);
-}
-.statebar__k {
-  font-family: var(--f-mono); font-size: 10px; letter-spacing: .1em;
-  text-transform: uppercase; color: var(--ink-3);
-}
-.statebar__v { font-family: var(--f-mono); font-size: 12px; color: var(--violet); font-weight: 500; }
+
+
+
+
+.triphead { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; }
+.triphead__t { font-size: 16px; letter-spacing: -0.02em; margin: 0; }
 
 .tripfare {
   display: flex; align-items: baseline; justify-content: space-between; gap: 10px;
-  padding: 8px 11px; border-radius: var(--r-md);
-  border: 1px dashed var(--line); font-size: 12.5px; color: var(--ink-2);
+  padding-top: 9px; border-top: 1px solid var(--line-2);
+  font-size: 13px; color: var(--ink-2);
 }
 .tripfare b { font-family: var(--f-display); font-size: 17px; color: var(--ink); letter-spacing: -0.02em; white-space: nowrap; }
-.tripfare small { display: block; font-size: 11px; color: var(--ink-3); }
-.tripfare[data-tone="ok"]  { border-style: solid; border-color: var(--green); background: var(--green-soft); }
-.tripfare[data-tone="bad"] { border-style: solid; border-color: var(--red); background: var(--red-soft); }
+.tripfare small { display: block; font-size: 11.5px; color: var(--ink-3); }
+.tripfare[data-tone="ok"]  b { color: var(--green); }
+.tripfare[data-tone="bad"] b { color: var(--red); }
 
 /* ---------------- the driver card ---------------- */
 
 .dcard {
   display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 10px; align-items: center;
-  padding: 8px 11px;
-  background: var(--surface-2); border: 1px solid var(--line); border-radius: var(--r-md);
+  padding: 9px 11px; background: var(--surface-2); border-radius: var(--r-md);
 }
 .dcard__ava {
   width: 32px; height: 32px; border-radius: 50%;
@@ -527,17 +531,17 @@ select:focus-visible, .btn:focus-visible, .vcard:focus-visible,
   position: absolute; left: 10px; top: 10px; max-width: calc(100% - 20px);
   display: flex; align-items: baseline; gap: 4px 12px; flex-wrap: wrap;
   padding: 5px 11px; border-radius: 999px;
-  background: color-mix(in srgb, var(--surface) 90%, transparent);
+  background: var(--surface);
   border: 1px solid var(--line); box-shadow: var(--shadow-sm);
   font-family: var(--f-mono); font-variant-numeric: tabular-nums;
 }
 .hud__item { display: inline-flex; align-items: baseline; gap: 5px; white-space: nowrap; }
-.hud__k { font-size: 9px; letter-spacing: .1em; text-transform: uppercase; color: var(--ink-3); }
+.hud__k { font-family: var(--f-body); font-size: 11px; color: var(--ink-3); }
 .hud__v { font-size: 12.5px; color: var(--ink); }
 .hud__item--road .hud__v { font-family: var(--f-body); font-size: 12px; max-width: 16ch; overflow: hidden; text-overflow: ellipsis; }
 /* traffic state as a small coloured word, not a box that flips colour */
 .hud__status {
-  font-size: 10px; letter-spacing: .08em; text-transform: uppercase; color: var(--ink-3);
+  font-family: var(--f-body); font-size: 11.5px; color: var(--ink-3);
   display: inline-flex; align-items: center; gap: 5px; white-space: nowrap;
 }
 .hud__status::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
@@ -562,27 +566,23 @@ select:focus-visible, .btn:focus-visible, .vcard:focus-visible,
 
 .obs { padding: 9px 12px 11px; display: grid; gap: 7px; }
 .obs__hd { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
-.obs__hint { font-size: 11.5px; color: var(--ink-3); }
+.obs__hint { font-size: 12px; color: var(--ink-3); }
 
 .obsgrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(176px, 1fr)); gap: 6px; }
 
 .toggle {
-  display: flex; gap: 8px; align-items: flex-start; cursor: pointer; min-width: 0;
-  border: 1px solid var(--line); border-radius: var(--r-md);
-  background: var(--surface-2); padding: 6px 8px;
-  transition: border-color .15s, background .15s;
+  display: flex; gap: 9px; align-items: flex-start; cursor: pointer; min-width: 0;
+  border-radius: var(--r-md); padding: 6px 8px; min-height: 40px;
+  transition: background .15s;
 }
-.toggle:hover { border-color: var(--ink-3); }
-.toggle input { margin: 2px 0 0; accent-color: var(--blue); width: 14px; height: 14px; flex: none; }
+.toggle:hover { background: var(--surface-2); }
+.toggle input { margin: 2px 0 0; accent-color: var(--ink); width: 15px; height: 15px; flex: none; }
 .toggle > span { min-width: 0; }
 .toggle__name {
-  font-family: var(--f-mono); font-size: 11px; color: var(--ink); line-height: 1.3;
+  font-family: var(--f-mono); font-size: 11.5px; color: var(--ink); line-height: 1.3;
   display: block; overflow-wrap: anywhere;
 }
-.toggle__desc {
-  display: block; font-size: 11px; color: var(--ink-3); line-height: 1.35;
-  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
-}
+.toggle__desc { display: block; font-size: 11.5px; color: var(--ink-3); line-height: 1.35; }
 /* subscribed = normal ink; unsubscribed = faded, so the odd one out is obvious */
 .toggle:not(:has(input:checked)) { opacity: .55; }
 .toggle:not(:has(input:checked)) .toggle__name { text-decoration: line-through; }
@@ -599,10 +599,10 @@ select:focus-visible, .btn:focus-visible, .vcard:focus-visible,
   padding: 9px 12px; border-bottom: 1px solid var(--con-line); background: var(--con-bg-2);
 }
 .term__title {
-  font-family: var(--f-mono); font-size: 10px; letter-spacing: .1em; min-width: 0;
-  text-transform: uppercase; color: var(--con-dim); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  display: inline-flex; align-items: center; gap: 8px; min-width: 0; white-space: nowrap;
+  font-family: var(--f-body); font-size: 13px; font-weight: 600; color: var(--con-text);
 }
-.term__live { display: flex; align-items: center; gap: 6px; font-family: var(--f-mono); font-size: 10px; color: var(--con-dim); flex: none; }
+.term__live { display: flex; align-items: center; gap: 6px; font-size: 11.5px; color: var(--con-dim); flex: none; }
 .term__led {
   width: 7px; height: 7px; border-radius: 50%; background: #35C88F;
   box-shadow: 0 0 6px #35C88F;
@@ -639,8 +639,8 @@ select:focus-visible, .btn:focus-visible, .vcard:focus-visible,
   border-top: 1px solid var(--con-line); background: var(--con-bg-2);
 }
 .filter {
-  font-family: var(--f-mono); font-size: 9.5px; letter-spacing: .05em;
-  padding: 3px 7px; border-radius: 999px; cursor: pointer;
+  font-family: var(--f-mono); font-size: 11px; letter-spacing: .03em;
+  min-height: 26px; padding: 3px 9px; border-radius: 999px; cursor: pointer;
   border: 1px solid var(--con-line); background: transparent; color: var(--con-dim);
 }
 .filter[aria-pressed="true"] { background: var(--con-line); color: #fff; }
@@ -649,26 +649,45 @@ select:focus-visible, .btn:focus-visible, .vcard:focus-visible,
 /* ---------------- pattern reference ---------------- */
 
 .ref { border-top: 1px solid var(--line); background: var(--surface); }
-.ref__in { padding-block: 46px 60px; display: grid; gap: 34px; }
-.ref__lede { max-width: 62ch; display: grid; gap: 10px; }
+.ref__in { padding-block: 40px 56px; display: grid; gap: 0; }
+.ref__lede { max-width: 62ch; display: grid; gap: 8px; padding-bottom: 22px; }
 .ref__lede h2 { font-size: 30px; letter-spacing: -0.035em; }
 .ref__lede p { margin: 0; color: var(--ink-2); font-size: 15.5px; }
 
-.eyebrow {
-  font-family: var(--f-mono); font-size: 10.5px; letter-spacing: .13em;
-  text-transform: uppercase; color: var(--amber);
+.eyebrow { font-size: 13px; font-weight: 600; color: var(--amber); }
+
+.pat { border-top: 1px solid var(--line-2); }
+.pat__sum {
+  list-style: none; cursor: pointer;
+  display: grid; grid-template-columns: 120px minmax(0, 220px) minmax(0, 1fr) 24px; align-items: baseline; gap: 6px 18px;
+  padding: 16px 4px;
+}
+.pat__sum::-webkit-details-marker { display: none; }
+.pat__sum::after {
+  content: "+"; justify-self: end; font-size: 20px; line-height: 1; color: var(--ink-3);
+  transition: transform .2s;
+}
+.pat[open] > .pat__sum::after { transform: rotate(45deg); }
+.pat__sum:hover .pat__name { color: var(--blue); }
+.pat__sum:focus-visible { outline: 2px solid var(--blue); outline-offset: 2px; border-radius: var(--r-md); }
+.pat__in {
+  display: grid; grid-template-columns: minmax(0, 340px) minmax(0, 1fr); gap: 26px;
+  padding: 4px 4px 26px;
+}
+.pat__qa { display: grid; gap: 12px; align-content: start; }
+@media (max-width: 900px) {
+  .pat__sum { grid-template-columns: minmax(0, 1fr) 24px; }
+  .pat__sum .pat__tag { grid-column: 1; }
+  .pat__sum .pat__name, .pat__sum .pat__body { grid-column: 1 / 2; }
+  .pat__sum::after { grid-row: 1; grid-column: 2; }
+  .pat__in { grid-template-columns: minmax(0, 1fr); gap: 16px; }
 }
 
-.pat {
-  display: grid; grid-template-columns: minmax(0, 340px) minmax(0, 1fr);
-  gap: 26px; padding-top: 28px; border-top: 1px solid var(--line-2);
-}
-@media (max-width: 900px) { .pat { grid-template-columns: minmax(0, 1fr); gap: 16px; } }
 
-.pat__head { display: grid; gap: 11px; align-content: start; }
+
 .pat__tag {
-  font-family: var(--f-mono); font-size: 10px; letter-spacing: .1em; text-transform: uppercase;
-  padding: 4px 8px; border-radius: var(--r-sm); justify-self: start;
+  font-size: 12px; font-weight: 600;
+  padding: 3px 9px; border-radius: 999px; justify-self: start; white-space: nowrap;
 }
 .pt-factory   { background: var(--amber-soft);  color: var(--amber);  }
 .pt-strategy  { background: var(--blue-soft);   color: var(--blue);   }
@@ -679,7 +698,7 @@ select:focus-visible, .btn:focus-visible, .vcard:focus-visible,
 .pt-decorator { background: var(--blue-soft);   color: var(--violet); }
 .pt-problem   { background: var(--red-soft);    color: var(--red);    }
 
-.pat__name { font-size: 23px; letter-spacing: -0.035em; }
+.pat__name { font-size: 19px; letter-spacing: -0.03em; }
 .pat__name small {
   display: block; font-family: var(--f-mono); font-size: 11px; font-weight: 400;
   letter-spacing: .04em; color: var(--ink-3); margin-top: 4px; text-transform: none;
@@ -687,10 +706,7 @@ select:focus-visible, .btn:focus-visible, .vcard:focus-visible,
 .pat__body { margin: 0; color: var(--ink-2); font-size: 14px; }
 
 .qa { display: grid; gap: 3px; }
-.qa__q {
-  font-family: var(--f-mono); font-size: 10px; letter-spacing: .1em;
-  text-transform: uppercase; color: var(--ink-3);
-}
+.qa__q { font-size: 12.5px; font-weight: 600; color: var(--ink); }
 .qa__a { font-size: 14px; color: var(--ink-2); margin: 0; }
 .qa__a code {
   font-family: var(--f-mono); font-size: 12.5px;
@@ -827,16 +843,15 @@ body.no-traffic #ambient, body.is-touring #ambient { display: none; }
 .rematch b { color: var(--ink); }
 
 .cancelask {
-  display: grid; gap: 6px; padding: 10px;
-  border: 1px solid var(--line); border-radius: var(--r-md); background: var(--surface-2);
+  display: grid; gap: 6px; padding: 10px; border-radius: var(--r-md); background: var(--surface-2);
 }
 .dcard[hidden], .cancelask[hidden], .rematch[hidden], .safety[hidden] { display: none; }
 .cancelask__q { font-size: 13px; font-weight: 600; color: var(--ink); }
 .cancelask__opt { display: grid; gap: 1px; text-align: left; background: var(--surface); }
 .cancelask__opt small { font-weight: 400; font-size: 11.5px; color: var(--ink-3); }
 .linkbtn {
-  background: none; border: 0; padding: 3px; cursor: pointer;
-  font: inherit; font-size: 12.5px; color: var(--blue); justify-self: start;
+  background: none; border: 0; padding: 4px; min-height: 26px; cursor: pointer;
+  font: inherit; font-size: 13px; color: var(--blue); justify-self: start;
 }
 
 .demo { display: grid; gap: 5px; padding-top: 10px; border-top: 1px dashed var(--line); }
@@ -887,57 +902,61 @@ body.no-traffic #ambient, body.is-touring #ambient { display: none; }
 .tour__bar { height: 3px; margin: 0 -14px; background: var(--con-line); position: sticky; top: 0; z-index: 1; }
 .tour__bar span { display: block; height: 100%; width: 0; background: var(--amber-hi); transition: width .4s ease; }
 
-.tour__hd { display: flex; justify-content: space-between; align-items: center; gap: 8px; padding-top: 7px; }
-.tour__count { font-family: var(--f-mono); font-size: 10.5px; color: var(--con-dim); letter-spacing: .04em; }
+.tour__hd { display: flex; justify-content: space-between; align-items: center; gap: 8px; padding-top: 8px; }
+.tour__count { font-family: var(--f-mono); font-size: 11.5px; color: var(--con-dim); }
 .tour__tag {
-  font-family: var(--f-mono); font-size: 10px; letter-spacing: .06em; font-weight: 500;
-  border: 1px solid currentColor; border-radius: 999px; padding: 1px 8px;
+  display: inline-flex; align-items: center; gap: 6px; cursor: help;
+  font-size: 12px; font-weight: 600;
 }
+.tour__tag::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
 
 .tour__title { margin: 0; font-size: 16px; letter-spacing: -0.02em; color: #fff; line-height: 1.25; }
-.tour__problem {
-  margin: 0; padding: 2px 0 2px 9px;
-  border-left: 2px solid #F0776A; font-size: 12px; line-height: 1.45; color: var(--con-dim);
-}
+.tour__problem { margin: 0; font-size: 12.5px; line-height: 1.45; color: var(--con-dim); }
 .tour__problem b { color: #F0776A; }
 .tour__problem[hidden] { display: none; }
-.tour__body { font-size: 13px; }
+.tour__body { font-size: 13.5px; line-height: 1.5; }
+.tour__look { margin: 0; font-size: 12.5px; color: var(--con-dim); }
+.tour__look::before { content: "\2192  "; color: var(--amber-hi); }
+.tour__look:empty { display: none; }
+
+.tour__recap { display: grid; grid-template-columns: auto 1fr; gap: 3px 12px; margin: 2px 0 0; font-size: 12.5px; }
+.tour__recap dt { font-family: var(--f-mono); color: #FFC257; }
+.tour__recap dd { margin: 0; color: var(--con-text); }
 .tour__body b, .tour__notice b { color: #fff; }
 .tour__body code, .tour__notice code, .tour__file code {
   font-family: var(--f-mono); font-size: 11.5px; color: #FFC257;
   background: rgba(255,255,255,.06); padding: 0 4px; border-radius: 3px;
 }
-.tour__more { display: grid; gap: 4px; }
-.tour__k { font-family: var(--f-mono); font-size: 9.5px; letter-spacing: .1em; text-transform: uppercase; color: var(--con-dim); }
-.tour__notice { margin: 0; padding-left: 16px; display: grid; gap: 2px; font-size: 12.3px; }
-.tour__more:has(.tour__notice:empty) .tour__k { display: none; }
-.tour__file { font-size: 11.5px; color: var(--con-dim); }
-.tour__file:empty { display: none; }
+
+
+
+
+
+
 
 /* the latest console lines, for screens where the console is out of view */
-.tour__feed {
-  display: none; gap: 2px; padding: 6px 8px; border-radius: var(--r-md);
-  background: rgba(255,255,255,.04); border: 1px solid var(--con-line);
-  font-family: var(--f-mono); font-size: 10.5px; line-height: 1.45;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+.tour__ctl {
+  display: flex; gap: 6px;
+  /* always reachable, even if the card's text ever has to scroll */
+  position: sticky; bottom: 0; margin: 2px -14px 0; padding: 9px 14px 12px;
+  background: var(--con-bg); border-top: 1px solid var(--con-line);
 }
-.tour__feed:empty { display: none !important; }
-.tour__feed div { display: grid; grid-template-columns: 68px minmax(0, 1fr); gap: 6px; }
-.tour__feed span:last-child { color: var(--con-text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-
-.tour__recap { width: 100%; border-collapse: collapse; font-size: 12.3px; }
-.tour__recap td { padding: 3px 0; border-bottom: 1px solid var(--con-line); vertical-align: top; }
-.tour__recap td:first-child { font-family: var(--f-mono); color: #FFC257; padding-right: 10px; white-space: nowrap; }
-
-.tour__foot {
-  position: sticky; bottom: 0; margin: 0 -14px; padding: 7px 14px 11px;
-  background: var(--con-bg); border-top: 1px solid var(--con-line); display: grid; gap: 7px;
-}
-.tour__status { font-family: var(--f-mono); font-size: 10.5px; color: var(--con-dim); min-height: 1.4em; }
-.tour__status[data-phase="working"] { color: #FFC257; }
-.tour__status[data-phase="done"] { color: #43C39A; }
-.tour.is-paused #tourStatusText::after { content: "  ·  PAUSED"; color: #F0776A; }
-
-.tour__ctl { display: flex; gap: 6px; }
+.tour.is-paused #tourPause { border-color: #F0776A; color: #F0776A; }
 .tour__btn {
   flex: 1; font: inherit; font-size: 12.5px; font-weight: 600; cursor: pointer;
   padding: 7px 6px; border-radius: var(--r-md);
@@ -954,7 +973,7 @@ body.no-traffic #ambient, body.is-touring #ambient { display: none; }
 .tour__fill { position: absolute; left: 0; top: 0; bottom: 0; width: 0; background: rgba(255,255,255,.28); }
 .tour__lbl { position: relative; }
 .tour__btn--go:hover:not(:disabled) { color: #17120A; filter: brightness(1.08); }
-.tour__btn--more { display: none; }
+
 
 /* the part of the app the current stage is about */
 /* pulses twice to catch the eye, then holds still */
@@ -993,7 +1012,6 @@ body.no-traffic #ambient, body.is-touring #ambient { display: none; }
 /* a small laptop (or a big one with display scaling): tighter columns */
 @media (min-width: 1024px) and (max-width: 1279px) {
   .app { grid-template-columns: 296px minmax(0, 1fr) 300px; padding-inline: 12px; }
-  .chiprack__label { display: none; }
   .obsgrid { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); }
   .toggle__desc { display: none; }                 /* full description stays in the tooltip */
   .obs__hint { display: none; }
@@ -1026,11 +1044,6 @@ body.no-traffic #ambient, body.is-touring #ambient { display: none; }
   @keyframes dockin { from { transform: translateY(30px); opacity: 0; } }
   /* the page keeps that strip free, so the app is never hidden under it */
   body.is-touring { padding-bottom: var(--tour-h, 240px); }
-  .tour__extra { display: none; }
-  .tour.is-open .tour__extra { display: grid; }
-  .tour.is-open .tour__problem:not([hidden]) { display: block; }
-  .tour__feed { display: grid; }
-  .tour__btn--more { display: block; flex: .9; }
 }
 
 @media (min-width: 700px) and (max-width: 1023px) {
@@ -1045,11 +1058,10 @@ body.no-traffic #ambient, body.is-touring #ambient { display: none; }
    ================================================================ */
 @media (max-width: 699px) {
   :root { --gap: 10px; }
-  .topbar__in { flex-wrap: wrap; gap: 8px 12px; padding: 8px 12px; }
+  .topbar__in { flex-wrap: wrap; gap: 8px 12px; padding: 8px 12px; height: auto; }
   .brand__sub { display: none; }
   .topbar .btn--tour { margin-left: auto; padding: 8px 14px; font-size: 13px; }
   .chiprack { order: 3; flex-basis: 100%; justify-content: flex-start; }
-  .chiprack__label { display: none; }
 
   .app { padding: 0 10px 16px; }
   .stage {
@@ -1135,12 +1147,12 @@ body.is-touring .pchip:not(.is-current) { opacity: .4; }
   <section class="panel sheet" id="sheet" aria-label="Ride">
     <div class="tabs" role="tablist">
       <button class="tab" id="tabPlan" type="button" role="tab" aria-selected="true" aria-controls="viewPlan">
-        <span class="tab__n">1</span><span class="tab__t">Plan</span>
+        <span class="tab__n">1</span>Plan
       </button>
       <button class="tab" id="tabTrip" type="button" role="tab" aria-selected="false" aria-controls="viewTrip">
-        <span class="tab__n">2</span><span class="tab__t">Trip</span>
+        <span class="tab__n">2</span>Trip
       </button>
-      <span class="tabs__state" id="stateNow" title="The State object the ride is holding right now">no active ride</span>
+      <span class="sr-only" id="stateNow" aria-live="polite">no active ride</span>
     </div>
 
     <!-- PLAN: Factory, Strategy, Decorator, Facade -->
@@ -1162,18 +1174,18 @@ body.is-touring .pchip:not(.is-current) { opacity: .4; }
       </div>
 
       <div class="field">
-        <span class="field__label">Vehicle <i>&middot; Factory</i></span>
+        <span class="field__label">Vehicle <span class="ptag" data-p="FACTORY">Factory</span></span>
         <div class="vgrid" id="vehicles"></div>
       </div>
 
       <div class="field">
-        <label class="field__label" for="strategy">Pricing rule <i>&middot; Strategy</i></label>
+        <label class="field__label" for="strategy">Price <span class="ptag" data-p="STRATEGY">Strategy</span><span class="ptag" data-p="DECORATOR">Decorator</span></label>
         <select id="strategy">
           <option value="STANDARD">Standard fare</option>
-          <option value="SURGE">Surge pricing &times;1.8 (peak hour)</option>
-          <option value="FESTIVAL">Festival surge &times;3 (watch the legal cap)</option>
+          <option value="SURGE">Surge &times;1.8 (peak hour)</option>
+          <option value="FESTIVAL">Festival surge &times;3 (capped by law)</option>
           <option value="NIGHT">Night fare (+25%)</option>
-          <option value="PASS">RidePass subscriber (-20%)</option>
+          <option value="PASS">RidePass (-20%)</option>
           <option value="POOL">Shared pool (split fare)</option>
         </select>
       </div>
@@ -1188,9 +1200,9 @@ body.is-touring .pchip:not(.is-current) { opacity: .4; }
 
     <!-- TRIP: State -->
     <div class="view" id="viewTrip" role="tabpanel" aria-labelledby="tabTrip" hidden>
-      <div class="statebar">
-        <span class="statebar__k">now</span>
-        <span class="statebar__v" id="stateLabel">Pick a route and book</span>
+      <div class="triphead">
+        <h3 class="triphead__t" id="stateLabel">No ride yet</h3>
+        <span class="ptag" data-p="STATE">State</span>
       </div>
       <div class="dcard" id="driverCard" hidden></div>
       <div class="lifecycle" id="lifecycle"></div>
@@ -1201,22 +1213,22 @@ body.is-touring .pchip:not(.is-current) { opacity: .4; }
 
       <button class="btn btn--ghost" id="btnCancel" type="button" disabled>Cancel ride</button>
       <div class="cancelask" id="cancelAsk" hidden>
-        <span class="cancelask__q">Why are you cancelling?</span>
+        <span class="cancelask__q">Why cancel?</span>
         <button class="btn btn--ghost cancelask__opt" id="btnCancelPlans" type="button">
           I changed my plans <small id="cancelFeeNote"></small>
         </button>
         <button class="btn btn--ghost cancelask__opt" id="btnCancelAsked" type="button">
-          The driver asked me to cancel <small>no fee for you &middot; driver penalised</small>
+          The driver asked me to <small>Free &middot; driver is penalised</small>
         </button>
         <button class="linkbtn" id="btnCancelKeep" type="button">Keep my ride</button>
       </div>
 
       <div class="demo" id="simulate">
-        <span class="field__label">Simulate a real-world problem</span>
+        <span class="field__label">Simulate a problem</span>
         <div class="demo__row">
           <button class="btn btn--sim" id="btnDriverCancel" type="button" disabled title="The driver cancels after accepting">Driver cancels</button>
-          <button class="btn btn--sim" id="btnStop" type="button" disabled title="The car stops for 4 minutes with no red light">Unexpected stop</button>
-          <button class="btn btn--sim" id="btnDetour" type="button" disabled title="The driver leaves the planned route">Route detour</button>
+          <button class="btn btn--sim" id="btnStop" type="button" disabled title="The car stops for 4 minutes with no red light">Long stop</button>
+          <button class="btn btn--sim" id="btnDetour" type="button" disabled title="The driver leaves the planned route">Detour</button>
         </div>
       </div>
     </div>
@@ -1225,10 +1237,10 @@ body.is-touring .pchip:not(.is-current) { opacity: .4; }
   <!-- ---------- 2. the city: the Observer subject broadcasting ---------- -->
   <section class="panel stage" id="stage" aria-label="Live map">
     <div class="panel__hd">
-      <h2 class="panel__title">Live map <i>&middot; Observer subject</i></h2>
+      <h2 class="panel__title">Map <span class="ptag" data-p="OBSERVER">Observer</span></h2>
       <span class="panel__via" id="viaLine">Hyderabad</span>
       <button class="minibtn" id="btnTraffic" type="button" aria-pressed="true"
-              title="The other cars are decoration only - switch them off for a calmer map">City traffic: on</button>
+              title="The other cars are decoration only - switch them off for a calmer map">Traffic: on</button>
     </div>
     <div class="mapwrap">
       <svg id="map" viewBox="0 0 720 420" role="img" aria-label="Simulated Hyderabad street map showing the driver moving along the routed roads">
@@ -1253,7 +1265,7 @@ body.is-touring .pchip:not(.is-current) { opacity: .4; }
         <span class="hud__item hud__item--road"><span class="hud__k">On</span><span class="hud__v" id="hudRoad">--</span></span>
         <span class="hud__status" id="hudStatus" data-status="IDLE">idle</span>
       </div>
-      <div class="toasts" id="toasts"></div>
+      <div class="toasts" id="toasts" aria-live="polite"></div>
       <div class="safety" id="safetyCard" role="alertdialog" aria-labelledby="safetyTitle" hidden>
         <b id="safetyTitle">Are you okay?</b>
         <span id="safetyText"></span>
@@ -1268,47 +1280,39 @@ body.is-touring .pchip:not(.is-current) { opacity: .4; }
   <!-- ---------- 3. who is listening to the driver's GPS ---------- -->
   <section class="panel obs" id="obsPanel" aria-label="GPS subscribers">
     <div class="obs__hd">
-      <span class="panel__title">GPS subscribers <i>&middot; Observer</i></span>
-      <span class="obs__hint">untick one &mdash; only it goes quiet</span>
+      <span class="panel__title">Subscribers <span class="ptag" data-p="OBSERVER">Observer</span></span>
+      <span class="obs__hint">Untick one to unsubscribe it</span>
     </div>
     <div class="obsgrid" id="observers"></div>
   </section>
 
   <!-- ---------- 4. the lab: guided-demo narration + the dispatch console ---------- -->
-  <section class="lab" id="lab" aria-label="Guided demo and dispatch console">
+  <section class="lab" id="lab" aria-label="Guided demo and console">
 
-    <aside class="tour" id="tour" aria-live="polite" aria-label="Guided demo" hidden>
+    <aside class="tour" id="tour" aria-label="Guided demo" hidden>
       <div class="tour__bar" aria-hidden="true"><span id="tourBar"></span></div>
       <div class="tour__hd">
         <span class="tour__count" id="tourCount"></span>
         <span class="tour__tag" id="tourTag"></span>
       </div>
       <h3 class="tour__title" id="tourTitle"></h3>
-      <p class="tour__problem tour__extra" id="tourProblem" hidden></p>
+      <p class="tour__problem" id="tourProblem" hidden></p>
       <div class="tour__body" id="tourBody"></div>
-      <div class="tour__extra tour__more">
-        <span class="tour__k">What to notice</span>
-        <ul class="tour__notice" id="tourNotice"></ul>
-        <div class="tour__file" id="tourFile"></div>
-      </div>
-      <div class="tour__feed" id="tourFeed" aria-label="Latest console lines"></div>
-      <div class="tour__foot">
-        <div class="tour__status" id="tourStatus"><span id="tourStatusText"></span></div>
-        <div class="tour__ctl">
-          <button class="tour__btn tour__btn--more" id="tourMore" type="button" aria-expanded="false">Details</button>
-          <button class="tour__btn" id="tourPause" type="button">Pause</button>
-          <button class="tour__btn tour__btn--go" id="tourNext" type="button">
-            <span class="tour__fill" id="tourTimer" aria-hidden="true"></span><span class="tour__lbl">Next &#9656;</span>
-          </button>
-          <button class="tour__btn" id="tourRestart" type="button" hidden>Run again</button>
-          <button class="tour__btn" id="tourExit" type="button">Exit</button>
-        </div>
+      <p class="tour__look" id="tourLook"></p>
+      <div class="sr-only" id="tourStatus" aria-live="polite"><span id="tourStatusText"></span></div>
+      <div class="tour__ctl">
+        <button class="tour__btn" id="tourPause" type="button">Pause</button>
+        <button class="tour__btn tour__btn--go" id="tourNext" type="button">
+          <span class="tour__fill" id="tourTimer" aria-hidden="true"></span><span class="tour__lbl" id="tourNextLbl">Next &#9656;</span>
+        </button>
+        <button class="tour__btn" id="tourRestart" type="button" hidden>Run again</button>
+        <button class="tour__btn" id="tourExit" type="button">Exit</button>
       </div>
     </aside>
 
     <section class="term" id="term">
       <div class="term__hd">
-        <span class="term__title">Dispatch console <i>&middot; every line is a pattern at work</i></span>
+        <span class="term__title">Console <span class="ptag ptag--dark" data-p="SINGLETON">Singleton</span></span>
         <span class="term__live"><span class="term__led"></span>live</span>
       </div>
       <div class="term__body" id="terminal"></div>
@@ -1326,20 +1330,19 @@ body.is-touring .pchip:not(.is-current) { opacity: .4; }
     <div class="ref__lede">
       <span class="eyebrow">How the app is built</span>
       <h2>Six patterns, one booking flow</h2>
-      <p>Each pattern below solves a specific problem this app would otherwise have. The
-         code is the real code running above &mdash; open the dispatch console and you can
-         watch each one announce itself as you click.</p>
+      <p>Open any pattern to see the problem it solves, where it runs above, and its real code.</p>
     </div>
 
     <!-- ---------- REAL-WORLD PROBLEMS ---------- -->
-    <article class="pat">
-      <div class="pat__head">
+    <details class="pat">
+      <summary class="pat__sum">
         <span class="pat__tag pt-problem">Real-world problems</span>
-        <h3 class="pat__name">What riders on Uber, Ola and Rapido complain about<small>and how this app answers it</small></h3>
-        <p class="pat__body">Three complaints keep coming up in consumer surveys, regulator notices and
-           the 2025 Motor Vehicle Aggregator Guidelines. Each fix below is built on a pattern, which is
-           why it took so little code &mdash; and each can be triggered from the
-           <em>Simulate real-world problems</em> buttons above.</p>
+        <h3 class="pat__name">What riders complain about<small>Uber, Ola, Rapido &mdash; and the fixes here</small></h3>
+        <p class="pat__body">Three complaints from surveys, regulators and the 2025 rules, each fixed with a
+           pattern. Try them with <em>Simulate a problem</em> on the Trip tab.</p>
+      </summary>
+      <div class="pat__in">
+        <div class="pat__qa">
         <div class="qa">
           <span class="qa__q">1 &middot; Drivers cancel after accepting &mdash; State</span>
           <p class="qa__a">A LocalCircles survey found 84% of app-cab users had been pushed into
@@ -1363,20 +1366,24 @@ body.is-touring .pchip:not(.is-current) { opacity: .4; }
              <em>"Are you okay?"</em> after 3 minutes stood still or 0.8 km off the route, with an SOS that
              sends the car details and live location. Nothing else in the app changed to add it.</p>
         </div>
-      </div>
-      <div class="code">
+        </div>
+        <div class="code">
         <div class="code__hd">state.js &mdash; the new stage a driver cancellation leads to</div>
         <pre data-src="src-rematch"></pre>
       </div>
-    </article>
+      </div>
+    </details>
 
     <!-- ---------- FACTORY ---------- -->
-    <article class="pat">
-      <div class="pat__head">
+    <details class="pat">
+      <summary class="pat__sum">
         <span class="pat__tag pt-factory">Creational</span>
         <h3 class="pat__name">Factory<small>js/patterns/factory.js</small></h3>
         <p class="pat__body">One class owns object creation. Callers name <em>what</em> they want;
            they never learn <em>how</em> it is built.</p>
+      </summary>
+      <div class="pat__in">
+        <div class="pat__qa">
         <div class="qa">
           <span class="qa__q">Where it runs</span>
           <p class="qa__a">Every vehicle tile in the picker was produced by
@@ -1393,20 +1400,24 @@ body.is-touring .pchip:not(.is-current) { opacity: .4; }
           <p class="qa__a">Click a different vehicle. The console prints the exact class the
              factory built and the fare rates it carries.</p>
         </div>
-      </div>
-      <div class="code">
+        </div>
+        <div class="code">
         <div class="code__hd">factory.js &mdash; abstract product, concrete products, factory</div>
         <pre data-src="src-factory"></pre>
       </div>
-    </article>
+      </div>
+    </details>
 
     <!-- ---------- STRATEGY ---------- -->
-    <article class="pat">
-      <div class="pat__head">
+    <details class="pat">
+      <summary class="pat__sum">
         <span class="pat__tag pt-strategy">Behavioural</span>
         <h3 class="pat__name">Strategy<small>js/patterns/strategy.js</small></h3>
         <p class="pat__body">Interchangeable algorithms behind one method. The object using them
            can be handed a different one while the program is running.</p>
+      </summary>
+      <div class="pat__in">
+        <div class="pat__qa">
         <div class="qa">
           <span class="qa__q">Where it runs</span>
           <p class="qa__a">The pricing dropdown. <code>FareCalculator</code> holds one
@@ -1422,20 +1433,24 @@ body.is-touring .pchip:not(.is-current) { opacity: .4; }
           <p class="qa__a">Switch to <em>Surge pricing</em>. Same trip, same vehicle &mdash; the
              receipt rebuilds itself with different line items, and no calling code changed.</p>
         </div>
-      </div>
-      <div class="code">
+        </div>
+        <div class="code">
         <div class="code__hd">strategy.js &mdash; the interface, two of the five rules, the context</div>
         <pre data-src="src-strategy"></pre>
       </div>
-    </article>
+      </div>
+    </details>
 
     <!-- ---------- OBSERVER ---------- -->
-    <article class="pat">
-      <div class="pat__head">
+    <details class="pat">
+      <summary class="pat__sum">
         <span class="pat__tag pt-observer">Behavioural</span>
         <h3 class="pat__name">Observer<small>js/patterns/observer.js</small></h3>
         <p class="pat__body">A subject announces that something changed; any number of subscribers
            react. The subject never learns who they are.</p>
+      </summary>
+      <div class="pat__in">
+        <div class="pat__qa">
         <div class="qa">
           <span class="qa__q">Where it runs</span>
           <p class="qa__a">The driver's GPS. <code>DriverLocationPublisher</code> emits a fix about
@@ -1451,20 +1466,24 @@ body.is-touring .pchip:not(.is-current) { opacity: .4; }
           <p class="qa__a">Book a ride, then untick <em>EtaPanelObserver</em> while the car is
              moving. The ETA freezes; the car keeps driving. That is the decoupling, visible.</p>
         </div>
-      </div>
-      <div class="code">
+        </div>
+        <div class="code">
         <div class="code__hd">observer.js &mdash; subject, observer, and the wiring</div>
         <pre data-src="src-observer"></pre>
       </div>
-    </article>
+      </div>
+    </details>
 
     <!-- ---------- STATE ---------- -->
-    <article class="pat">
-      <div class="pat__head">
+    <details class="pat">
+      <summary class="pat__sum">
         <span class="pat__tag pt-state">Behavioural</span>
         <h3 class="pat__name">State<small>js/patterns/state.js</small></h3>
         <p class="pat__body">Each stage of the ride is its own class holding the behaviour that is
            legal at that stage. The ride delegates instead of deciding.</p>
+      </summary>
+      <div class="pat__in">
+        <div class="pat__qa">
         <div class="qa">
           <span class="qa__q">Where it runs</span>
           <p class="qa__a">The lifecycle panel. The label on the right of each row is the actual
@@ -1482,20 +1501,24 @@ body.is-touring .pchip:not(.is-current) { opacity: .4; }
              Wait for <em>Ride in progress</em> and both buttons disable themselves, because
              <code>InProgressState</code> says so.</p>
         </div>
-      </div>
-      <div class="code">
+        </div>
+        <div class="code">
         <div class="code__hd">state.js &mdash; the state interface, two states, and the context</div>
         <pre data-src="src-state"></pre>
       </div>
-    </article>
+      </div>
+    </details>
 
     <!-- ---------- FACADE ---------- -->
-    <article class="pat">
-      <div class="pat__head">
+    <details class="pat">
+      <summary class="pat__sum">
         <span class="pat__tag pt-facade">Structural</span>
         <h3 class="pat__name">Facade<small>js/patterns/facade.js</small></h3>
         <p class="pat__body">One simple door in front of a complicated building. The button says
            <code>bookRide()</code> and knows nothing about what happens behind it.</p>
+      </summary>
+      <div class="pat__in">
+        <div class="pat__qa">
         <div class="qa">
           <span class="qa__q">Where it runs</span>
           <p class="qa__a">The Book ride button. One call fans out to seven steps across the geo,
@@ -1511,20 +1534,24 @@ body.is-touring .pchip:not(.is-current) { opacity: .4; }
           <p class="qa__a">Filter the console to <em>FACADE</em> and book. Two lines. Then clear the
              filter to see everything those two lines set in motion.</p>
         </div>
-      </div>
-      <div class="code">
+        </div>
+        <div class="code">
         <div class="code__hd">facade.js &mdash; the one method the interface calls</div>
         <pre data-src="src-facade"></pre>
       </div>
-    </article>
+      </div>
+    </details>
 
     <!-- ---------- DECORATOR ---------- -->
-    <article class="pat">
-      <div class="pat__head">
+    <details class="pat">
+      <summary class="pat__sum">
         <span class="pat__tag pt-decorator">Structural</span>
         <h3 class="pat__name">Decorator<small>js/patterns/decorator.js</small></h3>
         <p class="pat__body">Wrap an object in another with the same interface, adding one duty around
            the call. The caller cannot tell, and the wrapped object never changes.</p>
+      </summary>
+      <div class="pat__in">
+        <div class="pat__qa">
         <div class="qa">
           <span class="qa__q">Where it runs</span>
           <p class="qa__a">Every pricing rule. The facade hands the calculator
@@ -1541,20 +1568,24 @@ body.is-touring .pchip:not(.is-current) { opacity: .4; }
           <p class="qa__a">Pick <em>Festival surge &times;3</em>. The rule asks for 3x; the receipt gains a
              green <em>Surge capped at 2x</em> line and the console prints a <em>DECORATOR</em> correction.</p>
         </div>
-      </div>
-      <div class="code">
+        </div>
+        <div class="code">
         <div class="code__hd">decorator.js &mdash; the base wrapper and the legal cap</div>
         <pre data-src="src-decorator"></pre>
       </div>
-    </article>
+      </div>
+    </details>
 
     <!-- ---------- SINGLETON ---------- -->
-    <article class="pat">
-      <div class="pat__head">
+    <details class="pat">
+      <summary class="pat__sum">
         <span class="pat__tag pt-singleton">Creational &middot; bonus</span>
         <h3 class="pat__name">Singleton<small>js/core/dispatchLog.js</small></h3>
         <p class="pat__body">Exactly one instance, shared by everything. Ask for it a hundred
            times and you get the same object back every time.</p>
+      </summary>
+      <div class="pat__in">
+        <div class="pat__qa">
         <div class="qa">
           <span class="qa__q">Where it runs</span>
           <p class="qa__a">The dispatch console itself. Six pattern files write to it and the UI
@@ -1570,12 +1601,13 @@ body.is-touring .pchip:not(.is-current) { opacity: .4; }
           <p class="qa__a">Every line in the console is proof &mdash; six separate files wrote
              into one shared list.</p>
         </div>
-      </div>
-      <div class="code">
+        </div>
+        <div class="code">
         <div class="code__hd">dispatchLog.js &mdash; the instance guard</div>
         <pre data-src="src-singleton"></pre>
       </div>
-    </article>
+      </div>
+    </details>
 
   </div>
 </section>
@@ -3599,7 +3631,7 @@ class DriverLocationPublisher {
 
 class MapMarkerObserver extends LocationObserver {
   constructor(moveMarker) {
-    super("map", "MapMarkerObserver", "Slides the car marker along the route.");
+    super("map", "MapMarkerObserver", "Moves the car on the map.");
     this.moveMarker = moveMarker;
   }
   update(fix) {
@@ -3609,7 +3641,7 @@ class MapMarkerObserver extends LocationObserver {
 
 class EtaPanelObserver extends LocationObserver {
   constructor(showEta) {
-    super("eta", "EtaPanelObserver", "Refreshes ETA, distance, speed and the road name.");
+    super("eta", "EtaPanelObserver", "Updates ETA, distance, speed.");
     this.showEta = showEta;
   }
   update(fix) {
@@ -3619,7 +3651,7 @@ class EtaPanelObserver extends LocationObserver {
 
 class TripLogObserver extends LocationObserver {
   constructor() {
-    super("log", "TripLogObserver", "Records position fixes into the dispatch log.");
+    super("log", "TripLogObserver", "Writes fixes to the console.");
     this.count = 0;
   }
   update(fix) {
@@ -3638,7 +3670,7 @@ class TripLogObserver extends LocationObserver {
 
 class PushNotificationObserver extends LocationObserver {
   constructor(pushToast) {
-    super("push", "PushNotificationObserver", "Fires the arrival alerts a rider actually sees.");
+    super("push", "PushNotificationObserver", "Sends the rider arrival alerts.");
     this.pushToast = pushToast;
     this.sent = new Set();
   }
@@ -3679,7 +3711,7 @@ class SafetyMonitorObserver extends LocationObserver {
    * @param {function} raiseSafetyCheck  shows the "Are you okay?" card
    */
   constructor(raiseSafetyCheck) {
-    super("safety", "SafetyMonitorObserver", "Flags long unexplained stops and route deviations once the rider is aboard.");
+    super("safety", "SafetyMonitorObserver", "Flags long stops and detours.");
     this.raiseSafetyCheck = raiseSafetyCheck;
     this.raised = new Set();
 
@@ -4638,23 +4670,23 @@ function renderTripFare(ride) {
   const box = $("tripFare");
   if (!ride) {
     box.dataset.tone = "";
-    box.innerHTML = "<span>Book a ride and its fare is locked here.</span>";
+    box.innerHTML = "<span>Your fare locks when you book.</span>";
     return;
   }
   const key = ride.state.key;
   let label, amount, tone = "";
   if (key === "CompletedState") {
-    label = "Charged <small>exactly the upfront fare" +
-      (ride.detourKm ? " &middot; even after a " + ride.detourKm + " km detour" : "") + "</small>";
+    label = "Charged <small>same as quoted" +
+      (ride.detourKm ? " &middot; +" + ride.detourKm + " km detour, no extra" : "") + "</small>";
     amount = ride.quote.total;
     tone = "ok";
   } else if (key === "CancelledState") {
     const fee = ride.state.fee || 0;
-    label = "Cancelled <small>" + (fee ? "cancellation fee &middot; 10% of fare, max Rs.100" : "no fee charged to you") + "</small>";
+    label = fee ? "Cancellation fee <small>10% of fare, max Rs.100</small>" : "Cancelled <small>no fee for you</small>";
     amount = fee;
     tone = fee ? "bad" : "ok";
   } else {
-    label = "Upfront fare <small>locked when you booked &middot; this is the bill</small>";
+    label = "Upfront fare <small>locked &middot; this is the bill</small>";
     amount = ride.quote.total;
   }
   box.dataset.tone = tone;
@@ -4840,7 +4872,7 @@ function buildVehiclePicker() {
     b.innerHTML =
       '<span class="vcard__ico">' + VEHICLE_ICONS[vehicle.iconId] + "</span>" +
       '<span class="vcard__name">' + vehicle.label + "</span>" +
-      '<span class="vcard__meta">' + vehicle.capacity + " seat</span>" +
+      '<span class="vcard__meta">' + vehicle.capacity + (vehicle.capacity === 1 ? " seat" : " seats") + "</span>" +
       '<span class="vcard__meta">Rs.' + vehicle.perKm + "/km</span>";
 
     b.addEventListener("click", () => {
@@ -4870,7 +4902,7 @@ function refreshQuote() {
 
   const active = facade.calculator.strategy;
   $("receiptStrategy").innerHTML =
-    "<span>" + active.note + "</span><b>" + active.name + "</b>" +
+    "<b title=\"" + active.note + "\">" + active.name + "</b>" +
     (active.guards ? '<span class="receipt__guards">guarded by ' + active.guards.join(" › ") + "</span>" : "");
 
   $("receiptLines").innerHTML =
@@ -4903,10 +4935,10 @@ function renderLifecycle(ride) {
     let cls = "step";
     if (ride && !cancelled && i < current) cls += " is-done";
     if (ride && !cancelled && i === current) cls += " is-active";
-    // The note names the class the ride really holds - which on the
-    // first row may be RematchingState rather than RequestedState.
-    const note = ride && !cancelled && i === current ? ride.state.key : s.cls;
-    return '<div class="' + cls + '">' +
+    // Only the current row names a class: the one the ride really holds
+    // (on row 1 that may be RematchingState). Other rows keep it as a tooltip.
+    const note = ride && !cancelled && i === current ? ride.state.key : "";
+    return '<div class="' + cls + '" title="' + s.cls + '">' +
       '<span class="step__dot">' + (i + 1) + "</span>" +
       '<span class="step__name">' + s.label + "</span>" +
       '<span class="step__note">' + note + "</span></div>";
@@ -4918,7 +4950,8 @@ function renderLifecycle(ride) {
     : "");
 
   $("stateNow").textContent = ride ? ride.state.key : "no active ride";
-  $("stateLabel").textContent = ride ? ride.state.label : "Pick a route and book";
+  $("stateLabel").textContent = ride ? ride.state.label : "No ride yet";
+  $("tabTrip").classList.toggle("is-live", !!(ride && !ride.state.isFinal));
   $("btnCancel").disabled = !ride || !ride.canCancel;
   if (!ride || !ride.canCancel) $("cancelAsk").hidden = true;
 
@@ -4931,8 +4964,8 @@ function renderLifecycle(ride) {
   $("rematchNote").hidden = !away.length;
   if (away.length) {
     $("rematchNote").innerHTML =
-      "<b>" + away.map((d) => d.name).join(", ") + "</b> cancelled on you &middot; penalised, you pay Rs.0 &middot; " +
-      "fare locked at <b>Rs." + ride.quote.total + "</b>";
+      "<b>" + away.map((d) => d.name).join(", ") + "</b> cancelled &mdash; you pay Rs.0, the driver is penalised, " +
+      "fare stays <b>Rs." + ride.quote.total + "</b>.";
   }
 
   const done = !ride || ride.state.isFinal;
@@ -5041,7 +5074,7 @@ function init() {
   $("btnTraffic").addEventListener("click", () => {
     const off = document.body.classList.toggle("no-traffic");
     $("btnTraffic").setAttribute("aria-pressed", String(!off));
-    $("btnTraffic").textContent = "City traffic: " + (off ? "off" : "on");
+    $("btnTraffic").textContent = "Traffic: " + (off ? "off" : "on");
   });
 
   $("tabPlan").addEventListener("click", () => setView("plan"));
@@ -5053,7 +5086,7 @@ function init() {
   $("btnCancel").addEventListener("click", () => {
     const ride = ui.ride;
     if (ride && ride.driver && ride.cancelFee > 0) {
-      $("cancelFeeNote").textContent = "Rs." + ride.cancelFee + " fee (10% of fare, max Rs.100)";
+      $("cancelFeeNote").textContent = "Rs." + ride.cancelFee + " fee \u00B7 10% of fare, max Rs.100";
       $("cancelAsk").hidden = false;
     } else {
       facade.cancelRide();
@@ -5129,7 +5162,7 @@ const driverName = (fallback) => (ui.ride && ui.ride.driver ? ui.ride.driver.nam
 
 /* ============================================================
    THE STAGES
-   tag/title/body/notice/file  what the card says
+   tag/title/body/look/file    what the card says (file = hover the tag)
    problem                     the real-world problem (fix stages)
    view                        which tab of the ride sheet to show
    focusFirst / focus          what glows while working / reading
@@ -5146,12 +5179,8 @@ const TOUR_STEPS = [
     view: "plan",
     focus: [".chiprack"],
     filter: "ALL",
-    body: `I'll book a <b>Sedan from Kukatpally to RGIA Airport</b> by clicking the real buttons.
-           Each stage says what is happening and which pattern is doing it.`,
-    notice: [
-      "The <b>amber outline</b> shows where to look; panels a stage is not about fade back (hover to bring one back).",
-      "The chip up top marks the pattern being explained. Dull driving is fast-forwarded &#9193;.",
-    ],
+    body: `I'll book <b>Kukatpally &rarr; RGIA Airport</b> by pressing the real buttons, one stage at a time.`,
+    look: "The outlined part is what each stage is about.",
     async run() {
       $("btnClear").click();
       tourSelect("pickup", TOUR_ROUTE.pickup);
@@ -5166,24 +5195,19 @@ const TOUR_STEPS = [
     file: "js/core/dispatchLog.js",
     focus: ["#term"],
     filter: "ALL",
-    body: `Every file - the factory, the pricing rules, the GPS, the ride states - writes into
-           <b>one</b> console. <code>DispatchLog.getInstance()</code> always hands back the same object.`,
-    notice: ["The coloured tag on each line names the pattern that wrote it."],
+    body: `Every pattern writes to the same console: <code>DispatchLog.getInstance()</code> always returns one object.`,
+    look: "Each line's tag names the pattern that wrote it.",
   },
 
   {
     tag: "FACTORY",
-    title: "Pick a vehicle - the Factory builds it",
+    title: "Pick a car",
     file: "js/patterns/factory.js",
     view: "plan",
     focus: ["#vehicles", "#term"],
     filter: "FACTORY",
-    body: `I tap <b>Bike</b>, then <b>Sedan</b>. Each tap calls <code>VehicleFactory.create("SEDAN")</code>,
-           which returns a <code>SedanCab</code> carrying its own rates. The screen never says <code>new</code>.`,
-    notice: [
-      "Console: <code>create(\"BIKE\") -&gt; new Bike</code>, then the Sedan.",
-      "A new vehicle type = one class + one registry line.",
-    ],
+    body: `Each tap asks <code>VehicleFactory.create()</code> for a car. The screen never says <code>new</code>.`,
+    look: `Console: <code>create("SEDAN") &rarr; new SedanCab</code>`,
     async run(t) {
       tourVehicle("BIKE");
       await t.sleep(900);
@@ -5193,15 +5217,13 @@ const TOUR_STEPS = [
 
   {
     tag: "STRATEGY",
-    title: "Swap the pricing rule - Strategy",
+    title: "Change the price rule",
     file: "js/patterns/strategy.js",
     view: "plan",
     focus: ["#strategy", "#receipt"],
     filter: "STRATEGY",
-    body: `Same trip, same car. I switch to <b>Surge ×1.8</b>: the calculator is handed a new
-           <code>SurgePricingFare</code> object and simply calls <code>calculate()</code> - it holds no
-           if-else about pricing.`,
-    notice: ["The receipt rebuilt itself with a red surge line."],
+    body: `<b>Surge &times;1.8</b> swaps in a new pricing object; the calculator just calls <code>calculate()</code>.`,
+    look: "Receipt: a red surge line appears.",
     async run(t) {
       await t.sleep(400);
       tourSelect("strategy", "SURGE");
@@ -5210,19 +5232,14 @@ const TOUR_STEPS = [
 
   {
     tag: "DECORATOR",
-    title: "Real problem #2 - unfair fares",
+    title: "Problem 2: unfair fares",
     file: "js/patterns/decorator.js",
     view: "plan",
     focus: ["#receipt"],
     filter: "DECORATOR",
-    problem: "3-4x festival surges and an alleged iPhone-vs-Android price gap. The 2025 rules cap surge at 2x.",
-    body: `<b>Festival ×3</b> asks for triple. Two wrappers stand between that rule and you:
-           <code>FairInputGuard</code> drops your device type, and <code>SurgeCapGuard</code> trims the
-           fare to the <b>legal 2×</b>.`,
-    notice: [
-      "Green receipt line: <b>Surge capped at 2x (MoRTH 2025)</b>.",
-      "The surge rule was not edited - it was <b>wrapped</b>.",
-    ],
+    problem: "3&ndash;4&times; festival surges; claims of prices set by phone model.",
+    body: `<b>Fix:</b> two wrappers drop your device type and cap surge at the <b>legal 2&times;</b>.`,
+    look: `Receipt: green &ldquo;Surge capped at 2x&rdquo; line.`,
     async run(t) {
       await t.sleep(400);
       tourSelect("strategy", "FESTIVAL");
@@ -5231,17 +5248,15 @@ const TOUR_STEPS = [
 
   {
     tag: "FACADE",
-    title: "Book - one call does it all (Facade)",
+    title: "Book with one call",
     file: "js/patterns/facade.js",
     view: "plan",
     focusFirst: ["#btnBook"],
     focus: ["#tripFare", "#term"],
     filter: "FACADE",
     hold: true,
-    body: () => `Back to the standard fare, then <b>Book ride</b>. One call,
-           <code>facade.bookRide()</code>, builds the vehicle, prices the trip, creates the ride,
-           connects the GPS and starts the state machine. Fare locked at <b>${fare()}</b>.`,
-    notice: ["Filtered to FACADE: just two lines - they set off everything else."],
+    body: () => `<code>facade.bookRide()</code> runs all seven booking steps. Fare locked at <b>${fare()}</b>.`,
+    look: "Console: just two FACADE lines.",
     async run(t) {
       tourSelect("strategy", "STANDARD");
       await t.sleep(900);
@@ -5252,35 +5267,28 @@ const TOUR_STEPS = [
 
   {
     tag: "STATE",
-    title: "A driver accepts - State",
+    title: "A driver accepts",
     file: "js/patterns/state.js",
     view: "trip",
     focus: ["#lifecycle", "#driverCard"],
     filter: "STATE",
     hold: true,
-    body: () => `The ride holds a <b>state object</b>. <code>RequestedState</code> found
-           <b>${driverName("a driver")}</b> and handed over to <code>DriverAssignedState</code>. Their route
-           to you starts from where they are actually parked.`,
-    notice: ["The grey label on each row is the real class the ride is holding."],
+    body: () => `The ride swaps its state object: <b>${driverName("a driver")}</b> is assigned, so it now holds <code>DriverAssignedState</code>.`,
+    look: "The current stage shows the class the ride holds.",
     waitFor: () => rideKey() === "DriverAssignedState",
   },
 
   {
     tag: "STATE",
-    title: "Real problem #1 - the driver cancels",
+    title: "Problem 1: the driver cancels",
     file: "js/patterns/state.js",
     view: "trip",
     focus: ["#rematchNote", "#lifecycle"],
     filter: "STATE",
     hold: true,
-    problem: "84% of app-cab users have been pushed into cancelling - and paid the fee themselves (LocalCircles).",
-    body: () => `The driver set off - then <b>cancelled</b>. The ride did not die: it moved into a new
-           <code>RematchingState</code>. The driver is penalised, <b>you pay Rs.0</b>, and the fare stays
-           <b>${fare()}</b>.`,
-    notice: [
-      "Row 1 now reads <b>RematchingState</b> - the whole stage is one new class.",
-      "That driver is left out of the next match.",
-    ],
+    problem: "84% of riders were pushed into cancelling &mdash; and paid the fee.",
+    body: () => `<b>Fix:</b> a new <code>RematchingState</code> finds another driver. You pay <b>Rs.0</b>; the fare stays <b>${fare()}</b>.`,
+    look: "Stage 1 now reads RematchingState.",
     async run(t) {
       await t.until(() => rideKey() === "ArrivingState");
       await t.sleep(1300);                      // let the car visibly set off first
@@ -5291,18 +5299,13 @@ const TOUR_STEPS = [
 
   {
     tag: "OBSERVER",
-    title: "A new driver drives in - Observer",
+    title: "The new driver drives in",
     file: "js/patterns/observer.js",
     view: "trip",
     focus: ["#map", "#obsPanel"],
     filter: "OBSERVER",
-    body: () => `<b>${driverName("A new driver")}</b> took the job. Their phone is the <b>Subject</b>:
-           about 12 GPS fixes a second go out to <b>5 subscribers</b> - map, ETA panel, trip log,
-           push alerts and the safety monitor.`,
-    notice: [
-      "The publisher never learns who is listening.",
-      "Untick a subscriber later - only that one goes quiet.",
-    ],
+    body: () => `${driverName("The driver")}'s phone sends ~12 GPS updates a second to <b>5 subscribers</b> that never know about each other.`,
+    look: "The car moves; untick a subscriber later to silence just that one.",
     async run(t) {
       await t.until(() => rideKey() === "ArrivingState");
       await t.sleep(700);
@@ -5311,35 +5314,28 @@ const TOUR_STEPS = [
 
   {
     tag: "STATE",
-    title: "You're aboard - Cancel locks itself",
+    title: "You're aboard",
     file: "js/patterns/state.js",
     view: "trip",
-    focus: ["#lifecycle", "#btnCancel", "#simulate"],
+    focus: ["#lifecycle", "#btnCancel"],
     filter: "STATE",
     hold: true,
-    body: `<code>ArrivingState</code> handed over to <code>InProgressState</code>, whose
-           <code>canCancel</code> is <b>false</b> - so the Cancel button disabled itself. The button
-           asks the state; it has no rules of its own.`,
-    notice: ["<i>Unexpected stop</i> and <i>Route detour</i> just unlocked - the rider is in the car."],
+    body: `<code>InProgressState</code> says <code>canCancel</code> is false, so the Cancel button disables itself.`,
+    look: "Cancel ride is now greyed out.",
     waitFor: () => rideKey() === "InProgressState",
   },
 
   {
     tag: "OBSERVER",
-    title: "Real problem #3 - the car leaves the route",
+    title: "Problem 3: the car leaves the route",
     file: "js/patterns/observer.js",
     view: "trip",
     focus: ["#map", "#term"],
     filter: "OBSERVER",
     hold: true,
-    problem: "The NCW's 2026 guidelines ask app cabs for route-deviation alerts and checks on long stops.",
-    body: `The driver left the <b>blue</b> route for the <b>red dashed</b> one.
-           <code>SafetyMonitorObserver</code>, a 5th subscriber, caught it at 0.8 km off and asked
-           <b>"Are you okay?"</b> with an SOS button.`,
-    notice: [
-      "Console: <b>DETOUR ALERT</b>. No other observer changed to add this.",
-      "I'll tap <i>I'm okay</i> for you next.",
-    ],
+    problem: "No alert when a cab strays from its route (NCW, 2026).",
+    body: `<b>Fix:</b> a 5th subscriber, <code>SafetyMonitorObserver</code>, saw the red detour and asked <b>&ldquo;Are you okay?&rdquo;</b>`,
+    look: "Console: DETOUR ALERT. I'll answer “I'm okay” next.",
     async run(t) {
       await t.sleep(1200);
       if (!$("btnDetour").disabled) $("btnDetour").click();
@@ -5349,15 +5345,13 @@ const TOUR_STEPS = [
 
   {
     tag: "STATE",
-    title: "Trip done - you pay the upfront fare",
+    title: "Trip done",
     file: "js/patterns/state.js",
     view: "trip",
     focus: ["#tripFare", "#lifecycle", "#term"],
     filter: "ALL",
-    body: () => `I tapped <b>I'm okay</b> and the trip finished. <code>CompletedState</code> charged
-           <b>${fare()}</b> - the exact quote - even after the <b>${ui.ride ? ui.ride.detourKm : 0} km</b>
-           detour. The quote is the bill.`,
-    notice: ["One charge only, and no cancellation fee - the driver cancelled, not you."],
+    body: () => `<code>CompletedState</code> charged <b>${fare()}</b> &mdash; the quoted fare, even after the ${ui.ride ? ui.ride.detourKm : 0} km detour.`,
+    look: "Console: one charge, and no cancellation fee for you.",
     async run() {
       if (visible("safetyCard")) $("btnSafeOk").click();
     },
@@ -5366,25 +5360,28 @@ const TOUR_STEPS = [
 
   {
     tag: "TOUR",
-    title: "What you just watched",
+    title: "What you just saw",
     focus: [],
     filter: "ALL",
     final: true,
-    body: `<table class="tour__recap">
-             <tr><td>Singleton</td><td>one shared log behind the whole console</td></tr>
-             <tr><td>Factory</td><td>built the Bike and the Sedan</td></tr>
-             <tr><td>Strategy</td><td>swapped the pricing rule live</td></tr>
-             <tr><td>Decorator</td><td>held a 3x festival surge to the legal 2x</td></tr>
-             <tr><td>Facade</td><td>turned "Book ride" into one call</td></tr>
-             <tr><td>State</td><td>ran the lifecycle and re-matched after a cancel</td></tr>
-             <tr><td>Observer</td><td>moved the car and caught the detour</td></tr>
-           </table>`,
-    notice: [
-      "Try it yourself: Cancel during <i>Driver arriving</i> and pick <i>The driver asked me to cancel</i> - free.",
-      "Try <b>Unexpected stop</b> during a trip for the long-stop alert and SOS.",
-    ],
+    body: `<dl class="tour__recap">
+             <dt>Singleton</dt><dd>one shared log</dd>
+             <dt>Factory</dt><dd>built the cars</dd>
+             <dt>Strategy</dt><dd>swapped the price rule</dd>
+             <dt>Decorator</dt><dd>capped the surge at 2&times;</dd>
+             <dt>Facade</dt><dd>booked in one call</dd>
+             <dt>State</dt><dd>ran the ride, re-matched it</dd>
+             <dt>Observer</dt><dd>moved the car, caught the detour</dd>
+           </dl>`,
+    look: `Try it yourself: Cancel &rarr; &ldquo;The driver asked me to&rdquo; is free.`,
   },
 ];
+
+/** How each tag is shown on the card. */
+const TOUR_LABEL = {
+  TOUR: "Guided demo", SINGLETON: "Singleton", FACTORY: "Factory", STRATEGY: "Strategy",
+  DECORATOR: "Decorator", FACADE: "Facade", STATE: "State", OBSERVER: "Observer",
+};
 
 /* ============================================================
    THE ENGINE
@@ -5421,8 +5418,6 @@ const Tour = {
     this.skip = false;
     while (left > 0 && !this.skip) {
       $("tourTimer").style.width = (left / ms) * 100 + "%";   // Next empties as time runs out
-      $("tourStatusText").textContent = (this.frozen ? "Ride paused while you read · " : "") +
-        "next in " + Math.ceil(left / 1000) + "s";
       await this.tick();
       if (!this.userPaused) left -= 100;
     }
@@ -5434,7 +5429,8 @@ const Tour = {
     const ride = ui.ride && !ui.ride.state.isFinal;
     if (ride) {
       SimClock.rate = TOUR_FAST;
-      $("tourStatusText").textContent = "⏩ Fast-forwarding to the next moment...";
+      $("tourNextLbl").textContent = "\u23E9 Skipping ahead";
+      $("tourStatusText").textContent = "Fast-forwarding to the next moment";
     }
     try {
       while (!cond()) {
@@ -5445,15 +5441,16 @@ const Tour = {
       }
     } finally {
       SimClock.rate = TOUR_RATE;
+      if (ride) $("tourNextLbl").textContent = "Working\u2026";
     }
   },
 
   /** How long a stage stays up: enough to read it, not a second more. */
   readTime(step) {
-    const text = [typeof step.body === "function" ? step.body() : step.body, step.problem || "", ...(step.notice || [])]
+    const text = [typeof step.body === "function" ? step.body() : step.body, step.problem || "", step.look || ""]
       .join(" ").replace(/<[^>]+>/g, " ");
     const words = text.split(/\s+/).filter(Boolean).length;
-    return Math.max(4000, Math.min(7500, 2200 + words * 70));
+    return Math.max(3500, Math.min(6500, 1800 + words * 90));
   },
 
   /* ---- start / stop ---- */
@@ -5469,9 +5466,8 @@ const Tour = {
     this.syncClock();
     document.body.classList.add("is-touring");
     $("tour").hidden = false;
-    $("tour").classList.remove("is-paused", "is-open");
-    $("tourMore").setAttribute("aria-expanded", "false");
-    $("tourMore").textContent = "Details";
+    $("tour").classList.remove("is-paused");
+    $("tourPause").textContent = "Pause";
     $("btnTour").disabled = true;
 
     try {
@@ -5546,34 +5542,28 @@ const Tour = {
     $("tour").classList.toggle("is-paused", this.userPaused);
   },
 
-  toggleDetails() {
-    const open = $("tour").classList.toggle("is-open");
-    $("tourMore").setAttribute("aria-expanded", String(open));
-    $("tourMore").textContent = open ? "Less" : "Details";
-  },
-
   /* ---- drawing the card ---- */
 
   render(step, i, phase) {
     const body = typeof step.body === "function" ? step.body() : step.body;
     const total = TOUR_STEPS.length;
 
-    $("tourCount").textContent = "Step " + (i + 1) + " of " + total;
-    $("tourTag").textContent = step.tag;
+    $("tourCount").textContent = (i + 1) + " / " + total;
+    $("tourTag").textContent = TOUR_LABEL[step.tag] || step.tag;
     $("tourTag").className = "tour__tag tag-" + step.tag;
+    $("tourTag").title = step.file ? "Code: " + step.file : "";
     $("tourTitle").textContent = step.title;
     $("tourProblem").hidden = !step.problem;
-    $("tourProblem").innerHTML = step.problem ? "<b>The problem:</b> " + step.problem : "";
+    $("tourProblem").innerHTML = step.problem ? "<b>Problem:</b> " + step.problem : "";
     $("tourBody").innerHTML = body;
-    $("tourNotice").innerHTML = (step.notice || []).map((n) => "<li>" + n + "</li>").join("");
-    $("tourFile").innerHTML = step.file ? "Code: <code>" + step.file + "</code>" : "";
+    $("tourLook").innerHTML = step.look || "";
     $("tourBar").style.width = ((i + (phase === "working" ? 0.5 : 1)) / total) * 100 + "%";
 
-    const status = $("tourStatus");
-    status.dataset.phase = phase;
+    $("tourStatus").dataset.phase = phase;
     $("tourTimer").style.width = "0%";
+    $("tourNextLbl").textContent = phase === "working" ? "Working\u2026" : "Next \u25B8";
     $("tourStatusText").textContent = phase === "done" ? "Tour complete"
-      : phase === "working" ? "Working - watch the glow..." : "";
+      : phase === "working" ? "Working" : (this.frozen ? "Ride paused while you read" : "");
 
     $("tourPause").hidden = phase === "done";
     $("tourNext").hidden = phase === "done";
@@ -5582,7 +5572,6 @@ const Tour = {
     $("tourExit").textContent = phase === "done" ? "Close" : "Exit";
 
     applyFilter(step.filter || "ALL");
-    this.renderFeed();
     document.querySelectorAll(".pchip").forEach((c) =>
       c.classList.toggle("is-current", c.dataset.tag === step.tag));
 
@@ -5632,25 +5621,11 @@ const Tour = {
     });
   },
 
-  /** The latest console lines for this stage - shown where the console is out of view. */
-  renderFeed() {
-    if (!this.step) return;
-    const filter = this.step.filter || "ALL";
-    const lines = DispatchLog.getInstance().entries
-      .filter((e) => (filter === "ALL" ? e.tag !== "SYSTEM" : e.tag === filter))
-      .slice(-2);
-    $("tourFeed").innerHTML = lines.map((e) =>
-      '<div><span class="tag-' + e.tag + '">' + e.tag + "</span><span>" +
-      e.message.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/\{\{|\}\}/g, "") +
-      "</span></div>").join("");
-  },
-
   renderStopped(text) {
     $("tourTitle").textContent = "Walkthrough stopped";
     $("tourProblem").hidden = true;
     $("tourBody").textContent = text;
-    $("tourNotice").innerHTML = "<li>Press <b>Guided demo</b> again once no ride is active.</li>";
-    $("tourFile").innerHTML = "";
+    $("tourLook").innerHTML = "Press <b>Guided demo</b> again once no ride is active.";
     $("tourStatus").dataset.phase = "done";
     $("tourStatusText").textContent = "Stopped";
   },
@@ -5660,12 +5635,8 @@ document.addEventListener("DOMContentLoaded", () => {
   $("btnTour").addEventListener("click", () => Tour.start());
   $("tourPause").addEventListener("click", () => Tour.togglePause());
   $("tourNext").addEventListener("click", () => { Tour.skip = true; });
-  $("tourMore").addEventListener("click", () => Tour.toggleDetails());
   $("tourRestart").addEventListener("click", () => { Tour.close(); Tour.start(); });
   $("tourExit").addEventListener("click", () => Tour.exit());
-
-  // Keep the console lines in the card live while a stage is up.
-  DispatchLog.getInstance().onWrite(() => { if (Tour.running) Tour.renderFeed(); });
 
   // Reserve exactly the docked card's height at the bottom of the page.
   if (window.ResizeObserver) {

@@ -55,12 +55,12 @@
   <section class="panel sheet" id="sheet" aria-label="Ride">
     <div class="tabs" role="tablist">
       <button class="tab" id="tabPlan" type="button" role="tab" aria-selected="true" aria-controls="viewPlan">
-        <span class="tab__n">1</span><span class="tab__t">Plan</span>
+        <span class="tab__n">1</span>Plan
       </button>
       <button class="tab" id="tabTrip" type="button" role="tab" aria-selected="false" aria-controls="viewTrip">
-        <span class="tab__n">2</span><span class="tab__t">Trip</span>
+        <span class="tab__n">2</span>Trip
       </button>
-      <span class="tabs__state" id="stateNow" title="The State object the ride is holding right now">no active ride</span>
+      <span class="sr-only" id="stateNow" aria-live="polite">no active ride</span>
     </div>
 
     <!-- PLAN: Factory, Strategy, Decorator, Facade -->
@@ -82,18 +82,18 @@
       </div>
 
       <div class="field">
-        <span class="field__label">Vehicle <i>&middot; Factory</i></span>
+        <span class="field__label">Vehicle <span class="ptag" data-p="FACTORY">Factory</span></span>
         <div class="vgrid" id="vehicles"></div>
       </div>
 
       <div class="field">
-        <label class="field__label" for="strategy">Pricing rule <i>&middot; Strategy</i></label>
+        <label class="field__label" for="strategy">Price <span class="ptag" data-p="STRATEGY">Strategy</span><span class="ptag" data-p="DECORATOR">Decorator</span></label>
         <select id="strategy">
           <option value="STANDARD">Standard fare</option>
-          <option value="SURGE">Surge pricing &times;1.8 (peak hour)</option>
-          <option value="FESTIVAL">Festival surge &times;3 (watch the legal cap)</option>
+          <option value="SURGE">Surge &times;1.8 (peak hour)</option>
+          <option value="FESTIVAL">Festival surge &times;3 (capped by law)</option>
           <option value="NIGHT">Night fare (+25%)</option>
-          <option value="PASS">RidePass subscriber (-20%)</option>
+          <option value="PASS">RidePass (-20%)</option>
           <option value="POOL">Shared pool (split fare)</option>
         </select>
       </div>
@@ -108,9 +108,9 @@
 
     <!-- TRIP: State -->
     <div class="view" id="viewTrip" role="tabpanel" aria-labelledby="tabTrip" hidden>
-      <div class="statebar">
-        <span class="statebar__k">now</span>
-        <span class="statebar__v" id="stateLabel">Pick a route and book</span>
+      <div class="triphead">
+        <h3 class="triphead__t" id="stateLabel">No ride yet</h3>
+        <span class="ptag" data-p="STATE">State</span>
       </div>
       <div class="dcard" id="driverCard" hidden></div>
       <div class="lifecycle" id="lifecycle"></div>
@@ -121,22 +121,22 @@
 
       <button class="btn btn--ghost" id="btnCancel" type="button" disabled>Cancel ride</button>
       <div class="cancelask" id="cancelAsk" hidden>
-        <span class="cancelask__q">Why are you cancelling?</span>
+        <span class="cancelask__q">Why cancel?</span>
         <button class="btn btn--ghost cancelask__opt" id="btnCancelPlans" type="button">
           I changed my plans <small id="cancelFeeNote"></small>
         </button>
         <button class="btn btn--ghost cancelask__opt" id="btnCancelAsked" type="button">
-          The driver asked me to cancel <small>no fee for you &middot; driver penalised</small>
+          The driver asked me to <small>Free &middot; driver is penalised</small>
         </button>
         <button class="linkbtn" id="btnCancelKeep" type="button">Keep my ride</button>
       </div>
 
       <div class="demo" id="simulate">
-        <span class="field__label">Simulate a real-world problem</span>
+        <span class="field__label">Simulate a problem</span>
         <div class="demo__row">
           <button class="btn btn--sim" id="btnDriverCancel" type="button" disabled title="The driver cancels after accepting">Driver cancels</button>
-          <button class="btn btn--sim" id="btnStop" type="button" disabled title="The car stops for 4 minutes with no red light">Unexpected stop</button>
-          <button class="btn btn--sim" id="btnDetour" type="button" disabled title="The driver leaves the planned route">Route detour</button>
+          <button class="btn btn--sim" id="btnStop" type="button" disabled title="The car stops for 4 minutes with no red light">Long stop</button>
+          <button class="btn btn--sim" id="btnDetour" type="button" disabled title="The driver leaves the planned route">Detour</button>
         </div>
       </div>
     </div>
@@ -145,10 +145,10 @@
   <!-- ---------- 2. the city: the Observer subject broadcasting ---------- -->
   <section class="panel stage" id="stage" aria-label="Live map">
     <div class="panel__hd">
-      <h2 class="panel__title">Live map <i>&middot; Observer subject</i></h2>
+      <h2 class="panel__title">Map <span class="ptag" data-p="OBSERVER">Observer</span></h2>
       <span class="panel__via" id="viaLine">Hyderabad</span>
       <button class="minibtn" id="btnTraffic" type="button" aria-pressed="true"
-              title="The other cars are decoration only - switch them off for a calmer map">City traffic: on</button>
+              title="The other cars are decoration only - switch them off for a calmer map">Traffic: on</button>
     </div>
     <div class="mapwrap">
       <svg id="map" viewBox="0 0 720 420" role="img" aria-label="Simulated Hyderabad street map showing the driver moving along the routed roads">
@@ -173,7 +173,7 @@
         <span class="hud__item hud__item--road"><span class="hud__k">On</span><span class="hud__v" id="hudRoad">--</span></span>
         <span class="hud__status" id="hudStatus" data-status="IDLE">idle</span>
       </div>
-      <div class="toasts" id="toasts"></div>
+      <div class="toasts" id="toasts" aria-live="polite"></div>
       <div class="safety" id="safetyCard" role="alertdialog" aria-labelledby="safetyTitle" hidden>
         <b id="safetyTitle">Are you okay?</b>
         <span id="safetyText"></span>
@@ -188,47 +188,39 @@
   <!-- ---------- 3. who is listening to the driver's GPS ---------- -->
   <section class="panel obs" id="obsPanel" aria-label="GPS subscribers">
     <div class="obs__hd">
-      <span class="panel__title">GPS subscribers <i>&middot; Observer</i></span>
-      <span class="obs__hint">untick one &mdash; only it goes quiet</span>
+      <span class="panel__title">Subscribers <span class="ptag" data-p="OBSERVER">Observer</span></span>
+      <span class="obs__hint">Untick one to unsubscribe it</span>
     </div>
     <div class="obsgrid" id="observers"></div>
   </section>
 
   <!-- ---------- 4. the lab: guided-demo narration + the dispatch console ---------- -->
-  <section class="lab" id="lab" aria-label="Guided demo and dispatch console">
+  <section class="lab" id="lab" aria-label="Guided demo and console">
 
-    <aside class="tour" id="tour" aria-live="polite" aria-label="Guided demo" hidden>
+    <aside class="tour" id="tour" aria-label="Guided demo" hidden>
       <div class="tour__bar" aria-hidden="true"><span id="tourBar"></span></div>
       <div class="tour__hd">
         <span class="tour__count" id="tourCount"></span>
         <span class="tour__tag" id="tourTag"></span>
       </div>
       <h3 class="tour__title" id="tourTitle"></h3>
-      <p class="tour__problem tour__extra" id="tourProblem" hidden></p>
+      <p class="tour__problem" id="tourProblem" hidden></p>
       <div class="tour__body" id="tourBody"></div>
-      <div class="tour__extra tour__more">
-        <span class="tour__k">What to notice</span>
-        <ul class="tour__notice" id="tourNotice"></ul>
-        <div class="tour__file" id="tourFile"></div>
-      </div>
-      <div class="tour__feed" id="tourFeed" aria-label="Latest console lines"></div>
-      <div class="tour__foot">
-        <div class="tour__status" id="tourStatus"><span id="tourStatusText"></span></div>
-        <div class="tour__ctl">
-          <button class="tour__btn tour__btn--more" id="tourMore" type="button" aria-expanded="false">Details</button>
-          <button class="tour__btn" id="tourPause" type="button">Pause</button>
-          <button class="tour__btn tour__btn--go" id="tourNext" type="button">
-            <span class="tour__fill" id="tourTimer" aria-hidden="true"></span><span class="tour__lbl">Next &#9656;</span>
-          </button>
-          <button class="tour__btn" id="tourRestart" type="button" hidden>Run again</button>
-          <button class="tour__btn" id="tourExit" type="button">Exit</button>
-        </div>
+      <p class="tour__look" id="tourLook"></p>
+      <div class="sr-only" id="tourStatus" aria-live="polite"><span id="tourStatusText"></span></div>
+      <div class="tour__ctl">
+        <button class="tour__btn" id="tourPause" type="button">Pause</button>
+        <button class="tour__btn tour__btn--go" id="tourNext" type="button">
+          <span class="tour__fill" id="tourTimer" aria-hidden="true"></span><span class="tour__lbl" id="tourNextLbl">Next &#9656;</span>
+        </button>
+        <button class="tour__btn" id="tourRestart" type="button" hidden>Run again</button>
+        <button class="tour__btn" id="tourExit" type="button">Exit</button>
       </div>
     </aside>
 
     <section class="term" id="term">
       <div class="term__hd">
-        <span class="term__title">Dispatch console <i>&middot; every line is a pattern at work</i></span>
+        <span class="term__title">Console <span class="ptag ptag--dark" data-p="SINGLETON">Singleton</span></span>
         <span class="term__live"><span class="term__led"></span>live</span>
       </div>
       <div class="term__body" id="terminal"></div>
@@ -246,20 +238,19 @@
     <div class="ref__lede">
       <span class="eyebrow">How the app is built</span>
       <h2>Six patterns, one booking flow</h2>
-      <p>Each pattern below solves a specific problem this app would otherwise have. The
-         code is the real code running above &mdash; open the dispatch console and you can
-         watch each one announce itself as you click.</p>
+      <p>Open any pattern to see the problem it solves, where it runs above, and its real code.</p>
     </div>
 
     <!-- ---------- REAL-WORLD PROBLEMS ---------- -->
-    <article class="pat">
-      <div class="pat__head">
+    <details class="pat">
+      <summary class="pat__sum">
         <span class="pat__tag pt-problem">Real-world problems</span>
-        <h3 class="pat__name">What riders on Uber, Ola and Rapido complain about<small>and how this app answers it</small></h3>
-        <p class="pat__body">Three complaints keep coming up in consumer surveys, regulator notices and
-           the 2025 Motor Vehicle Aggregator Guidelines. Each fix below is built on a pattern, which is
-           why it took so little code &mdash; and each can be triggered from the
-           <em>Simulate real-world problems</em> buttons above.</p>
+        <h3 class="pat__name">What riders complain about<small>Uber, Ola, Rapido &mdash; and the fixes here</small></h3>
+        <p class="pat__body">Three complaints from surveys, regulators and the 2025 rules, each fixed with a
+           pattern. Try them with <em>Simulate a problem</em> on the Trip tab.</p>
+      </summary>
+      <div class="pat__in">
+        <div class="pat__qa">
         <div class="qa">
           <span class="qa__q">1 &middot; Drivers cancel after accepting &mdash; State</span>
           <p class="qa__a">A LocalCircles survey found 84% of app-cab users had been pushed into
@@ -283,20 +274,24 @@
              <em>"Are you okay?"</em> after 3 minutes stood still or 0.8 km off the route, with an SOS that
              sends the car details and live location. Nothing else in the app changed to add it.</p>
         </div>
-      </div>
-      <div class="code">
+        </div>
+        <div class="code">
         <div class="code__hd">state.js &mdash; the new stage a driver cancellation leads to</div>
         <pre data-src="src-rematch"></pre>
       </div>
-    </article>
+      </div>
+    </details>
 
     <!-- ---------- FACTORY ---------- -->
-    <article class="pat">
-      <div class="pat__head">
+    <details class="pat">
+      <summary class="pat__sum">
         <span class="pat__tag pt-factory">Creational</span>
         <h3 class="pat__name">Factory<small>js/patterns/factory.js</small></h3>
         <p class="pat__body">One class owns object creation. Callers name <em>what</em> they want;
            they never learn <em>how</em> it is built.</p>
+      </summary>
+      <div class="pat__in">
+        <div class="pat__qa">
         <div class="qa">
           <span class="qa__q">Where it runs</span>
           <p class="qa__a">Every vehicle tile in the picker was produced by
@@ -313,20 +308,24 @@
           <p class="qa__a">Click a different vehicle. The console prints the exact class the
              factory built and the fare rates it carries.</p>
         </div>
-      </div>
-      <div class="code">
+        </div>
+        <div class="code">
         <div class="code__hd">factory.js &mdash; abstract product, concrete products, factory</div>
         <pre data-src="src-factory"></pre>
       </div>
-    </article>
+      </div>
+    </details>
 
     <!-- ---------- STRATEGY ---------- -->
-    <article class="pat">
-      <div class="pat__head">
+    <details class="pat">
+      <summary class="pat__sum">
         <span class="pat__tag pt-strategy">Behavioural</span>
         <h3 class="pat__name">Strategy<small>js/patterns/strategy.js</small></h3>
         <p class="pat__body">Interchangeable algorithms behind one method. The object using them
            can be handed a different one while the program is running.</p>
+      </summary>
+      <div class="pat__in">
+        <div class="pat__qa">
         <div class="qa">
           <span class="qa__q">Where it runs</span>
           <p class="qa__a">The pricing dropdown. <code>FareCalculator</code> holds one
@@ -342,20 +341,24 @@
           <p class="qa__a">Switch to <em>Surge pricing</em>. Same trip, same vehicle &mdash; the
              receipt rebuilds itself with different line items, and no calling code changed.</p>
         </div>
-      </div>
-      <div class="code">
+        </div>
+        <div class="code">
         <div class="code__hd">strategy.js &mdash; the interface, two of the five rules, the context</div>
         <pre data-src="src-strategy"></pre>
       </div>
-    </article>
+      </div>
+    </details>
 
     <!-- ---------- OBSERVER ---------- -->
-    <article class="pat">
-      <div class="pat__head">
+    <details class="pat">
+      <summary class="pat__sum">
         <span class="pat__tag pt-observer">Behavioural</span>
         <h3 class="pat__name">Observer<small>js/patterns/observer.js</small></h3>
         <p class="pat__body">A subject announces that something changed; any number of subscribers
            react. The subject never learns who they are.</p>
+      </summary>
+      <div class="pat__in">
+        <div class="pat__qa">
         <div class="qa">
           <span class="qa__q">Where it runs</span>
           <p class="qa__a">The driver's GPS. <code>DriverLocationPublisher</code> emits a fix about
@@ -371,20 +374,24 @@
           <p class="qa__a">Book a ride, then untick <em>EtaPanelObserver</em> while the car is
              moving. The ETA freezes; the car keeps driving. That is the decoupling, visible.</p>
         </div>
-      </div>
-      <div class="code">
+        </div>
+        <div class="code">
         <div class="code__hd">observer.js &mdash; subject, observer, and the wiring</div>
         <pre data-src="src-observer"></pre>
       </div>
-    </article>
+      </div>
+    </details>
 
     <!-- ---------- STATE ---------- -->
-    <article class="pat">
-      <div class="pat__head">
+    <details class="pat">
+      <summary class="pat__sum">
         <span class="pat__tag pt-state">Behavioural</span>
         <h3 class="pat__name">State<small>js/patterns/state.js</small></h3>
         <p class="pat__body">Each stage of the ride is its own class holding the behaviour that is
            legal at that stage. The ride delegates instead of deciding.</p>
+      </summary>
+      <div class="pat__in">
+        <div class="pat__qa">
         <div class="qa">
           <span class="qa__q">Where it runs</span>
           <p class="qa__a">The lifecycle panel. The label on the right of each row is the actual
@@ -402,20 +409,24 @@
              Wait for <em>Ride in progress</em> and both buttons disable themselves, because
              <code>InProgressState</code> says so.</p>
         </div>
-      </div>
-      <div class="code">
+        </div>
+        <div class="code">
         <div class="code__hd">state.js &mdash; the state interface, two states, and the context</div>
         <pre data-src="src-state"></pre>
       </div>
-    </article>
+      </div>
+    </details>
 
     <!-- ---------- FACADE ---------- -->
-    <article class="pat">
-      <div class="pat__head">
+    <details class="pat">
+      <summary class="pat__sum">
         <span class="pat__tag pt-facade">Structural</span>
         <h3 class="pat__name">Facade<small>js/patterns/facade.js</small></h3>
         <p class="pat__body">One simple door in front of a complicated building. The button says
            <code>bookRide()</code> and knows nothing about what happens behind it.</p>
+      </summary>
+      <div class="pat__in">
+        <div class="pat__qa">
         <div class="qa">
           <span class="qa__q">Where it runs</span>
           <p class="qa__a">The Book ride button. One call fans out to seven steps across the geo,
@@ -431,20 +442,24 @@
           <p class="qa__a">Filter the console to <em>FACADE</em> and book. Two lines. Then clear the
              filter to see everything those two lines set in motion.</p>
         </div>
-      </div>
-      <div class="code">
+        </div>
+        <div class="code">
         <div class="code__hd">facade.js &mdash; the one method the interface calls</div>
         <pre data-src="src-facade"></pre>
       </div>
-    </article>
+      </div>
+    </details>
 
     <!-- ---------- DECORATOR ---------- -->
-    <article class="pat">
-      <div class="pat__head">
+    <details class="pat">
+      <summary class="pat__sum">
         <span class="pat__tag pt-decorator">Structural</span>
         <h3 class="pat__name">Decorator<small>js/patterns/decorator.js</small></h3>
         <p class="pat__body">Wrap an object in another with the same interface, adding one duty around
            the call. The caller cannot tell, and the wrapped object never changes.</p>
+      </summary>
+      <div class="pat__in">
+        <div class="pat__qa">
         <div class="qa">
           <span class="qa__q">Where it runs</span>
           <p class="qa__a">Every pricing rule. The facade hands the calculator
@@ -461,20 +476,24 @@
           <p class="qa__a">Pick <em>Festival surge &times;3</em>. The rule asks for 3x; the receipt gains a
              green <em>Surge capped at 2x</em> line and the console prints a <em>DECORATOR</em> correction.</p>
         </div>
-      </div>
-      <div class="code">
+        </div>
+        <div class="code">
         <div class="code__hd">decorator.js &mdash; the base wrapper and the legal cap</div>
         <pre data-src="src-decorator"></pre>
       </div>
-    </article>
+      </div>
+    </details>
 
     <!-- ---------- SINGLETON ---------- -->
-    <article class="pat">
-      <div class="pat__head">
+    <details class="pat">
+      <summary class="pat__sum">
         <span class="pat__tag pt-singleton">Creational &middot; bonus</span>
         <h3 class="pat__name">Singleton<small>js/core/dispatchLog.js</small></h3>
         <p class="pat__body">Exactly one instance, shared by everything. Ask for it a hundred
            times and you get the same object back every time.</p>
+      </summary>
+      <div class="pat__in">
+        <div class="pat__qa">
         <div class="qa">
           <span class="qa__q">Where it runs</span>
           <p class="qa__a">The dispatch console itself. Six pattern files write to it and the UI
@@ -490,12 +509,13 @@
           <p class="qa__a">Every line in the console is proof &mdash; six separate files wrote
              into one shared list.</p>
         </div>
-      </div>
-      <div class="code">
+        </div>
+        <div class="code">
         <div class="code__hd">dispatchLog.js &mdash; the instance guard</div>
         <pre data-src="src-singleton"></pre>
       </div>
-    </article>
+      </div>
+    </details>
 
   </div>
 </section>

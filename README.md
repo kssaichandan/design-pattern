@@ -93,7 +93,8 @@ what the five patterns bought.
 Ride-hailing in India has three complaints that come up again and again in
 consumer surveys, regulator notices and new government rules. Each one is fixed
 here, each fix is built on a pattern, and each can be triggered from the
-**Simulate real-world problems** buttons under the lifecycle panel.
+**Simulate a problem** buttons on the Trip tab (*Driver cancels*, *Long stop*,
+*Detour*).
 
 | # | Problem riders report | Fix in RideFlow | Pattern |
 |---|---|---|---|
@@ -466,9 +467,11 @@ one lit, and the console is filtered to that pattern's lines.
 **Where the narration sits.** On a laptop it has its own place above the
 console, so it never covers the app. On a phone or tablet it docks in a strip
 at the bottom, the page keeps that strip free, and the demo scrolls the
-highlighted part into the space between the pinned map and the strip. Since
-the console is out of view there, the card also shows its latest two lines;
-**Details** opens the problem, the notes and the file name.
+highlighted part into the space between the pinned map and the strip.
+
+**The card is four lines at most:** the title, one sentence (for the three
+real-world fixes: *Problem* and *Fix*), and one "→ look here" line. The
+pattern's source file is in the tooltip on the pattern name.
 
 | # | Stage | Pattern |
 |---|---|---|
@@ -515,9 +518,13 @@ is shown.
 | **Coherence** (Mayer) | Remove extraneous decoration | The decorative city traffic is down to 10 faint cars, hidden during the demo and on phones, and has an on/off switch |
 | **Redundancy** (Mayer) | Don't present the same words twice at once | One notification at a time; during the demo the chips mark the current pattern instead of flashing with every console line |
 | **Segmenting** (Mayer) | Learner-paced chunks beat a continuous stream | 13 short stages, each with Next / Pause; reading time follows the text |
-| **Progressive disclosure** | Show the essentials, reveal detail on demand | The map's five telemetry boxes are one quiet line; on phones the demo card shows the gist, **Details** opens the rest; subscriber descriptions sit in a muted line with the full text on hover |
+| **Progressive disclosure** | Show the essentials, reveal detail on demand | The map's five telemetry boxes are one quiet line; the demo card is four lines; the reference below the app opens one pattern at a time; class names show on the current ride stage only (the others in a tooltip) |
 | **WCAG 2.2.2 Pause, Stop, Hide** | Nothing should move or blink indefinitely without a way to stop it | No endless animations: the outline pulses twice then holds; the console light and status dot no longer blink; traffic can be switched off; the demo can be paused |
 | **Reduced motion** (`prefers-reduced-motion`) | Respect the user's system setting | Decorative traffic and the car's halo are dropped; transitions become instant |
+| **WCAG 1.4.3 Contrast** | Text needs 4.5:1 against its background | Muted text was 3.0–3.9:1; it is now 4.7:1 or better in light and dark themes |
+| **WCAG 2.5.8 Target size** | Tap targets at least 24 × 24 px | Console filters and small buttons are 26 px tall |
+| **Readable type** | No body text below ~11 px; sentence case reads faster than spaced capitals | Nothing in the app is under 11 px; labels are sentence case (only the console's log tags stay in capitals) |
+| **One shape per idea** | Avoid boxes inside boxes | Inner borders were replaced by spacing: the ride stage, fare and subscriber list are plain rows |
 
 Nothing was taken away: every number, button, log line and explanation is
 still on screen or one hover / tap away.
@@ -554,7 +561,7 @@ still on screen or one hover / tap away.
    asking for 3x and `SurgeCapGuard` trimming it to 2x. Say: *the rule was
    wrapped, not edited.*
 9. **Real-world fix 3 — book Kukatpally → RGIA Airport; once *Ride in progress*,
-   press *Route detour* or *Unexpected stop*.** "Are you okay?" appears; press
+   press *Detour* or *Long stop*.** "Are you okay?" appears; press
    SOS and read the console. Say: *a fifth subscriber; the publisher never
    noticed.*
 10. **Scroll down** to the reference section for the real code behind each one.
