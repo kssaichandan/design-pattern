@@ -37,6 +37,9 @@ class Vehicle {
   get speedKmph(){ throw new Error("not implemented"); }
   get iconId()   { return this.code.toLowerCase(); }
 
+  /** One line of sell copy under the tile. Optional - default is empty. */
+  get blurb()    { return ""; }
+
   /** Shared behaviour every vehicle inherits for free. */
   tripMinutes(km) {
     return Math.max(3, Math.round((km / this.speedKmph) * 60));
@@ -57,6 +60,7 @@ class Bike extends Vehicle {
   get perKm()     { return 6; }
   get perMin()    { return 0.8; }
   get speedKmph() { return 32; }   // weaves through traffic - fastest
+  get blurb()     { return "Cheapest, beats the jam"; }
 }
 
 class Auto extends Vehicle {
@@ -67,6 +71,7 @@ class Auto extends Vehicle {
   get perKm()     { return 11; }
   get perMin()    { return 1.0; }
   get speedKmph() { return 24; }
+  get blurb()     { return "Metered, three up"; }
 }
 
 class SedanCab extends Vehicle {
@@ -77,6 +82,7 @@ class SedanCab extends Vehicle {
   get perKm()     { return 16; }
   get perMin()    { return 1.5; }
   get speedKmph() { return 27; }
+  get blurb()     { return "AC, four seats"; }
 }
 
 class SuvCab extends Vehicle {
@@ -87,6 +93,35 @@ class SuvCab extends Vehicle {
   get perKm()     { return 22; }
   get perMin()    { return 2.0; }
   get speedKmph() { return 26; }
+  get blurb()     { return "Six seats, big boot"; }
+}
+
+/**
+ * The two categories added AFTER the app shipped. Look at what it
+ * cost: one class each, plus one line each in the registry below.
+ * No screen, no booking code and no pricing rule was touched -
+ * which is the whole argument for the Factory pattern.
+ */
+class ERickshaw extends Vehicle {
+  get code()      { return "ERICK"; }
+  get label()     { return "E-Rick"; }
+  get capacity()  { return 3; }
+  get baseFare()  { return 25; }
+  get perKm()     { return 8; }
+  get perMin()    { return 0.7; }
+  get speedKmph() { return 20; }   // slow, but the cheapest thing with a roof
+  get blurb()     { return "Electric - zero tailpipe"; }
+}
+
+class PrimeSedan extends Vehicle {
+  get code()      { return "PRIME"; }
+  get label()     { return "Prime"; }
+  get capacity()  { return 4; }
+  get baseFare()  { return 120; }
+  get perKm()     { return 26; }
+  get perMin()    { return 2.4; }
+  get speedKmph() { return 29; }
+  get blurb()     { return "Top-rated drivers only"; }
 }
 
 /* ---------- the factory ---------- */
@@ -98,9 +133,11 @@ class VehicleFactory {
    */
   static registry = {
     BIKE:  Bike,
+    ERICK: ERickshaw,
     AUTO:  Auto,
     SEDAN: SedanCab,
     SUV:   SuvCab,
+    PRIME: PrimeSedan,
   };
 
   /** The single place in the whole app where a vehicle is constructed. */

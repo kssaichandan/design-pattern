@@ -1,11 +1,11 @@
 /* ============================================================
    app.js - THE USER INTERFACE ONLY
    ------------------------------------------------------------
-   Read this file to see the payoff of the six patterns. It draws
+   Read this file to see the payoff of the seven patterns. It draws
    things and handles clicks. It never prices a ride, never decides
    what a ride is allowed to do next, never constructs a vehicle,
-   and never talks to a subsystem. It calls the Facade and renders
-   whatever comes back.
+   never talks to a payment provider and never touches a subsystem.
+   It calls the Facade and renders whatever comes back.
    ============================================================ */
 
 const $ = (id) => document.getElementById(id);
@@ -13,21 +13,13 @@ const $ = (id) => document.getElementById(id);
 /* ---------------- vehicle icons (presentation detail) ---------------- */
 
 const VEHICLE_ICONS = {
-  bike: '<svg viewBox="0 0 40 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="17" r="5"/><circle cx="32" cy="17" r="5"/><path d="M8 17l6-9h7l4 9M21 8l-2-4h-4M25 8h6"/></svg>',
-  auto: '<svg viewBox="0 0 40 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="18" r="3.5"/><circle cx="30" cy="18" r="3.5"/><path d="M7 18H5v-6c0-5 4-9 9-9h4c5 0 9 4 9 9v6h-3M15 18h11M28 12H8"/></svg>',
+  bike:  '<svg viewBox="0 0 40 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="17" r="5"/><circle cx="32" cy="17" r="5"/><path d="M8 17l6-9h7l4 9M21 8l-2-4h-4M25 8h6"/></svg>',
+  erick: '<svg viewBox="0 0 40 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="18" r="3.5"/><circle cx="30" cy="18" r="3.5"/><path d="M7 18H5v-6c0-5 4-9 9-9h4c5 0 9 4 9 9v6h-3M15 18h11"/><path d="m19 7-3 5h4l-3 5"/></svg>',
+  auto:  '<svg viewBox="0 0 40 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="18" r="3.5"/><circle cx="30" cy="18" r="3.5"/><path d="M7 18H5v-6c0-5 4-9 9-9h4c5 0 9 4 9 9v6h-3M15 18h11M28 12H8"/></svg>',
   sedan: '<svg viewBox="0 0 40 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="17" r="3.5"/><circle cx="29" cy="17" r="3.5"/><path d="M4 17v-4l4-1 4-5h13l5 5 5 1v4h-3M15 17h10"/></svg>',
-  suv: '<svg viewBox="0 0 40 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="17" r="3.5"/><circle cx="30" cy="17" r="3.5"/><path d="M4 17v-6l3-6h24l4 6h1v6h-3M15 17h11M9 11h24"/></svg>',
+  suv:   '<svg viewBox="0 0 40 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="17" r="3.5"/><circle cx="30" cy="17" r="3.5"/><path d="M4 17v-6l3-6h24l4 6h1v6h-3M15 17h11M9 11h24"/></svg>',
+  prime: '<svg viewBox="0 0 40 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="17" r="3.5"/><circle cx="29" cy="17" r="3.5"/><path d="M4 17v-4l4-1 4-5h13l5 5 5 1v4h-3M15 17h10"/><path d="m20 2 1.2 2.4L24 4.8l-2 1.9.5 2.7-2.5-1.3-2.5 1.3.5-2.7-2-1.9 2.8-.4z"/></svg>',
 };
-
-/* ---------------- the lifecycle timeline (labels only) ---------------- */
-
-const STEPS = [
-  { label: "Ride requested",   cls: "RequestedState" },
-  { label: "Driver assigned",  cls: "DriverAssignedState" },
-  { label: "Driver arriving",  cls: "ArrivingState" },
-  { label: "Ride in progress", cls: "InProgressState" },
-  { label: "Trip completed",   cls: "CompletedState" },
-];
 
 /* ---------------- local UI state ---------------- */
 
@@ -36,15 +28,20 @@ const ui = {
   dropId: "charminar",
   vehicleType: "SEDAN",
   strategyKey: "STANDARD",
+  addOns: [],
   ride: null,
+  shownState: null,
   filter: "ALL",
-  shownState: null,      // the state object last drawn, to spot real transitions
-  view: "plan",          // which tab of the ride sheet is showing: "plan" | "trip"
+  view: "plan",
+  unread: 0,
 };
 
 let facade;
+let router;
 let observerList = [];
 let ambient;
+let vehicleCatalog = [];
+let meterObserver;
 
 /* ============================================================
    MAP RENDERING
@@ -88,7 +85,9 @@ function blockShapes() {
 function drawCity() {
   const g = $("terrain");
   g.innerHTML = "";
-  g.appendChild(mk("rect", { x: 0, y: 0, width: 720, height: 420, class: "mp-land" }));
+  // Land runs well past the city edge, so a camera framing a trip near
+  // the edge never shows a hard border.
+  g.appendChild(mk("rect", { x: -720, y: -420, width: 2160, height: 1260, class: "mp-land" }));
 
   blockShapes().forEach((b) =>
     g.appendChild(mk("rect", { x: b.x, y: b.y, width: b.w, height: b.h, rx: 2, class: "mp-block mp-block--" + b.tone })));
@@ -136,12 +135,12 @@ function drawRoads() {
       if (!best || len > best.len) best = { a, b, len };
     }
 
-    const need = road.cls === "highway" ? 60 : 78;
+    const need = road.cls === "highway" ? 60 : 82;
     if (!best || best.len < need) return;
 
     const mid = { x: (best.a.x + best.b.x) / 2, y: (best.a.y + best.b.y) / 2 };
     if (mid.x < 56 || mid.x > 664 || mid.y < 18 || mid.y > 404) return;
-    if (placed.some((q) => Math.hypot(q.x - mid.x, q.y - mid.y) < 48)) return;
+    if (placed.some((q) => Math.hypot(q.x - mid.x, q.y - mid.y) < 54)) return;
     placed.push(mid);
 
     const id = "rdlbl" + i;
@@ -181,6 +180,8 @@ function drawGreenLabels() {
 
   PARKS.forEach((park) => {
     const c = centroid(park.points);
+    // A park name sitting on top of a landmark's name helps no one.
+    if (LOCATIONS.some((l) => l.major && Math.abs(l.x - c.x) < 60 && Math.abs(l.y + 19 - c.y) < 12)) return;
     const t = mk("text", { x: c.x, y: c.y + 3, class: "mp-green-label", "text-anchor": "middle" });
     t.textContent = park.name;
     g.appendChild(t);
@@ -199,21 +200,52 @@ const POI_GLYPH = {
   rail:     "M-4-5h8v7h-8z",
   heritage: "M-4 4v-6l4-4 4 4v6z",
   business: "M-4 5v-9h8v9z",
+  market:   "M-4-3h8l-1 8h-6z",
+  leisure:  "M0-5 1.6-1h4.2L2.6 1.6 3.8 5.6 0 3.2l-3.8 2.4 1.2-4L-5.8-1h4.2z",
   suburb:   "M-4 4v-5l4-3 4 3v5z",
 };
 
-/** Every landmark on the map, not only the two on the current route. */
+/**
+ * Every landmark on the map. With 29 of them, only the majors get a
+ * printed name - label them all and the city turns into soup. The
+ * rest name themselves on hover, and any of them can be tapped to
+ * become your drop.
+ */
 function drawLandmarks() {
   const g = $("pois");
 
   LOCATIONS.forEach((loc) => {
-    const node = mk("g", { class: "poi", "data-loc": loc.id, transform: `translate(${loc.x} ${loc.y})` });
-    node.appendChild(mk("circle", { r: 7.5, class: "poi__disc" }));
-    node.appendChild(mk("path", { d: POI_GLYPH[loc.kind] || POI_GLYPH.suburb, class: "poi__glyph", transform: "scale(.62)" }));
+    const node = mk("g", {
+      class: "poi" + (loc.major ? " poi--major" : ""),
+      "data-loc": loc.id,
+      transform: `translate(${loc.x} ${loc.y})`,
+      tabindex: "0",
+      role: "button",
+    });
 
-    const label = mk("text", { x: 0, y: 19, class: "mp-poi-label", "text-anchor": "middle" });
+    node.appendChild(mk("circle", { r: loc.major ? 7.5 : 4.6, class: "poi__disc" }));
+    node.appendChild(mk("path", {
+      d: POI_GLYPH[loc.kind] || POI_GLYPH.suburb,
+      class: "poi__glyph",
+      transform: "scale(" + (loc.major ? 0.62 : 0.4) + ")",
+    }));
+
+    const label = mk("text", { x: 0, y: loc.major ? 19 : 15, class: "mp-poi-label", "text-anchor": "middle" });
     label.textContent = loc.name;
     node.appendChild(label);
+
+    const tip = document.createElementNS(SVG_NS, "title");
+    tip.textContent = `${loc.name} — ${loc.area}`;
+    node.appendChild(tip);
+
+    const pick = () => {
+      if (loc.id === ui.pickupId || (ui.ride && !ui.ride.state.isFinal)) return;
+      setRoute(null, loc.id);
+      pushToast(`Drop set to <b>${fmt.esc(loc.name)}</b>.`);
+    };
+    node.addEventListener("click", pick);
+    node.addEventListener("keydown", (e) => { if (e.key === "Enter") pick(); });
+
     g.appendChild(node);
   });
 }
@@ -223,32 +255,26 @@ function drawLandmarks() {
 function drawAmbient() {
   const g = $("ambient");
   g.innerHTML = "";
-  ambient.positions().forEach(() => g.appendChild(mk("rect", { x: -2.6, y: -1.5, width: 5.2, height: 3, rx: 1, class: "mp-ambient" })));
-}
-
-/** Phones and reduced-motion settings get a map without the decorative traffic. */
-const calmMap = window.matchMedia("(max-width: 699px), (prefers-reduced-motion: reduce)");
-
-function trafficShown() {
-  const b = document.body.classList;
-  return !b.contains("no-traffic") && !b.contains("is-touring") && !calmMap.matches;
+  ambient.positions().forEach(() =>
+    g.appendChild(mk("rect", { x: -2.6, y: -1.5, width: 5.2, height: 3, rx: 1, class: "mp-ambient" })));
 }
 
 function tickAmbient() {
-  ambient.tick(SimClock.paused ? 0 : 0.016 * SimClock.rate);
-  if (!trafficShown()) { requestAnimationFrame(tickAmbient); return; }
-  const g = $("ambient");
-  const pos = ambient.positions();
-  for (let i = 0; i < g.children.length; i++) {
-    const p = pos[i];
-    g.children[i].setAttribute("transform", `translate(${p.x.toFixed(1)} ${p.y.toFixed(1)}) rotate(${p.heading.toFixed(0)})`);
+  if (!document.body.classList.contains("no-traffic") && router && router.current === "home") {
+    ambient.tick(0.016);
+    const g = $("ambient");
+    const pos = ambient.positions();
+    for (let i = 0; i < g.children.length; i++) {
+      const p = pos[i];
+      g.children[i].setAttribute("transform", `translate(${p.x.toFixed(1)} ${p.y.toFixed(1)}) rotate(${p.heading.toFixed(0)})`);
+    }
   }
   requestAnimationFrame(tickAmbient);
 }
 
 /* ---------- the active route ---------- */
 
-function drawRoute(pickup, drop, path) {
+function drawRoute(pickup, drop, path, toPickup) {
   const g = $("routelayer");
   g.innerHTML = "";
 
@@ -269,19 +295,116 @@ function drawRoute(pickup, drop, path) {
   done.style.strokeDashoffset = len;
 
   [
-    { p: pickup, cls: "mp-pin-a", text: pickup.name },
-    { p: drop,   cls: "mp-pin-b", text: drop.name },
+    { p: pickup, cls: toPickup ? "mp-pin-d" : "mp-pin-a", text: pickup.name },
+    { p: drop,   cls: toPickup ? "mp-pin-a" : "mp-pin-b", text: drop.name },
   ].forEach(({ p, cls, text }) => {
     g.appendChild(mk("circle", { cx: p.x, cy: p.y, r: 11, class: cls + " mp-halo" }));
     g.appendChild(mk("circle", { cx: p.x, cy: p.y, r: 5.5, class: cls }));
-    const label = mk("text", { x: p.x + 14, y: p.y + 4, class: "mp-label" });
+    const right = p.x < 600;
+    const label = mk("text", {
+      x: p.x + (right ? 14 : -14), y: p.y + 4, class: "mp-label",
+      "text-anchor": right ? "start" : "end",
+    });
     label.textContent = text;
     g.appendChild(label);
   });
 
   // Show the roads this route actually uses.
-  const names = path.legNames().slice(0, 4);
+  const names = path.legNames().slice(0, 3);
   $("viaLine").textContent = names.length ? "via " + names.join(" › ") : "via local streets";
+
+  frameMap(boundsOf(path.points.concat([pickup, drop])));
+}
+
+/* ============================================================
+   THE CAMERA - frame the trip, the way a real ride app does
+   ------------------------------------------------------------
+   The map is one SVG; "zooming" is just choosing which part of it
+   the viewBox shows. It frames the current leg, leaves room for the
+   floating telemetry and trip-progress cards, and fills whatever
+   space the screen gives it.
+   ============================================================ */
+
+const CITY_BOX = { x: 0, y: 0, w: 720, h: 420 };
+const cam = { now: { ...CITY_BOX }, focus: CITY_BOX, raf: 0 };
+
+function boundsOf(points) {
+  const xs = points.map((p) => p.x), ys = points.map((p) => p.y);
+  const x = Math.min(...xs), y = Math.min(...ys);
+  return { x, y, w: Math.max(...xs) - x, h: Math.max(...ys) - y };
+}
+
+/** The viewBox that shows `focus` clear of the overlays, or null while hidden. */
+function viewFor(focus) {
+  const svg = $("map");
+  const r = svg.getBoundingClientRect();
+  if (r.width < 40 || r.height < 40) return null;
+
+  const hud = document.querySelector(".hud");
+  const life = $("lifeCard");
+  const top = hud ? hud.offsetHeight + 28 : 24;
+  const bottom = getComputedStyle(life).position === "absolute" ? life.offsetHeight + 34 : 22;
+  const side = 28;
+  const availW = Math.max(60, r.width - side * 2);
+  const availH = Math.max(60, r.height - top - bottom);
+
+  const f = ui.wholeCity ? CITY_BOX : focus;
+  const fw = Math.max(f.w, 60), fh = Math.max(f.h, 40);
+  // Never zoom in so far that the labels turn huge.
+  const s = Math.min(availW / fw, availH / fh, r.width / 380, 2.1);
+
+  const w = r.width / s, h = r.height / s;
+  let x = f.x + f.w / 2 - (side + availW / 2) / s;
+  let y = f.y + f.h / 2 - (top + availH / 2) / s;
+
+  // Stay over the city where the city is big enough to fill the view.
+  if (w <= CITY_BOX.w) x = Math.min(Math.max(x, 0), CITY_BOX.w - w);
+  if (h <= CITY_BOX.h + (top + bottom) / s) y = Math.min(Math.max(y, -top / s), CITY_BOX.h - h + bottom / s);
+  return { x, y, w, h };
+}
+
+function setViewBox(b) {
+  cam.now = b;
+  $("map").setAttribute("viewBox", [b.x, b.y, b.w, b.h].map((n) => n.toFixed(1)).join(" "));
+}
+
+/** Glide to frame `focus` (or jump, when the screen merely resized). */
+function frameMap(focus, instant) {
+  if (focus) cam.focus = focus;
+  const to = viewFor(cam.focus);
+  if (!to) return;
+  cancelAnimationFrame(cam.raf);
+  const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  if (instant || reduce) { setViewBox(to); return; }
+
+  const from = { ...cam.now };
+  const t0 = performance.now();
+  const step = (now) => {
+    const k = Math.min(1, (now - t0) / 650);
+    const e = 1 - Math.pow(1 - k, 3);
+    setViewBox({
+      x: from.x + (to.x - from.x) * e, y: from.y + (to.y - from.y) * e,
+      w: from.w + (to.w - from.w) * e, h: from.h + (to.h - from.h) * e,
+    });
+    if (k < 1) cam.raf = requestAnimationFrame(step);
+  };
+  cam.raf = requestAnimationFrame(step);
+}
+
+/** The GPS subscriber pop-over on the map. */
+function toggleSubs(force) {
+  const panel = $("obsPanel");
+  const open = force === undefined ? panel.hidden : force;
+  panel.hidden = !open;
+  $("btnSubs").setAttribute("aria-expanded", String(open));
+}
+
+/** The road the driver actually took, drawn over the one promised. */
+function drawDetour(path) {
+  const g = $("routelayer");
+  const done = $("routedone");
+  if (done) done.remove();            // progress no longer maps onto the planned line
+  g.insertBefore(mk("path", { d: path.toSvgPath(), class: "mp-detour" }), g.querySelector("circle"));
 }
 
 function moveCar(point, heading, progress, status) {
@@ -295,7 +418,7 @@ function moveCar(point, heading, progress, status) {
 }
 
 /* ============================================================
-   OBSERVER WIRING - the five subscribers and their checkboxes
+   OBSERVER WIRING - the six subscribers and their checkboxes
    ============================================================ */
 
 function showTelemetry(fix) {
@@ -311,13 +434,40 @@ function showTelemetry(fix) {
   chip.dataset.status = fix.status;
 }
 
+function showMeter(rupees) {
+  $("hudMeterWrap").hidden = rupees === null;
+  if (rupees !== null) $("hudMeter").textContent = fmt.money(rupees);
+}
+
+/**
+ * Whatever SafetyMonitorObserver flags goes into the Safety screen's
+ * log; the ones that need the rider's answer also ask "Are you okay?".
+ */
+function onSafetyAlert(alert) {
+  Screens.raiseAlert(alert.text, alert.kind);
+  if (alert.ask) {
+    $("safetyText").textContent = alert.text;
+    $("safetyCard").dataset.kind = alert.kind;
+    $("safetyCard").hidden = false;
+  }
+}
+
+function answerSafetyCheck(answer) {
+  $("safetyCard").hidden = true;
+  facade.respondToSafetyCheck(answer);
+  if (answer === "SOS") Screens.raiseAlert("SOS sent from the trip - 112 and your contacts alerted.", "sos");
+}
+
 function buildObservers() {
+  meterObserver = new FareMeterObserver(showMeter, 0);
+
   observerList = [
     new MapMarkerObserver(moveCar),
     new EtaPanelObserver(showTelemetry),
+    meterObserver,
+    new SafetyMonitorObserver(onSafetyAlert),
     new TripLogObserver(),
     new PushNotificationObserver(pushToast),
-    new SafetyMonitorObserver(showSafetyCheck),
   ];
 
   const box = $("observers");
@@ -325,23 +475,24 @@ function buildObservers() {
   observerList.forEach((observer) => {
     const label = document.createElement("label");
     label.className = "toggle";
+    label.title = observer.label + " - " + observer.description;
     label.innerHTML =
       '<input type="checkbox" checked>' +
-      '<span><span class="toggle__name">' + observer.label.replace("Observer", "<wbr>Observer") + "</span>" +
+      '<span class="toggle__box"><svg><use href="#i-check"/></svg></span>' +
+      '<span class="toggle__txt"><span class="toggle__name">' + observer.label.replace("Observer", "<wbr>Observer") + "</span>" +
       '<span class="toggle__desc">' + observer.description + "</span></span>";
 
-    label.title = observer.label + " - " + observer.description;
     label.querySelector("input").addEventListener("change", (e) => {
       if (e.target.checked) facade.attachObserver(observer);
       else facade.detachObserver(observer);
+      $("subsCount").textContent = String(facade.publisher.observers.length);
     });
     box.appendChild(label);
   });
 }
 
 /* ============================================================
-   THE RIDE SHEET - two tabs, like a real ride app:
-   1 Plan (choose and price a ride) -> 2 Trip (follow it)
+   THE TRIP VIEW - driver, OTP, fare, route
    ============================================================ */
 
 function setView(view) {
@@ -352,24 +503,57 @@ function setView(view) {
   $("tabTrip").setAttribute("aria-selected", String(view === "trip"));
 }
 
+function renderDriver(ride) {
+  const card = $("driverCard");
+  if (!ride || !ride.driver || ride.state.isFinal) {
+    card.hidden = true;
+    return;
+  }
+  const d = ride.driver;
+
+  card.hidden = false;
+  card.innerHTML =
+    '<span class="ava ava--lg">' + initialsOf(d.name) + "</span>" +
+    '<span class="dcard__who">' +
+      "<b>" + fmt.esc(d.name) + "</b>" +
+      '<span class="dcard__meta">' + d.rating + " ★ · " + d.trips.toLocaleString("en-IN") + " trips · " +
+        fmt.esc(d.langs.join(", ")) + "</span>" +
+    "</span>" +
+    '<span class="dcard__acts">' +
+      '<span class="iconbtn iconbtn--sm" title="' + fmt.esc(d.phone) + '"><svg><use href="#i-phone"/></svg></span>' +
+      '<span class="iconbtn iconbtn--sm" title="Message driver"><svg><use href="#i-chat"/></svg></span>' +
+    "</span>" +
+    '<span class="dcard__car">' +
+      '<span class="plate">' + fmt.esc(d.plate) + "</span>" +
+      '<span class="dcard__meta">' + fmt.esc(d.colour + " " + d.model) + " · " + d.awayKm + " km away</span>" +
+    "</span>";
+}
+
+function renderOtp(ride) {
+  const showing = !!(ride && ride.otp && ride.state.key === "ArrivedState");
+  $("otpCard").hidden = !showing;
+  if (showing) $("otpDigits").innerHTML = ride.otp.split("").map((d) => "<b>" + d + "</b>").join("");
+}
+
 /** The fare line on the Trip tab: what the rider was promised, then what they paid. */
 function renderTripFare(ride) {
   const box = $("tripFare");
   if (!ride) {
     box.dataset.tone = "";
-    box.innerHTML = "<span>Your fare locks when you book.</span>";
+    box.innerHTML = "<span>Your fare locks the moment you book.</span>";
     return;
   }
   const key = ride.state.key;
   let label, amount, tone = "";
   if (key === "CompletedState") {
     label = "Charged <small>same as quoted" +
-      (ride.detourKm ? " &middot; +" + ride.detourKm + " km detour, no extra" : "") + "</small>";
+      (ride.detourKm ? " &middot; +" + ride.detourKm + " km detour, no extra" : "") +
+      (ride.receipt ? " &middot; " + fmt.esc(ride.receipt.method) : "") + "</small>";
     amount = ride.quote.total;
     tone = "ok";
   } else if (key === "CancelledState") {
     const fee = ride.state.fee || 0;
-    label = fee ? "Cancellation fee <small>10% of fare, max Rs.100</small>" : "Cancelled <small>no fee for you</small>";
+    label = fee ? "Cancellation fee <small>10% of the fare, max Rs.100</small>" : "Cancelled <small>no fee for you</small>";
     amount = fee;
     tone = fee ? "bad" : "ok";
   } else {
@@ -377,56 +561,19 @@ function renderTripFare(ride) {
     amount = ride.quote.total;
   }
   box.dataset.tone = tone;
-  box.innerHTML = "<span>" + label + "</span><b>Rs." + amount + "</b>";
+  box.innerHTML = "<span>" + label + "</span><b>" + fmt.money(amount) + "</b>";
 }
 
-/* ============================================================
-   SAFETY CHECK  (raised by SafetyMonitorObserver, answered via the Facade)
-   ============================================================ */
-
-function showSafetyCheck(alert) {
-  $("safetyText").textContent = alert.text;
-  $("safetyCard").dataset.kind = alert.kind;
-  $("safetyCard").hidden = false;
-}
-
-function answerSafetyCheck(answer) {
-  $("safetyCard").hidden = true;
-  facade.respondToSafetyCheck(answer);
-}
-
-/** The road the driver actually took, drawn over the one promised. */
-function drawDetour(path) {
-  const g = $("routelayer");
-  const done = $("routedone");
-  if (done) done.remove();            // progress no longer maps onto the planned line
-  g.insertBefore(mk("path", { d: path.toSvgPath(), class: "mp-detour" }), g.querySelector("circle"));
-}
-
-/* ============================================================
-   THE DRIVER CARD
-   ============================================================ */
-
-function renderDriver(ride) {
-  const card = $("driverCard");
-  if (!ride || !ride.driver) {
-    card.hidden = true;
-    return;
-  }
-  const d = ride.driver;
-  const initials = d.name.split(" ").map((w) => w[0]).join("").slice(0, 2);
-
-  card.hidden = false;
-  card.innerHTML =
-    '<span class="dcard__ava">' + initials + "</span>" +
-    '<span class="dcard__who">' +
-      '<b>' + d.name + "</b>" +
-      '<span class="dcard__meta">' + d.rating + " ★ · " + d.trips.toLocaleString() + " trips</span>" +
-    "</span>" +
-    '<span class="dcard__car">' +
-      "<b>" + d.plate + "</b>" +
-      '<span class="dcard__meta">' + d.model + "</span>" +
-    "</span>";
+function renderTripRoute(ride) {
+  const box = $("tripRoute");
+  if (!ride) { box.innerHTML = ""; return; }
+  box.innerHTML =
+    '<div class="triproute__leg"><span class="dot dot--a"></span><span><b>' + fmt.esc(ride.pickup.name) + "</b>" +
+      "<small>" + fmt.esc(ride.pickup.area || "") + "</small></span></div>" +
+    '<div class="triproute__leg"><span class="dot dot--b"></span><span><b>' + fmt.esc(ride.drop.name) + "</b>" +
+      "<small>" + fmt.esc(ride.drop.area || "") + "</small></span></div>" +
+    '<div class="triproute__meta">' + fmt.esc(ride.vehicle.label) + " · " + ride.km + " km · about " + ride.minutes +
+      ' min · <span class="mono">' + fmt.esc(ride.strategyName) + "</span></div>";
 }
 
 /* ============================================================
@@ -434,13 +581,16 @@ function renderDriver(ride) {
    ============================================================ */
 
 function pushToast(html) {
-  const wrap = $("toasts");
+  // On the booking screen toasts sit on the map, just above trip progress.
+  const wrap = router && router.current === "home" ? $("mapToasts") : $("toasts");
+  if (!wrap) return;
   const t = document.createElement("div");
   t.className = "toast";
   t.innerHTML = html;
   wrap.appendChild(t);
-  // One notification at a time: a stack of them only repeats itself.
-  while (wrap.children.length > 1) wrap.removeChild(wrap.firstChild);
+  // Two at most: a stack of them only repeats itself.
+  while (wrap.children.length > 2) wrap.removeChild(wrap.firstChild);
+  setTimeout(() => t.classList.add("is-leaving"), 4800);
   setTimeout(() => t.remove(), 5200);
 }
 
@@ -448,7 +598,7 @@ function pushToast(html) {
    THE DISPATCH CONSOLE  (renders whatever the Singleton log holds)
    ============================================================ */
 
-const TAGS = ["ALL", "FACTORY", "STRATEGY", "DECORATOR", "OBSERVER", "STATE", "FACADE"];
+const TAGS = ["ALL", "FACTORY", "STRATEGY", "DECORATOR", "OBSERVER", "STATE", "ADAPTER", "FACADE", "SINGLETON"];
 
 function appendLogLine(entry) {
   const body = $("terminal");
@@ -458,9 +608,7 @@ function appendLogLine(entry) {
   if (ui.filter !== "ALL" && ui.filter !== entry.tag) row.style.display = "none";
 
   const time = entry.time.toTimeString().slice(0, 8);
-  const msg = entry.message
-    .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
-    .replace(/\{\{(.+?)\}\}/g, "<em>$1</em>");
+  const msg = fmt.esc(entry.message).replace(/\{\{(.+?)\}\}/g, "<em>$1</em>");
 
   row.innerHTML =
     '<span class="logline__t">' + time + "</span>" +
@@ -471,6 +619,11 @@ function appendLogLine(entry) {
   while (body.children.length > 300) body.removeChild(body.firstChild);
   body.scrollTop = body.scrollHeight;
 
+  if ($("dock").hidden && entry.tag !== "SYSTEM") {
+    ui.unread += 1;
+    $("dockBadge").hidden = false;
+    $("dockBadge").textContent = ui.unread > 99 ? "99+" : String(ui.unread);
+  }
   pulseChip(entry.tag);
 }
 
@@ -483,12 +636,12 @@ function pulseChip(tag) {
   if (!chip) return;
   chip.classList.add("is-hot");
   clearTimeout(pulseTimers[tag]);
-  pulseTimers[tag] = setTimeout(() => chip.classList.remove("is-hot"), 700);
+  pulseTimers[tag] = setTimeout(() => chip.classList.remove("is-hot"), 900);
 }
 
 function applyFilter(tag) {
   ui.filter = tag;
-  document.querySelectorAll(".filter").forEach((b) =>
+  document.querySelectorAll(".filter[data-tag]").forEach((b) =>
     b.setAttribute("aria-pressed", String(b.dataset.tag === tag)));
   document.querySelectorAll(".logline").forEach((row) => {
     row.style.display = tag === "ALL" || row.dataset.tag === tag ? "" : "none";
@@ -500,8 +653,9 @@ function buildConsole() {
   TAGS.forEach((tag) => {
     const b = document.createElement("button");
     b.className = "filter";
+    b.type = "button";
     b.dataset.tag = tag;
-    b.textContent = tag;
+    b.textContent = tag === "ALL" ? "All" : tag.charAt(0) + tag.slice(1).toLowerCase();
     b.setAttribute("aria-pressed", String(tag === "ALL"));
     b.addEventListener("click", () => applyFilter(tag));
     ft.insertBefore(b, $("btnClear"));
@@ -510,74 +664,172 @@ function buildConsole() {
   const dispatchLog = DispatchLog.getInstance();
   dispatchLog.entries.forEach(appendLogLine);     // whatever happened before the UI was ready
   dispatchLog.onWrite((entry) => { if (entry) appendLogLine(entry); });
+  ui.unread = 0;
+  $("dockBadge").hidden = true;
+}
+
+function toggleDock(force) {
+  const dock = $("dock");
+  const open = force === undefined ? dock.hidden : force;
+  dock.hidden = !open;
+  document.body.classList.toggle("has-dock", open);
+  $("dockToggle").setAttribute("aria-pressed", String(open));
+  if (open) {
+    ui.unread = 0;
+    $("dockBadge").hidden = true;
+    $("terminal").scrollTop = $("terminal").scrollHeight;
+  }
 }
 
 /* ============================================================
-   FORM + FARE RECEIPT
+   BOOKING FORM
    ============================================================ */
+
+function setRoute(pickupId, dropId) {
+  if (pickupId) ui.pickupId = pickupId;
+  if (dropId) ui.dropId = dropId;
+
+  if (ui.pickupId === ui.dropId) {
+    const other = LOCATIONS.find((l) => l.id !== ui.pickupId);
+    if (dropId) ui.pickupId = other.id; else ui.dropId = other.id;
+  }
+
+  $("pickup").value = ui.pickupId;
+  $("drop").value = ui.dropId;
+  refreshQuote();
+}
+
+function renderQuickPlaces() {
+  const saved = session().saved;
+  const box = $("quickPlaces");
+  const icon = (p) => (p.icon === "home" ? "home" : p.icon === "work" ? "work" : "star");
+
+  box.innerHTML = saved.slice(0, 4).map((p) => {
+    const loc = findLocation(p.locationId);
+    if (!loc) return "";
+    return `<button class="quick" data-quick="${p.locationId}" type="button" title="Set ${fmt.esc(loc.name)} as drop">
+      <svg><use href="#i-${icon(p)}"/></svg><b>${fmt.esc(p.label)}</b><span>${fmt.esc(loc.name)}</span>
+    </button>`;
+  }).join("") +
+  `<button class="quick quick--add" data-go="saved" type="button" title="Manage saved places">
+     <svg><use href="#i-plus"/></svg><b>Add</b>
+   </button>`;
+}
 
 function buildLocationSelects() {
   [["pickup", "pickupId"], ["drop", "dropId"]].forEach(([id, key]) => {
     const sel = $(id);
-    LOCATIONS.forEach((loc) => {
-      const o = document.createElement("option");
-      o.value = loc.id;
-      o.textContent = loc.name;
-      sel.appendChild(o);
-    });
+    fillLocationSelect(sel, false);
     sel.value = ui[key];
     sel.addEventListener("change", () => {
-      ui[key] = sel.value;
-      if (ui.pickupId === ui.dropId) {
-        const other = LOCATIONS.find((l) => l.id !== sel.value);
-        const otherKey = key === "pickupId" ? "dropId" : "pickupId";
-        ui[otherKey] = other.id;
-        $(key === "pickupId" ? "drop" : "pickup").value = other.id;
-      }
-      refreshQuote();
+      if (key === "pickupId") setRoute(sel.value, null);
+      else setRoute(null, sel.value);
     });
   });
 
   $("swap").addEventListener("click", () => {
-    [ui.pickupId, ui.dropId] = [ui.dropId, ui.pickupId];
+    const from = ui.pickupId;
+    ui.pickupId = ui.dropId;
+    ui.dropId = from;
     $("pickup").value = ui.pickupId;
     $("drop").value = ui.dropId;
     refreshQuote();
   });
+
+  $("quickPlaces").addEventListener("click", (e) => {
+    const b = e.target.closest("[data-quick]");
+    if (b) setRoute(null, b.dataset.quick);
+  });
 }
 
 function buildVehiclePicker() {
-  const grid = $("vehicles");
-  grid.innerHTML = "";
+  const list = $("vehicles");
+  list.innerHTML = "";
 
   // The UI asks the FACTORY what exists. It never lists vehicle classes itself.
-  VehicleFactory.available().forEach((vehicle) => {
+  vehicleCatalog = VehicleFactory.available();
+
+  vehicleCatalog.forEach((vehicle) => {
     const b = document.createElement("button");
-    b.className = "vcard";
+    b.className = "vrow";
     b.type = "button";
+    b.dataset.veh = vehicle.code;
     b.setAttribute("aria-pressed", String(vehicle.code === ui.vehicleType));
     b.innerHTML =
-      '<span class="vcard__ico">' + VEHICLE_ICONS[vehicle.iconId] + "</span>" +
-      '<span class="vcard__name">' + vehicle.label + "</span>" +
-      '<span class="vcard__meta">' + vehicle.capacity + (vehicle.capacity === 1 ? " seat" : " seats") + "</span>" +
-      '<span class="vcard__meta">Rs.' + vehicle.perKm + "/km</span>";
+      '<span class="vrow__ico">' + VEHICLE_ICONS[vehicle.iconId] + "</span>" +
+      '<span class="vrow__mid">' +
+        '<span class="vrow__name">' + vehicle.label +
+          '<span class="vrow__seats"><svg><use href="#i-profile"/></svg>' + vehicle.capacity + "</span></span>" +
+        '<span class="vrow__meta">' + fmt.esc(vehicle.blurb) + "</span>" +
+      "</span>" +
+      '<span class="vrow__right">' +
+        '<span class="vrow__price" data-price="' + vehicle.code + '">—</span>' +
+        '<span class="vrow__eta" data-eta="' + vehicle.code + '"></span>' +
+      "</span>";
 
     b.addEventListener("click", () => {
       ui.vehicleType = vehicle.code;
-      grid.querySelectorAll(".vcard").forEach((c) => c.setAttribute("aria-pressed", "false"));
-      b.setAttribute("aria-pressed", "true");
+      list.querySelectorAll(".vrow").forEach((c) =>
+        c.setAttribute("aria-pressed", String(c.dataset.veh === vehicle.code)));
       refreshQuote();
     });
-    grid.appendChild(b);
+    list.appendChild(b);
+  });
+}
+
+function buildAddOnPicker() {
+  const box = $("addons");
+  box.innerHTML = Object.entries(RIDE_ADDONS).map(([key, a]) => `
+    <label class="addon" title="${fmt.esc(a.hint)}">
+      <input type="checkbox" data-addon="${key}">
+      <span class="addon__chip"><svg><use href="#i-check"/></svg>${a.label}</span>
+    </label>`).join("");
+
+  box.addEventListener("change", () => {
+    ui.addOns = [...box.querySelectorAll("[data-addon]")]
+      .filter((c) => c.checked).map((c) => c.dataset.addon);
+    facade.useAddOns(ui.addOns);          // <- the DECORATOR stack rebuilds
+    refreshQuote();
   });
 }
 
 function buildStrategySelect() {
-  $("strategy").addEventListener("change", (e) => {
+  const sel = $("strategy");
+  sel.innerHTML = Object.keys(FARE_STRATEGIES)
+    .map((k) => `<option value="${k}">${FARE_STRATEGY_LABELS[k]}</option>`).join("");
+  sel.value = ui.strategyKey;
+
+  sel.addEventListener("change", (e) => {
     ui.strategyKey = e.target.value;
     facade.useFareStrategy(ui.strategyKey);      // <- the Strategy swap, live
     refreshQuote();
   });
+}
+
+function buildPaymentSelect() {
+  syncPaymentSelect();
+  $("payMethod").addEventListener("change", (e) => {
+    facade.usePaymentMethod(e.target.value);     // <- picks an ADAPTER
+    syncChrome();
+    if (router.current === "wallet") Screens.wallet();
+  });
+}
+
+function syncPaymentSelect() {
+  const sel = $("payMethod");
+  sel.innerHTML = facade.paymentMethods()
+    .map((m) => `<option value="${m.key}">${fmt.esc(m.label)}${m.detail ? " — " + fmt.esc(m.detail) : ""}</option>`)
+    .join("");
+  sel.value = facade.activePayment().key;
+}
+
+function renderPromoRow() {
+  const promo = session().promo;
+  const row = $("promoRow");
+  row.classList.toggle("is-on", !!promo);
+  row.innerHTML = promo
+    ? `<svg><use href="#i-offer"/></svg><span><b>${fmt.esc(promo.code)}</b> applied · ${fmt.esc(promo.title)}</span><span class="promorow__go">Change</span>`
+    : `<svg><use href="#i-offer"/></svg><span>Have a promo code?</span><span class="promorow__go">See offers</span>`;
 }
 
 function refreshQuote() {
@@ -588,29 +840,48 @@ function refreshQuote() {
   });
 
   const active = facade.calculator.strategy;
+  const stack = active.chain ? active.chain() : { base: active.name, wraps: [] };
+
   $("receiptStrategy").innerHTML =
-    "<b title=\"" + active.note + "\">" + active.name + "</b>" +
-    (active.guards ? '<span class="receipt__guards">guarded by ' + active.guards.join(" › ") + "</span>" : "");
+    '<b class="mono">' + fmt.esc(stack.base) + "</b>" +
+    (stack.wraps.length ? '<span class="receipt__wraps">+ ' + stack.wraps.map(fmt.esc).join(" + ") + "</span>" : "");
+  $("receiptGuards").innerHTML = active.guards
+    ? '<svg><use href="#i-safety"/></svg><span>Guarded by <b class="mono">' + active.guards.join(" › ") + "</b> &middot; " +
+      fmt.esc(active.note) + "</span>"
+    : "";
 
   $("receiptLines").innerHTML =
     priced.quote.lines.map((l) =>
-      '<div class="rline' + (l.kind ? " rline--" + l.kind : "") + '"><span>' + l.label +
-      "</span><span>" + (l.amount < 0 ? "-" : "") + "Rs." + Math.abs(l.amount).toFixed(0) + "</span></div>"
+      '<div class="rline' + (l.kind ? " rline--" + l.kind : "") + (l.tag === "cap" ? " rline--cap" : "") + '"><span>' +
+      fmt.esc(l.label) + "</span><span>" + (l.amount < 0 ? "−" : "") + "Rs." + Math.abs(l.amount).toFixed(0) + "</span></div>"
     ).join("") +
-    '<div class="rline rline--total"><span>Total</span><span>Rs.' + priced.quote.total + "</span></div>";
+    '<div class="rline rline--total"><span>Total</span><span>' + fmt.money(priced.quote.total) + "</span></div>";
 
-  $("hudKm").textContent = priced.km.toFixed(1) + " km";
-  $("hudEta").textContent = priced.minutes + " min";
+  // Price every row so the picker reads like a real one.
+  facade.quoteAllVehicles({ pickupId: ui.pickupId, dropId: ui.dropId, vehicles: vehicleCatalog })
+    .forEach((row) => {
+      const price = document.querySelector('[data-price="' + row.vehicle.code + '"]');
+      const eta = document.querySelector('[data-eta="' + row.vehicle.code + '"]');
+      if (price) price.textContent = fmt.money(row.total);
+      if (eta) eta.textContent = row.minutes + " min";
+    });
+
+  $("bookWhat").textContent = `${priced.vehicle.label} · ${priced.km.toFixed(1)} km · ${priced.minutes} min`;
+  $("bookTotal").textContent = fmt.money(priced.quote.total);
+  $("btnBook").textContent = "Book " + priced.vehicle.label;
 
   if (!ui.ride || ui.ride.state.isFinal) {
+    $("hudKm").textContent = priced.km.toFixed(1) + " km";
+    $("hudEta").textContent = priced.minutes + " min";
     drawRoute(priced.pickup, priced.drop, priced.path);
     $("car").style.opacity = 0;
   }
+  if (meterObserver) meterObserver.setQuote(priced.quote.total);
   return priced;
 }
 
 /* ============================================================
-   LIFECYCLE PANEL  (pure reflection of the current State object)
+   LIFECYCLE  (pure reflection of the current State object)
    ============================================================ */
 
 function renderLifecycle(ride) {
@@ -618,87 +889,99 @@ function renderLifecycle(ride) {
   const cancelled = ride && ride.state.key === "CancelledState";
   const current = ride ? ride.state.step : -99;
 
-  wrap.innerHTML = STEPS.map((s, i) => {
+  wrap.innerHTML = RIDE_STEPS.map((s, i) => {
     let cls = "step";
-    if (ride && !cancelled && i < current) cls += " is-done";
-    if (ride && !cancelled && i === current) cls += " is-active";
-    // Only the current row names a class: the one the ride really holds
-    // (on row 1 that may be RematchingState). Other rows keep it as a tooltip.
+    const done = ride && !cancelled && (i < current || (i === current && ride.state.isFinal));
+    if (done) cls += " is-done";
+    if (ride && !cancelled && i === current && !ride.state.isFinal) cls += " is-active";
+    // Only the current step names a class: the one the ride really holds
+    // (on step 1 that may be RematchingState). The rest keep it as a tooltip.
     const note = ride && !cancelled && i === current ? ride.state.key : "";
     return '<div class="' + cls + '" title="' + s.cls + '">' +
-      '<span class="step__dot">' + (i + 1) + "</span>" +
+      '<span class="step__dot">' + (done ? '<svg><use href="#i-check"/></svg>' : i + 1) + "</span>" +
       '<span class="step__name">' + s.label + "</span>" +
-      '<span class="step__note">' + note + "</span></div>";
+      '<span class="step__note mono">' + note + "</span></div>";
   }).join("") +
   (cancelled
     ? '<div class="step is-dead"><span class="step__dot">&times;</span>' +
-      '<span class="step__name">Ride cancelled</span>' +
-      '<span class="step__note">CancelledState</span></div>'
+      '<span class="step__name">Cancelled</span>' +
+      '<span class="step__note mono">CancelledState</span></div>'
     : "");
 
+  const live = !!(ride && !ride.state.isFinal);
   $("stateNow").textContent = ride ? ride.state.key : "no active ride";
+  $("stateClass").textContent = ride ? ride.state.key : "no active ride";
   $("stateLabel").textContent = ride ? ride.state.label : "No ride yet";
-  $("tabTrip").classList.toggle("is-live", !!(ride && !ride.state.isFinal));
+  $("stateHint").textContent = ride ? ride.state.hint : "Plan a ride and book it to follow it here.";
+  $("rideIdLabel").textContent = ride ? ride.id : "";
+  $("tabTrip").classList.toggle("is-live", live);
+  $("lifeCard").classList.toggle("is-live", live);
+
+  $("btnCancel").hidden = !ride || ride.state.isFinal;
   $("btnCancel").disabled = !ride || !ride.canCancel;
+  $("btnCancel").textContent = ride && ride.state.key === "InProgressState" ? "Can't cancel a moving ride" : "Cancel ride";
   if (!ride || !ride.canCancel) $("cancelAsk").hidden = true;
 
-  // Demo controls: each one is only live when the current STATE allows it.
+  // Test controls: each one is only live when the current STATE allows it.
   $("btnDriverCancel").disabled = !ride || !ride.canDriverCancel;
   $("btnStop").disabled = !ride || !ride.riderOnboard;
   $("btnDetour").disabled = !ride || !ride.riderOnboard || ride.detourKm > 0;
+  $("simulate").hidden = !ride || ride.state.isFinal;
 
   const away = ride ? ride.walkedAway : [];
   $("rematchNote").hidden = !away.length;
   if (away.length) {
     $("rematchNote").innerHTML =
-      "<b>" + away.map((d) => d.name).join(", ") + "</b> cancelled &mdash; you pay Rs.0, the driver is penalised, " +
-      "fare stays <b>Rs." + ride.quote.total + "</b>.";
+      "<b>" + away.map((d) => fmt.esc(d.name)).join(", ") + "</b> cancelled &mdash; you pay Rs.0, the driver is penalised, " +
+      "and your fare stays <b>" + fmt.money(ride.quote.total) + "</b>.";
   }
 
-  const done = !ride || ride.state.isFinal;
-  $("btnBook").disabled = !done;
-  $("btnAgain").hidden = !(ride && ride.state.isFinal);
+  const idle = !ride || ride.state.isFinal;
+  $("btnBook").disabled = !idle;
+  $("againBar").hidden = !(ride && ride.state.isFinal);
+  $("ridePanel").classList.toggle("is-riding", live);
   renderTripFare(ride);
+  renderTripRoute(ride);
   // The guided demo books its own ride, so it waits until none is active.
-  $("btnTour").disabled = !done || (typeof Tour !== "undefined" && Tour.running);
-  $("btnBook").textContent = ride && ride.state.isFinal ? "Book another ride" : "Book ride";
+  $("btnTour").disabled = !idle || (typeof Tour !== "undefined" && Tour.running);
 }
 
 /* ============================================================
-   CODE SAMPLES in the reference section
+   CODE SAMPLES in the reference screen
    ============================================================ */
 
-function esc(s) {
-  return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-}
-
 function highlight(src) {
-  const re = /(\/\*[\s\S]*?\*\/|\/\/[^\n]*)|("(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*'|`(?:[^`\\]|\\.)*`)|\b(class|extends|constructor|new|return|const|let|var|if|else|for|get|set|static|throw|super|this|function|null|true|false|of|in|forEach)\b|\b(\d+(?:\.\d+)?)\b/g;
+  const re = /(\/\*[\s\S]*?\*\/|\/\/[^\n]*)|("(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*'|`(?:[^`\\]|\\.)*`)|\b(class|extends|constructor|new|return|const|let|var|if|else|for|get|set|static|throw|super|this|function|null|true|false|of|in|try|catch|forEach)\b|\b(\d+(?:\.\d+)?)\b/g;
   let out = "", last = 0, m;
   while ((m = re.exec(src)) !== null) {
-    out += esc(src.slice(last, m.index));
+    out += fmt.esc(src.slice(last, m.index));
     const cls = m[1] ? "tk-com" : m[2] ? "tk-str" : m[3] ? "tk-key" : "tk-num";
-    out += '<span class="' + cls + '">' + esc(m[0]) + "</span>";
+    out += '<span class="' + cls + '">' + fmt.esc(m[0]) + "</span>";
     last = m.index + m[0].length;
   }
-  return out + esc(src.slice(last));
+  return out + fmt.esc(src.slice(last));
 }
 
 function renderCodeSamples() {
   document.querySelectorAll("pre[data-src]").forEach((pre) => {
     const src = $(pre.dataset.src);
-    if (src) pre.innerHTML = highlight(src.textContent.trim());
+    if (src && !pre.dataset.done) {
+      pre.innerHTML = highlight(src.textContent.trim());
+      pre.dataset.done = "1";
+    }
   });
 }
 
 /* ============================================================
-   BOOT
+   RIDE UPDATES
    ============================================================ */
 
 function onRideUpdate(ride, payload) {
   ui.ride = ride;
   renderLifecycle(ride);
   renderDriver(ride);
+  renderOtp(ride);
+
   if (payload && payload.toast) pushToast(payload.toast);
   if (payload && payload.detour) drawDetour(payload.detour);
 
@@ -708,7 +991,7 @@ function onRideUpdate(ride, payload) {
   ui.shownState = ride.state;
 
   if (entered && ride.state.key === "ArrivingState") {
-    drawRoute({ ...ride.legs.toPickup.points[0], name: ride.driver.name }, ride.pickup, ride.legs.toPickup);
+    drawRoute({ ...ride.legs.toPickup.points[0], name: ride.driver.name }, ride.pickup, ride.legs.toPickup, true);
     observerList.forEach((o) => { if (o.reset) o.reset(); });   // a re-matched driver gets fresh alerts
   }
   if (entered && ride.state.key === "InProgressState") {
@@ -716,64 +999,183 @@ function onRideUpdate(ride, payload) {
     observerList.forEach((o) => { if (o.reset) o.reset(); });
   }
   if (ride.state.key === "RematchingState") $("car").style.opacity = 0;
+
   if (ride.state.isFinal) {
     $("safetyCard").hidden = true;
     $("hudEta").textContent = "--";
     $("hudSpeed").textContent = "0 km/h";
     $("hudStatus").textContent = "idle";
     $("hudStatus").dataset.status = "IDLE";
+    showMeter(null);
+  }
+
+  // The ride is over: hand the record to the session Singleton, and
+  // every other screen already has it.
+  if (payload && payload.finished && !ride.recorded) {
+    ride.recorded = true;
+    const record = ride.toTripRecord();
+    session().recordTrip(record);
+    log("SINGLETON", `SessionManager.recordTrip({{${record.id}}}) - Activity, Wallet and Profile update themselves`);
+
+    router.bumpBadge("activity");
+    syncChrome();
+
+    const touring = typeof Tour !== "undefined" && Tour.running;
+    if (record.status === "completed" && !touring) {
+      setTimeout(() => { if (router.current === "home") Screens.ratingSheet(record.id); }, 1400);
+    }
   }
 }
+
+/* ============================================================
+   SESSION-DRIVEN CHROME
+   ============================================================ */
+
+function syncChrome() {
+  const s = session();
+  if (!s.user) return;
+  $("userAva").textContent = s.initials;
+  $("userName").textContent = s.user.name.split(/\s+/)[0];
+  $("userPhone").textContent = fmt.phone(s.user.phone);
+  $("railWallet").textContent = fmt.money(s.wallet.balance);
+  $("railPay").textContent = "Paying with " + facade.activePayment().label;
+}
+
+/** The display preferences that change the whole page at once. */
+function applyDisplayPrefs() {
+  const p = session().prefs;
+  document.body.classList.toggle("nav-collapsed", !!p.navCollapsed);
+  document.body.classList.toggle("no-hints", p.patternHints === false);
+  document.body.classList.toggle("no-traffic", p.traffic === false);
+  $("btnTraffic").setAttribute("aria-pressed", String(p.traffic !== false));
+  $("btnTraffic").title = p.traffic === false ? "City traffic is off - switch it back on" : "City traffic is decoration only - switch it off for a calmer map";
+}
+
+function enterApp() {
+  $("auth").hidden = true;
+  $("app").hidden = false;
+
+  PAYMENT_METHODS.build(session());
+  facade.usePaymentMethod("UPI");
+
+  // Anything the rider set on a previous visit comes back with them.
+  facade.usePromo(session().promo);
+  facade.notifications.muted = !session().prefs.notifications;
+
+  applyDisplayPrefs();
+  syncChrome();
+  syncPaymentSelect();
+  renderQuickPlaces();
+  renderPromoRow();
+
+  // The screen has to be on before the route is drawn: measuring an
+  // SVG path inside a hidden section is not something to rely on.
+  router.go("home");
+  refreshQuote();
+  log("SYSTEM", `Signed in as ${session().user.name}. Nine screens, one SessionManager instance.`);
+}
+
+function signOut() {
+  if (typeof Tour !== "undefined" && Tour.running) Tour.exit();
+  if (facade.activeRide) facade.activeRide.dispose();
+  facade.activeRide = null;
+  ui.ride = null;
+  ui.shownState = null;
+  renderLifecycle(null);
+  renderDriver(null);
+  renderOtp(null);
+  setView("plan");
+  toggleDock(false);
+  session().signOut();
+  $("app").hidden = true;
+  $("auth").hidden = false;
+  Auth.reset();
+}
+
+/** The sun / moon button: flip whatever is showing now, and remember it. */
+function toggleTheme() {
+  const shown = document.documentElement.getAttribute("data-theme") ||
+    (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+  session().setPref("theme", shown === "dark" ? "light" : "dark");
+  applyTheme();
+  if (router.current === "settings") Screens.settings();
+}
+
+/* ============================================================
+   BOOT
+   ============================================================ */
 
 function init() {
   log("SINGLETON", "DispatchLog.getInstance() - one shared log for the whole app.");
 
-  facade = new RideBookingFacade({ pushToast, onRideUpdate });
+  applyTheme();
 
+  facade = new RideBookingFacade({ pushToast, onRideUpdate });
+  router = new ScreenRouter("stage", "rail");
+
+  // The map is drawn once and reused by every visit to the booking screen.
   drawCity();
-  ambient = new AmbientTraffic(CITY, 10);       // a few faint cars - enough to feel alive
+  ambient = new AmbientTraffic(CITY, 14);
   drawAmbient();
   requestAnimationFrame(tickAmbient);
 
+  // The wallet adapter needs a session, and the session must exist
+  // before any screen reads it.
+  PAYMENT_METHODS.build(session());
+  facade.payments.use(PAYMENT_METHODS.get("UPI"));
+
   buildLocationSelects();
   buildVehiclePicker();
+  buildAddOnPicker();
   buildStrategySelect();
+  buildPaymentSelect();
   buildObservers();
   buildConsole();
-  renderCodeSamples();
+  Sheet.wire();
+
+  router.buildRail();
+  router.register("home");
+  router.register("activity", () => Screens.activity());
+  router.register("wallet",   () => Screens.wallet());
+  router.register("offers",   () => Screens.offers());
+  router.register("saved",    () => Screens.saved());
+  router.register("safety",   () => Screens.safety());
+  router.register("profile",  () => Screens.profile());
+  router.register("settings", () => Screens.settings());
+  router.register("patterns", () => renderCodeSamples());
+
+  Screens.wire();
+  Auth.wire(enterApp);
 
   // Every observer starts subscribed.
   observerList.forEach((o) => facade.attachObserver(o));
+  $("subsCount").textContent = String(facade.publisher.observers.length);
 
   $("btnBook").addEventListener("click", () => {
     $("toasts").innerHTML = "";
+    $("mapToasts").innerHTML = "";
     $("safetyCard").hidden = true;
+    $("cancelAsk").hidden = true;
     observerList.forEach((o) => { if (o.reset) o.reset(); });
     facade.bookRide({
       pickupId: ui.pickupId,
       dropId: ui.dropId,
       vehicleType: ui.vehicleType,
     });
-    setView("trip");                     // the sheet follows the ride
-  });
-
-  // The other cars are decoration: let anyone switch them off (WCAG 2.2.2).
-  $("btnTraffic").addEventListener("click", () => {
-    const off = document.body.classList.toggle("no-traffic");
-    $("btnTraffic").setAttribute("aria-pressed", String(!off));
-    $("btnTraffic").textContent = "Traffic: " + (off ? "off" : "on");
+    setView("trip");                     // the panel follows the ride
   });
 
   $("tabPlan").addEventListener("click", () => setView("plan"));
   $("tabTrip").addEventListener("click", () => setView("trip"));
   $("btnAgain").addEventListener("click", () => setView("plan"));
+  $("btnStart").addEventListener("click", () => facade.startRide());
 
   // Cancelling once a driver has accepted costs a fee, so ask why first:
   // "the driver asked me to" is the forced-cancellation trick, and is free.
   $("btnCancel").addEventListener("click", () => {
     const ride = ui.ride;
-    if (ride && ride.driver && ride.cancelFee > 0) {
-      $("cancelFeeNote").textContent = "Rs." + ride.cancelFee + " fee \u00B7 10% of fare, max Rs.100";
+    if (ride && ride.driver && ride.feeToCancel > 0) {
+      $("cancelFeeNote").textContent = "Rs." + ride.feeToCancel + " fee · 10% of the fare, max Rs.100";
       $("cancelAsk").hidden = false;
     } else {
       facade.cancelRide();
@@ -791,16 +1193,70 @@ function init() {
   $("btnSafeOk").addEventListener("click", () => answerSafetyCheck("OK"));
   $("btnSos").addEventListener("click", () => answerSafetyCheck("SOS"));
 
+  // The other cars are decoration: let anyone switch them off (WCAG 2.2.2).
+  $("btnTraffic").addEventListener("click", () => {
+    session().setPref("traffic", session().prefs.traffic === false);
+    applyDisplayPrefs();
+  });
+
   $("btnClear").addEventListener("click", () => {
     $("terminal").innerHTML = "";
     DispatchLog.getInstance().entries = [];
     log("SYSTEM", "Console cleared.");
   });
 
-  refreshQuote();
+  $("dockToggle").addEventListener("click", () => toggleDock());
+
+  // The map pop-over and camera controls.
+  $("btnSubs").addEventListener("click", (e) => { e.stopPropagation(); toggleSubs(); });
+  $("subsClose").addEventListener("click", () => toggleSubs(false));
+  document.addEventListener("click", (e) => {
+    if (!$("obsPanel").hidden && !e.target.closest("#obsPanel, #btnSubs") && !(typeof Tour !== "undefined" && Tour.running)) toggleSubs(false);
+  });
+  $("btnView").addEventListener("click", () => {
+    ui.wholeCity = !ui.wholeCity;
+    $("btnView").setAttribute("aria-pressed", String(ui.wholeCity));
+    $("btnView").title = ui.wholeCity ? "Frame the trip" : "Show the whole city";
+    frameMap();
+  });
+  if (window.ResizeObserver) new ResizeObserver(() => frameMap(null, true)).observe($("map"));
+  $("dockClose").addEventListener("click", () => {
+    if (typeof Tour !== "undefined" && Tour.running) Tour.exit();
+    toggleDock(false);
+  });
+  $("userChip").addEventListener("click", () => router.go("profile"));
+  $("themeToggle").addEventListener("click", toggleTheme);
+  $("navToggle").addEventListener("click", () => {
+    session().setPref("navCollapsed", !session().prefs.navCollapsed);
+    applyDisplayPrefs();
+  });
+
+  // ` opens and closes the console, the way a dev console does.
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "`" && !/INPUT|SELECT|TEXTAREA/.test(e.target.tagName) && !$("app").hidden) toggleDock();
+  });
+
+  session().onChange(() => { if (session().user) syncChrome(); });
+
   renderLifecycle(null);
-  log("SYSTEM", `City loaded: ${CITY.nodes.length} junctions, ${CITY.edges.length} road links. Routes are searched across that network, not drawn straight.`);
-  log("SYSTEM", "RideFlow ready. Press Book ride and watch the tags on the left of each line.");
+  setView("plan");
+
+  log("SYSTEM", `City loaded: ${LOCATIONS.length} places, ${CITY.nodes.length} junctions, ${CITY.edges.length} road links. Routes are searched across that network, not drawn straight.`);
+  log("SYSTEM", `Fleet ready: ${DRIVER_POOL.length} drivers, ${Object.keys(VehicleFactory.registry).length} vehicle classes, ${Object.keys(FARE_STRATEGIES).length} pricing rules.`);
+
+  // Splash, then either straight in or the sign-in screen.
+  setTimeout(() => {
+    $("splash").classList.add("is-gone");
+    setTimeout(() => { $("splash").hidden = true; }, 420);
+
+    if (session().isSignedIn) {
+      log("SINGLETON", "SessionManager found a saved account - skipping sign-in");
+      enterApp();
+    } else {
+      $("auth").hidden = false;
+      Auth.show("phone");
+    }
+  }, 900);
 }
 
 document.addEventListener("DOMContentLoaded", init);

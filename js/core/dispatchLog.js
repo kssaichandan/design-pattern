@@ -32,6 +32,7 @@ class DispatchLog {
    * @param {string} message  wrap important words in {{ }} to highlight them
    */
   write(tag, message) {
+    if (this.muted) return null;
     const entry = { tag, message, time: new Date() };
     this.entries.push(entry);
     if (this.entries.length > 400) this.entries.shift();
@@ -41,6 +42,12 @@ class DispatchLog {
 
   onWrite(fn) {
     this.listeners.push(fn);
+  }
+
+  /** Run `fn` without logging - for work repeated on every keystroke. */
+  quietly(fn) {
+    this.muted = (this.muted || 0) + 1;
+    try { return fn(); } finally { this.muted -= 1; }
   }
 
   clear() {

@@ -1,28 +1,32 @@
 /* ============================================================
    PATTERN 5 - FACADE  (structural)
    ------------------------------------------------------------
-   PROBLEM: "book a ride" is one button, but underneath it is
-   seven steps across five subsystems. Without a facade, the click
+   PROBLEM: "book a ride" is one button, but underneath it is a
+   dozen steps across seven subsystems. Without a facade, the click
    handler itself has to know all of them:
 
        btn.onclick = () => {
          const v      = VehicleFactory.create(type);
          const route  = geoService.route(from, to, v);
+         let   rule   = FARE_STRATEGIES[key]();
+         rule         = regulated(decorateFare(rule, addOns, promo));
+         const quote  = new FareCalculator(rule).calculate({ ... });
+         payments.use(PAYMENT_METHODS.get(methodKey));
          const driver = matching.findDriver(v, from);
-         const quote  = calculator.calculate({ vehicle: v, km, minutes });
-         const ride   = new Ride({ ...eleven fields... });
+         const ride   = new Ride({ ...fourteen fields... });
          publisher.subscribe(...); publisher.subscribe(...);
          ride.transitionTo(new RequestedState());
          notifications.send("Looking for a driver");
+         session.recordTrip(...);
        };
 
-   The button now depends on five subsystems and their correct
-   ORDER. Change any subsystem and the button breaks.
+   The button now depends on seven subsystems AND the correct order
+   to call them in. Change any subsystem and the button breaks.
 
-   SOLUTION: one class in front of the whole booking subsystem,
-   with one simple method. The UI says bookRide(request) and knows
-   nothing else. Note the payoff: the facade is where the other
-   five patterns are wired together, so the UI never touches them.
+   SOLUTION: one class in front of the whole booking subsystem, with
+   a handful of simple methods. The UI says bookRide(request) and
+   knows nothing else. Note the payoff: the facade is where the
+   other six patterns are wired together, so no screen touches them.
    ============================================================ */
 
 class RideBookingFacade {
@@ -32,6 +36,10 @@ class RideBookingFacade {
     this.matching      = new DriverMatchingService(this.geo);
     this.payments      = new PaymentGateway();
     this.notifications = new NotificationService(pushToast);
+
+    this.baseStrategyKey = "STANDARD";
+    this.addOnKeys = [];
+    this.promo = null;
 
     // Every pricing rule goes in wrapped by the legal guards (DECORATOR).
     this.calculator = new FareCalculator(regulated(FARE_STRATEGIES.STANDARD()));
@@ -49,41 +57,84 @@ class RideBookingFacade {
   /* ---------- simple pass-throughs so the UI has ONE contact point ---------- */
 
   useFareStrategy(key) {
-    this.calculator.setStrategy(regulated(FARE_STRATEGIES[key]()));
+    this.baseStrategyKey = key;
+    this.rebuildStrategy();
   }
 
-  attachObserver(observer)  { this.publisher.subscribe(observer); }
-  detachObserver(observer)  { this.publisher.unsubscribe(observer); }
+  useAddOns(keys) {
+    this.addOnKeys = keys.slice();
+    this.rebuildStrategy();
+  }
+
+  usePromo(promo) {
+    this.promo = promo;
+    this.rebuildStrategy();
+  }
+
+  usePaymentMethod(key) {
+    this.payments.use(PAYMENT_METHODS.get(key));
+  }
+
+  /**
+   * Builds the base rule with STRATEGY, wraps it with a DECORATOR for
+   * each add-on and the promo code, then wraps the lot in the legal
+   * guards. Two patterns meeting, and the only place that knows it.
+   */
+  rebuildStrategy() {
+    const base = FARE_STRATEGIES[this.baseStrategyKey]();
+    this.calculator.setStrategy(regulated(decorateFare(base, this.addOnKeys, this.promo)));
+  }
+
+  attachObserver(observer) { this.publisher.subscribe(observer); }
+  detachObserver(observer) { this.publisher.unsubscribe(observer); }
+
+  /** What the wallet screen renders. The UI never constructs an adapter. */
+  paymentMethods() { return PAYMENT_METHODS.all(); }
+  activePayment()  { return this.payments.method; }
 
   /**
    * Price a trip without booking it - used to keep the fare receipt
    * live while the rider is still choosing. Uses the FACTORY to make
-   * the vehicle and the STRATEGY to price it.
+   * the vehicle and the STRATEGY (+ DECORATORS) to price it.
    */
   quote({ pickupId, dropId, vehicleType }) {
     const pickup  = findLocation(pickupId);
     const drop    = findLocation(dropId);
-    const vehicle = VehicleFactory.create(vehicleType);          // <- FACTORY
+    const vehicle = VehicleFactory.create(vehicleType);            // <- FACTORY
     const trip    = this.geo.route(pickup, drop, vehicle);
-    const quote   = this.calculator.calculate({                   // <- STRATEGY (+ DECORATOR guards)
+    const quote   = this.calculator.calculate({                     // <- STRATEGY (+ DECORATORS)
       vehicle,
       km: trip.km,
       minutes: trip.minutes,
-      device: this.device,                                        // stripped by FairInputGuard
+      device: this.device,                                          // stripped by FairInputGuard
     });
 
     return { pickup, drop, vehicle, quote, ...trip };
   }
 
   /**
+   * Prices the same trip on every vehicle, for the picker's rows.
+   * Deliberately quiet: this runs on every change, and six logged
+   * quotes per change would bury the console the demo exists to show.
+   */
+  quoteAllVehicles({ pickupId, dropId, vehicles }) {
+    const km = roadKm(buildRoute(findLocation(pickupId), findLocation(dropId)));
+    return DispatchLog.getInstance().quietly(() =>
+      (vehicles || VehicleFactory.available()).map((vehicle) => {
+        const minutes = vehicle.tripMinutes(km);
+        return { vehicle, minutes, total: this.calculator.strategy.calculate({ vehicle, km, minutes }).total };
+      }));
+  }
+
+  /**
    * THE FACADE METHOD. Everything the UI needs, behind one call.
    */
   bookRide({ pickupId, dropId, vehicleType }) {
-    log("FACADE", "RideBookingFacade.bookRide() - taking over, 7 steps across 5 subsystems");
+    log("FACADE", "RideBookingFacade.bookRide() - taking over, 12 steps across 7 subsystems");
 
     if (this.activeRide) this.activeRide.dispose();
 
-    // 1 + 2 + 3. Vehicle, route and price (Factory + Strategy inside quote()).
+    // 1 + 2 + 3. Vehicle, route and price (Factory + Strategy + Decorator).
     const priced = this.quote({ pickupId, dropId, vehicleType });
 
     // 4. The drop leg is known now. The leg TO the pickup is planned the
@@ -91,12 +142,12 @@ class RideBookingFacade {
     //    so a re-matched driver drives in from their own street.
     //    Demo timing: a real 29 km airport run takes an hour. Only the
     //    CLOCK is compressed - traffic.js still drives at real speeds, so
-    //    the ETA and speedometer stay honest while the animation stays
-    //    short. Longer trips get proportionally longer on screen.
+    //    the ETA and speedometer stay honest while the animation stays short.
+    const rush = session().prefs.fastDemo ? 0.5 : 1;
     const legs = {
       toDrop: priced.path,
       toDropKm: priced.km,
-      toDropSeconds: Math.min(26, Math.max(9, 6 + priced.km * 0.6)),
+      toDropSeconds: rush * Math.min(26, Math.max(9, 6 + priced.km * 0.6)),
     };
 
     // 5. Build the ride and give it the services its STATES will need.
@@ -106,6 +157,7 @@ class RideBookingFacade {
       drop: priced.drop,
       vehicle: priced.vehicle,
       quote: priced.quote,
+      strategyName: this.calculator.strategy.name,
       km: priced.km,
       minutes: priced.minutes,
       legs,
@@ -115,13 +167,13 @@ class RideBookingFacade {
     });
 
     // 6. Tell the rider something is happening.
-    this.notifications.send("Looking for a driver near you...");
+    this.notifications.send("Looking for a driver near you…");
 
     // 7. Start the STATE machine. Every stage after this drives itself.
+    this.activeRide = ride;
     ride.transitionTo(new RequestedState());                       // <- STATE
 
-    this.activeRide = ride;
-    log("FACADE", `bookRide() finished - returned {{${ride.id}}}. The UI never touched a subsystem.`);
+    log("FACADE", `bookRide() finished - returned {{${ride.id}}}. No screen touched a subsystem.`);
     return ride;
   }
 
@@ -130,6 +182,14 @@ class RideBookingFacade {
     if (this.activeRide) {
       log("FACADE", `RideBookingFacade.cancelRide(${reason}) -> delegating to the ride's current state`);
       this.activeRide.cancel(reason);
+    }
+  }
+
+  /** The rider tapping "Start ride" after reading out the trip OTP. */
+  startRide() {
+    if (this.activeRide && this.activeRide.state.key === "ArrivedState") {
+      log("FACADE", "RideBookingFacade.startRide() -> the state verifies the OTP, not this method");
+      this.activeRide.next();
     }
   }
 
@@ -155,8 +215,9 @@ class RideBookingFacade {
   simulateDetour() {
     const ride = this.activeRide;
     if (!ride || !ride.riderOnboard || !this.publisher.isTracking || ride.detourKm > 0) return;
-    const path = this.geo.detourRoute(this.publisher.currentPoint(), ride.legs.toDrop, ride.drop, this.publisher.motion.progress);
-    const extra = +Math.max(0, roadKm(path) - ride.legs.toDropKm * (1 - this.publisher.motion.progress)).toFixed(1);
+    const progress = this.publisher.motion.progress;
+    const path = this.geo.detourRoute(this.publisher.currentPoint(), ride.legs.toDrop, ride.drop, progress);
+    const extra = +Math.max(0, roadKm(path) - ride.legs.toDropKm * (1 - progress)).toFixed(1);
     ride.detourKm = +(ride.detourKm + extra).toFixed(1);
     log("FACADE", `Demo: the driver turns off the planned route (+${extra} km) - watch SafetyMonitorObserver`);
     this.publisher.reroute(path);
@@ -164,20 +225,29 @@ class RideBookingFacade {
   }
 
   /**
-   * The rider answers the "Are you okay?" check.
+   * The rider answers the "Are you okay?" check, or presses SOS.
    * @param {string} answer  "OK" | "SOS"
    */
   respondToSafetyCheck(answer) {
     const ride = this.activeRide;
-    if (!ride) return;
     if (answer === "OK") {
-      log("SYSTEM", `Safety desk: rider on ${ride.id} confirmed they are okay. Monitoring continues.`);
+      log("SYSTEM", `Safety desk: rider${ride ? " on " + ride.id : ""} confirmed they are okay. Monitoring continues.`);
       return;
     }
+    const live = ride && !ride.state.isFinal && ride.driver;
     const fix = this.publisher.lastFix || {};
     const where = fix.point ? `(${fix.point.x.toFixed(0)}, ${fix.point.y.toFixed(0)}) on ${fix.road || "a side lane"}` : "unknown";
-    log("SYSTEM", `SOS on {{${ride.id}}}: driver ${ride.driver.name}, ${ride.driver.model} ${ride.driver.plate}, ` +
-      `live location ${where} -> shared with 112 and the rider's emergency contact; control room calling the rider.`);
-    this.notifications.send("<b>SOS sent.</b> Police (112) and your emergency contact have your live location and the car details.");
+    log("SYSTEM", live
+      ? `SOS on {{${ride.id}}}: driver ${ride.driver.name}, ${ride.driver.model} ${ride.driver.plate}, ` +
+        `live location ${where} -> shared with 112 and the rider's emergency contacts; control room calling the rider.`
+      : "SOS raised with no active ride -> 112 and the rider's emergency contacts alerted with the phone's location.");
+    this.notifications.send("<b>SOS sent.</b> Police (112) and your emergency contacts have your live location" +
+      (live ? " and the car details." : "."));
+  }
+
+  /** Money into the wallet, from the wallet screen. */
+  topUpWallet(amount) {
+    session().topUp(amount);
+    this.notifications.send(`Rs.${amount} added to your RideFlow Wallet.`);
   }
 }

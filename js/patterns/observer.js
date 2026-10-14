@@ -196,7 +196,7 @@ class MapMarkerObserver extends LocationObserver {
 
 class EtaPanelObserver extends LocationObserver {
   constructor(showEta) {
-    super("eta", "EtaPanelObserver", "Updates ETA, distance, speed.");
+    super("eta", "EtaPanelObserver", "Updates ETA, distance and speed.");
     this.showEta = showEta;
   }
   update(fix) {
@@ -252,54 +252,80 @@ class PushNotificationObserver extends LocationObserver {
 }
 
 /**
+ * Added later, and it needed nothing but a subscribe() call. That
+ * is the payoff: the GPS code was not opened, and no other observer
+ * was told about it.
+ */
+class FareMeterObserver extends LocationObserver {
+  constructor(showMeter, quoteTotal) {
+    super("meter", "FareMeterObserver", "Runs the live fare meter.");
+    this.showMeter = showMeter;
+    this.total = quoteTotal;
+  }
+  setQuote(total) { this.total = total; }
+  update(fix) {
+    if (fix.leg !== "TO_DROP") return this.showMeter(null);
+    // Fare accrues with distance covered, the way a meter really works.
+    this.showMeter(Math.round(this.total * Math.min(1, fix.progress)));
+  }
+  reset() { this.showMeter(null); }
+}
+
+/**
+ * Watches the same stream for things a safety team would care about.
+ *
  * REAL-WORLD PROBLEM: the NCW's 2026 guidelines for app cabs (and a
  * Delhi High Court petition) ask platforms for automatic alerts when a
  * car leaves its route or stops for a long, unexplained time, with an
- * SOS that actually reaches someone.
- *
- * The Observer pattern makes this a fifth subscriber and nothing else:
- * the publisher, the map, the ETA panel and the other observers did
- * not change by a single line to make room for it.
+ * SOS that actually reaches someone. Here that is one more subscriber:
+ * the publisher, the map and every other observer did not change by a
+ * single line to make room for it.
  */
 class SafetyMonitorObserver extends LocationObserver {
   /**
-   * @param {function} raiseSafetyCheck  shows the "Are you okay?" card
+   * @param {function} onAlert  receives { kind, text, ask } - `ask` means
+   *                            the rider should be asked "Are you okay?"
    */
-  constructor(raiseSafetyCheck) {
-    super("safety", "SafetyMonitorObserver", "Flags long stops and detours.");
-    this.raiseSafetyCheck = raiseSafetyCheck;
-    this.raised = new Set();
+  constructor(onAlert) {
+    super("safety", "SafetyMonitorObserver", "Flags speeding, long stops and detours.");
+    this.onAlert = onAlert;
+    this.flagged = new Set();
 
     // A red light here lasts under 15 s. Three minutes stood still is
     // not a signal. 0.8 km off the promised route is not GPS jitter.
+    this.speedLimitKmph = 68;
     this.stopLimitSec = 180;
     this.offRouteLimitKm = 0.8;
   }
 
   update(fix) {
-    if (fix.leg !== "TO_DROP") return;     // watching starts when the rider is in the car
-
     const checks = [
       {
-        key: "stop",
-        when: (f) => f.stillSec >= this.stopLimitSec,
+        key: "speed", ask: false,
+        when: (f) => f.speedKmph > this.speedLimitKmph,
+        text: (f) => `Overspeeding flagged - ${f.speedKmph} km/h on ${f.road || "a side lane"}.`,
+      },
+      // The two below only matter once the rider is in the car.
+      {
+        key: "stop", ask: true,
+        when: (f) => f.leg === "TO_DROP" && f.stillSec >= this.stopLimitSec,
         text: (f) => `Your car has been stopped for ${Math.round(f.stillSec / 60)} min on ${f.road || "a side lane"}.`,
       },
       {
-        key: "detour",
-        when: (f) => f.offRouteKm >= this.offRouteLimitKm,
+        key: "detour", ask: true,
+        when: (f) => f.leg === "TO_DROP" && f.offRouteKm >= this.offRouteLimitKm,
         text: (f) => `Your car is ${f.offRouteKm.toFixed(1)} km off the planned route.`,
       },
     ];
 
     checks.forEach((c) => {
-      if (this.raised.has(c.key) || !c.when(fix)) return;
-      this.raised.add(c.key);
+      if (this.flagged.has(c.key) || !c.when(fix)) return;
+      this.flagged.add(c.key);
       const text = c.text(fix);
       log("OBSERVER", `SafetyMonitorObserver -> {{${c.key.toUpperCase()} ALERT}} ${text}`);
-      this.raiseSafetyCheck({ kind: c.key, text, fix });
+      this.onAlert({ kind: c.key, text, ask: c.ask });
     });
   }
 
-  reset() { this.raised.clear(); }
+  reset() { this.flagged.clear(); }
 }

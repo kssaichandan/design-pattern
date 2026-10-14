@@ -4,200 +4,988 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>RideFlow Pattern Lab</title>
-<meta name="description" content="A working ride-booking app built on six design patterns, with a live console showing each pattern as it runs - and fixes for three real problems riders face on Uber, Ola and Rapido.">
+<meta name="description" content="A working ride-hailing app - sign-in, wallet, offers, trip history, safety and live tracking - built on seven design patterns, with a console showing each pattern as it runs.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap">
 <link rel="stylesheet" href="css/styles.css">
 </head>
 <body>
 
-<!-- ============================ TOP BAR ============================ -->
-<header class="topbar" id="topbar">
-  <div class="topbar__in">
-    <div class="brand">
-      <span class="brand__lamp">
-        <svg viewBox="0 0 24 24" fill="none" stroke="#17120A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M3 17v-4l2-1 2-4h10l2 4 2 1v4h-2"/><path d="M9 17h6"/>
-          <circle cx="7" cy="17" r="2"/><circle cx="17" cy="17" r="2"/>
-        </svg>
-      </span>
-      <span>
+<!-- ============================ ICON SPRITE ============================ -->
+<svg class="sprite" aria-hidden="true" focusable="false">
+  <symbol id="i-book" viewBox="0 0 24 24"><path d="M3 17v-4l2-1 2-4h10l2 4 2 1v4h-2M9 17h6"/><circle cx="7" cy="17" r="2"/><circle cx="17" cy="17" r="2"/></symbol>
+  <symbol id="i-activity" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></symbol>
+  <symbol id="i-wallet" viewBox="0 0 24 24"><path d="M3 7a2 2 0 0 1 2-2h12v4"/><rect x="3" y="7" width="18" height="12" rx="2"/><circle cx="16.5" cy="13" r="1.3"/></symbol>
+  <symbol id="i-offer" viewBox="0 0 24 24"><path d="M20.6 12.6 12 21.2 3.4 12.6V4h8.6z"/><circle cx="8.2" cy="8.2" r="1.4"/></symbol>
+  <symbol id="i-saved" viewBox="0 0 24 24"><path d="M12 21s-7-5.3-7-10.5A7 7 0 0 1 12 3a7 7 0 0 1 7 7.5C19 15.7 12 21 12 21z"/><circle cx="12" cy="10" r="2.4"/></symbol>
+  <symbol id="i-safety" viewBox="0 0 24 24"><path d="M12 3 5 6v6c0 4.5 3 8 7 9 4-1 7-4.5 7-9V6z"/><path d="m9 12 2 2 4-4"/></symbol>
+  <symbol id="i-profile" viewBox="0 0 24 24"><circle cx="12" cy="8.5" r="3.5"/><path d="M4.5 20a7.5 7.5 0 0 1 15 0"/></symbol>
+  <symbol id="i-settings" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M4.2 4.2l2.1 2.1M17.7 17.7l2.1 2.1M2 12h3M19 12h3M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1"/></symbol>
+  <symbol id="i-patterns" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></symbol>
+  <symbol id="i-console" viewBox="0 0 24 24"><rect x="2.5" y="4" width="19" height="16" rx="2"/><path d="m6.5 10 2.5 2.2-2.5 2.2M12 15h5"/></symbol>
+  <symbol id="i-star" viewBox="0 0 24 24"><path d="m12 3.6 2.6 5.4 5.9.8-4.3 4.1 1 5.9-5.2-2.8-5.2 2.8 1-5.9L3.5 9.8l5.9-.8z"/></symbol>
+  <symbol id="i-home" viewBox="0 0 24 24"><path d="M4 11 12 4l8 7M6.5 9.6V20h11V9.6"/></symbol>
+  <symbol id="i-work" viewBox="0 0 24 24"><rect x="3" y="7.5" width="18" height="12" rx="2"/><path d="M9 7.5V5.5A1.5 1.5 0 0 1 10.5 4h3A1.5 1.5 0 0 1 15 5.5v2"/></symbol>
+  <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+  <symbol id="i-trash" viewBox="0 0 24 24"><path d="M4 7h16M9 7V5h6v2M6.5 7l1 13h9l1-13"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><path d="m5 12.5 4.5 4.5L19 7.5"/></symbol>
+  <symbol id="i-close" viewBox="0 0 24 24"><path d="m6 6 12 12M18 6 6 18"/></symbol>
+  <symbol id="i-phone" viewBox="0 0 24 24"><path d="M6 3h4l1.6 4-2.2 1.6a12 12 0 0 0 5.9 5.9L17 12.3l4 1.6v4a2 2 0 0 1-2.2 2A17.5 17.5 0 0 1 3.2 5.2 2 2 0 0 1 5.2 3z"/></symbol>
+  <symbol id="i-chat" viewBox="0 0 24 24"><path d="M20.5 12.5a7.5 8 0 0 1-11 7L4 21l1.6-4.2A8 8 0 1 1 20.5 12.5z"/></symbol>
+  <symbol id="i-logout" viewBox="0 0 24 24"><path d="M10 4H6a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h4M15.5 8 20 12l-4.5 4M20 12H9.5"/></symbol>
+  <symbol id="i-sos" viewBox="0 0 24 24"><path d="M12 3.5 2.5 20h19z"/><path d="M12 10v4M12 17h.01"/></symbol>
+  <symbol id="i-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2.5v2M12 19.5v2M4.6 4.6 6 6M18 18l1.4 1.4M2.5 12h2M19.5 12h2M4.6 19.4 6 18M18 6l1.4-1.4"/></symbol>
+  <symbol id="i-moon" viewBox="0 0 24 24"><path d="M20 14.5A8.5 8.5 0 0 1 9.5 4a8.5 8.5 0 1 0 10.5 10.5z"/></symbol>
+  <symbol id="i-play" viewBox="0 0 24 24"><path d="M7 4.5v15l12.5-7.5z"/></symbol>
+  <symbol id="i-sidebar" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2.5"/><path d="M9 4v16"/></symbol>
+  <symbol id="i-swap" viewBox="0 0 24 24"><path d="M7 4v16M7 20l-3-3M7 20l3-3M17 20V4M17 4l-3 3M17 4l3 3"/></symbol>
+  <symbol id="i-flask" viewBox="0 0 24 24"><path d="M9 3h6M10 3v6L4.5 18.5A1.7 1.7 0 0 0 6 21h12a1.7 1.7 0 0 0 1.5-2.5L14 9V3"/><path d="M7.5 15h9"/></symbol>
+  <symbol id="i-chevron" viewBox="0 0 24 24"><path d="m9 6 6 6-6 6"/></symbol>
+  <symbol id="i-more" viewBox="0 0 24 24"><circle cx="5" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="19" cy="12" r="1.6"/></symbol>
+  <symbol id="i-expand" viewBox="0 0 24 24"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></symbol>
+  <symbol id="i-route" viewBox="0 0 24 24"><circle cx="6" cy="18" r="2.5"/><circle cx="18" cy="6" r="2.5"/><path d="M8.5 18H15a3 3 0 0 0 0-6H9a3 3 0 0 1 0-6h6.5"/></symbol>
+</svg>
+
+<!-- ============================ SPLASH ============================ -->
+<div class="splash" id="splash">
+  <div class="logo logo--xl">
+    <svg viewBox="0 0 24 24"><path d="M3 17v-4l2-1 2-4h10l2 4 2 1v4h-2M9 17h6"/><circle cx="7" cy="17" r="2"/><circle cx="17" cy="17" r="2"/></svg>
+  </div>
+  <div class="splash__name">RideFlow</div>
+  <div class="splash__sub">Hyderabad &middot; loading the city</div>
+  <div class="splash__bar"><span></span></div>
+</div>
+
+<!-- ============================ SIGN IN / SIGN UP ============================ -->
+<div class="auth" id="auth" hidden>
+
+  <aside class="auth__art">
+    <div class="brand brand--onart">
+      <span class="logo"><svg viewBox="0 0 24 24"><path d="M3 17v-4l2-1 2-4h10l2 4 2 1v4h-2M9 17h6"/><circle cx="7" cy="17" r="2"/><circle cx="17" cy="17" r="2"/></svg></span>
+      <span class="brand__text">
         <span class="brand__name">RideFlow</span>
         <span class="brand__sub">Design Patterns Lab</span>
       </span>
     </div>
 
-    <div class="chiprack" aria-label="Patterns wired in" title="Each chip lights up softly when its pattern runs">
+    <div class="auth__copy">
+      <h1 class="auth__head">Rides across Hyderabad,<br>built on seven patterns.</h1>
+      <p class="auth__lede">Book across 29 pickup points, watch your driver take real roads, and open the
+         console any time to see each design pattern announce itself as it runs.</p>
+
+      <ul class="auth__list">
+        <li><b>29 places</b> routed over a 360-junction road network</li>
+        <li><b>28 drivers</b>, six vehicle classes, eight pricing rules</li>
+        <li><b>Fair by design</b> &mdash; surge capped at 2&times;, free re-matching if a driver cancels</li>
+      </ul>
+    </div>
+
+    <svg class="auth__map" viewBox="0 0 400 240" aria-hidden="true">
+      <path d="M-10 170 C 80 150, 120 60, 220 80 S 360 40, 420 70" class="auth__road"/>
+      <path d="M40 -10 C 70 80, 60 160, 130 250" class="auth__road auth__road--thin"/>
+      <path d="M250 -10 C 240 90, 300 150, 290 250" class="auth__road auth__road--thin"/>
+      <path d="M60 175 C 120 150, 150 95, 220 88 S 300 70, 330 60" class="auth__trip"/>
+      <circle cx="60" cy="175" r="7" class="auth__pin auth__pin--a"/>
+      <circle cx="330" cy="60" r="7" class="auth__pin auth__pin--b"/>
+    </svg>
+
+    <p class="auth__note">Demo project &mdash; no real accounts, no real money, nothing leaves your browser.</p>
+  </aside>
+
+  <main class="auth__panel">
+    <div class="authcard">
+
+      <div class="segmented segmented--wide" id="authMode" role="tablist" aria-label="Sign in or create an account">
+        <button class="segmented__b" data-mode="signin" type="button" role="tab" aria-pressed="true">Sign in</button>
+        <button class="segmented__b" data-mode="signup" type="button" role="tab" aria-pressed="false">Create account</button>
+      </div>
+
+      <!-- step 1: phone -->
+      <section class="authstep" data-step="phone">
+        <span class="eyebrow" id="authEyebrow">Step 1 of 2</span>
+        <h2 class="authstep__title" id="authTitle">Welcome back</h2>
+        <p class="authstep__sub" id="authSub">Enter your mobile number and we'll send a one-time code.</p>
+
+        <label class="field">
+          <span class="field__label">Mobile number</span>
+          <span class="phonefield">
+            <span class="phonefield__cc">+91</span>
+            <input id="authPhone" type="tel" inputmode="numeric" maxlength="11" placeholder="98765 43210" autocomplete="tel">
+          </span>
+        </label>
+        <p class="formerr" id="authPhoneErr" hidden></p>
+
+        <button class="btn btn--go btn--block" id="authSendOtp" type="button">Send OTP</button>
+
+        <div class="authstep__or"><span>or</span></div>
+        <button class="btn btn--ghost btn--block" id="authDemo" type="button">Continue as a demo rider</button>
+
+        <p class="authstep__legal">Any 10-digit number starting 6&ndash;9 works. No SMS is sent; the code is shown on
+           screen. A college project for a Design Patterns course.</p>
+      </section>
+
+      <!-- step 2: otp -->
+      <section class="authstep" data-step="otp" hidden>
+        <span class="eyebrow">Step 2 of 2</span>
+        <h2 class="authstep__title">Enter the code</h2>
+        <p class="authstep__sub">Sent to <b id="authPhoneEcho">+91 98765 43210</b>.
+           <button class="linkbtn" id="authChangeNo" type="button">Change</button></p>
+
+        <div class="otpbox" id="otpBox">
+          <input class="otpbox__cell" type="text" inputmode="numeric" maxlength="1" aria-label="OTP digit 1">
+          <input class="otpbox__cell" type="text" inputmode="numeric" maxlength="1" aria-label="OTP digit 2">
+          <input class="otpbox__cell" type="text" inputmode="numeric" maxlength="1" aria-label="OTP digit 3">
+          <input class="otpbox__cell" type="text" inputmode="numeric" maxlength="1" aria-label="OTP digit 4">
+        </div>
+        <p class="formerr" id="authOtpErr" hidden></p>
+
+        <div class="otphint">Demo code <b id="authOtpHint">0000</b> &mdash; shown here because no SMS is sent.</div>
+
+        <button class="btn btn--go btn--block" id="authVerify" type="button">Verify and continue</button>
+        <div class="authstep__alt"><span class="muted" id="authResend">Resend code in 30s</span></div>
+      </section>
+
+      <!-- step 3: your details (new accounts) -->
+      <section class="authstep" data-step="name" hidden>
+        <span class="eyebrow">Your details</span>
+        <h2 class="authstep__title">Create your account</h2>
+        <p class="authstep__sub">Your driver sees your first name when they accept the trip.</p>
+
+        <label class="field">
+          <span class="field__label">Full name</span>
+          <input id="authName" type="text" maxlength="32" placeholder="Sai Chandan" autocomplete="name">
+        </label>
+        <label class="field">
+          <span class="field__label">Email &middot; optional</span>
+          <input id="authEmail" type="email" maxlength="48" placeholder="you@example.com" autocomplete="email">
+        </label>
+        <p class="formerr" id="authNameErr" hidden></p>
+
+        <button class="btn btn--go btn--block" id="authFinish" type="button">Create account</button>
+      </section>
+
+    </div>
+  </main>
+</div>
+
+<!-- ============================ THE APP ============================ -->
+<div class="app" id="app" hidden>
+
+  <header class="topbar">
+    <button class="iconbtn topbar__nav" id="navToggle" type="button" title="Collapse or expand the menu" aria-label="Toggle menu">
+      <svg><use href="#i-sidebar"/></svg>
+    </button>
+
+    <div class="brand" data-go="home">
+      <span class="logo"><svg viewBox="0 0 24 24"><path d="M3 17v-4l2-1 2-4h10l2 4 2 1v4h-2M9 17h6"/><circle cx="7" cy="17" r="2"/><circle cx="17" cy="17" r="2"/></svg></span>
+      <span class="brand__text">
+        <span class="brand__name">RideFlow</span>
+        <span class="brand__sub">Hyderabad</span>
+      </span>
+    </div>
+
+    <div class="chiprack" aria-label="Patterns wired in" title="A chip lights up when its pattern runs">
       <span class="pchip" data-tag="FACTORY">Factory</span>
       <span class="pchip" data-tag="STRATEGY">Strategy</span>
       <span class="pchip" data-tag="DECORATOR">Decorator</span>
-      <span class="pchip" data-tag="FACADE">Facade</span>
-      <span class="pchip" data-tag="STATE">State</span>
       <span class="pchip" data-tag="OBSERVER">Observer</span>
+      <span class="pchip" data-tag="STATE">State</span>
+      <span class="pchip" data-tag="ADAPTER">Adapter</span>
+      <span class="pchip" data-tag="FACADE">Facade</span>
       <span class="pchip" data-tag="SINGLETON">Singleton</span>
     </div>
 
-    <button class="btn btn--tour" id="btnTour" type="button" title="Runs one complete ride by itself and explains every stage">
-      <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4 2.5v11l9.5-5.5z" fill="currentColor"/></svg>
-      Guided demo
-    </button>
+    <div class="topbar__right">
+      <button class="btn btn--tour" id="btnTour" type="button" title="Books one complete ride by itself and explains every stage">
+        <svg class="btn__ico"><use href="#i-play"/></svg><span>Guided demo</span>
+      </button>
+      <button class="iconbtn iconbtn--count" id="dockToggle" type="button" title="Dispatch console" aria-label="Open the dispatch console" aria-pressed="false">
+        <svg><use href="#i-console"/></svg>
+        <span class="countdot" id="dockBadge" hidden></span>
+      </button>
+      <button class="iconbtn" id="themeToggle" type="button" title="Switch light / dark" aria-label="Switch light or dark theme">
+        <svg class="only-dark"><use href="#i-sun"/></svg>
+        <svg class="only-light"><use href="#i-moon"/></svg>
+      </button>
+      <button class="userchip" id="userChip" type="button" title="Your profile">
+        <span class="ava" id="userAva">--</span>
+        <span class="userchip__who">
+          <b id="userName">Rider</b>
+          <span id="userPhone">+91</span>
+        </span>
+      </button>
+    </div>
+  </header>
+
+  <div class="shell">
+    <nav class="sidebar" aria-label="Main navigation">
+      <div class="sidebar__items" id="rail"></div>
+      <button class="walletmini" data-go="wallet" type="button">
+        <span class="walletmini__k">Wallet balance</span>
+        <span class="walletmini__v" id="railWallet">Rs.0</span>
+        <span class="walletmini__pay" id="railPay">UPI</span>
+      </button>
+    </nav>
+
+    <main class="stage" id="stage">
+
+      <!-- ==================== BOOK A RIDE ==================== -->
+      <section class="screen screen--book" data-screen="home">
+        <div class="book">
+
+          <!-- ---------- the ride panel: plan, then follow ---------- -->
+          <section class="ridepanel" id="ridePanel" aria-label="Ride">
+            <div class="tabs" role="tablist">
+              <button class="tab" id="tabPlan" type="button" role="tab" aria-selected="true" aria-controls="viewPlan">Plan a ride</button>
+              <button class="tab" id="tabTrip" type="button" role="tab" aria-selected="false" aria-controls="viewTrip">Your trip<span class="tab__live"></span></button>
+              <span class="sr-only" id="stateNow" aria-live="polite">no active ride</span>
+            </div>
+
+            <!-- PLAN: Factory, Strategy, Decorator, Adapter, Facade -->
+            <div class="view" id="viewPlan" role="tabpanel" aria-labelledby="tabPlan">
+              <div class="view__scroll">
+
+                <div class="routebox">
+                  <div class="routebox__rail" aria-hidden="true"><span class="dot dot--a"></span><span class="routebox__line"></span><span class="dot dot--b"></span></div>
+                  <div class="routebox__fields">
+                    <label class="routebox__f">
+                      <span class="routebox__k">Pickup</span>
+                      <select id="pickup"></select>
+                    </label>
+                    <label class="routebox__f">
+                      <span class="routebox__k">Drop</span>
+                      <select id="drop"></select>
+                    </label>
+                  </div>
+                  <button class="iconbtn routebox__swap" id="swap" type="button" title="Swap pickup and drop" aria-label="Swap pickup and drop">
+                    <svg><use href="#i-swap"/></svg>
+                  </button>
+                </div>
+
+                <p class="via" id="viaLine">Hyderabad</p>
+
+                <div class="quickrow" id="quickPlaces"></div>
+
+                <div class="block">
+                  <div class="block__hd">
+                    <h3 class="block__title">Choose a ride</h3>
+                    <span class="ptag" data-p="FACTORY">Factory</span>
+                  </div>
+                  <div class="vlist" id="vehicles"></div>
+                </div>
+
+                <div class="block">
+                  <div class="block__hd">
+                    <h3 class="block__title">Extras</h3>
+                    <span class="ptag" data-p="DECORATOR">Decorator</span>
+                  </div>
+                  <div class="addongrid" id="addons"></div>
+                </div>
+
+                <div class="block grid2">
+                  <label class="field">
+                    <span class="field__label">Pricing rule <span class="ptag" data-p="STRATEGY">Strategy</span></span>
+                    <select id="strategy"></select>
+                  </label>
+                  <label class="field">
+                    <span class="field__label">Pay with <span class="ptag" data-p="ADAPTER">Adapter</span></span>
+                    <select id="payMethod"></select>
+                  </label>
+                </div>
+
+                <button class="promorow" id="promoRow" data-go="offers" type="button"></button>
+
+                <details class="receipt" id="receipt" open>
+                  <summary class="receipt__sum">
+                    <span class="receipt__k">Fare breakdown</span>
+                    <span class="receipt__strategy" id="receiptStrategy"></span>
+                    <svg class="receipt__chev"><use href="#i-chevron"/></svg>
+                  </summary>
+                  <div class="receipt__guards" id="receiptGuards"></div>
+                  <div class="receipt__lines" id="receiptLines"></div>
+                </details>
+              </div>
+
+              <div class="bookbar">
+                <div class="bookbar__price">
+                  <span class="bookbar__k" id="bookWhat">Sedan &middot; 33 min</span>
+                  <span class="bookbar__v" id="bookTotal">Rs.0</span>
+                </div>
+                <button class="btn btn--go btn--lg" id="btnBook" type="button">Book ride</button>
+              </div>
+            </div>
+
+            <!-- TRIP: State -->
+            <div class="view" id="viewTrip" role="tabpanel" aria-labelledby="tabTrip" hidden>
+              <div class="view__scroll">
+                <div class="triphead">
+                  <div>
+                    <h3 class="triphead__t" id="stateLabel">No ride yet</h3>
+                    <p class="triphead__hint" id="stateHint">Plan a ride and book it to follow it here.</p>
+                  </div>
+                  <span class="triphead__id mono" id="rideIdLabel"></span>
+                </div>
+
+                <div class="dcard" id="driverCard" hidden></div>
+
+                <div class="otpcard" id="otpCard" hidden>
+                  <span class="otpcard__k">Trip OTP &middot; read this out to your driver</span>
+                  <span class="otpcard__v" id="otpDigits"></span>
+                  <button class="btn btn--go btn--block" id="btnStart" type="button">Start ride</button>
+                </div>
+
+                <div class="rematch" id="rematchNote" hidden></div>
+
+                <div class="tripfare" id="tripFare"></div>
+
+                <div class="triproute" id="tripRoute"></div>
+
+                <button class="btn btn--ghost btn--block" id="btnCancel" type="button" disabled>Cancel ride</button>
+                <div class="cancelask" id="cancelAsk" hidden>
+                  <span class="cancelask__q">Why are you cancelling?</span>
+                  <button class="cancelask__opt" id="btnCancelPlans" type="button">
+                    <b>I changed my plans</b><small id="cancelFeeNote"></small>
+                  </button>
+                  <button class="cancelask__opt" id="btnCancelAsked" type="button">
+                    <b>The driver asked me to cancel</b><small>Free for you &middot; the driver is penalised</small>
+                  </button>
+                  <button class="linkbtn" id="btnCancelKeep" type="button">Keep my ride</button>
+                </div>
+
+                <details class="sim" id="simulate">
+                  <summary class="sim__sum"><svg><use href="#i-flask"/></svg>Test a real-world problem</summary>
+                  <p class="sim__note">These buttons stand in for a real driver. The code that reacts is real.</p>
+                  <div class="sim__row">
+                    <button class="btn btn--soft" id="btnDriverCancel" type="button" disabled title="The driver cancels after accepting">Driver cancels</button>
+                    <button class="btn btn--soft" id="btnStop" type="button" disabled title="The car stops for 4 minutes with no red light">Long stop</button>
+                    <button class="btn btn--soft" id="btnDetour" type="button" disabled title="The driver leaves the planned route">Detour</button>
+                  </div>
+                </details>
+              </div>
+
+              <div class="bookbar" id="againBar" hidden>
+                <button class="btn btn--go btn--lg btn--block" id="btnAgain" type="button">Plan another ride</button>
+              </div>
+            </div>
+          </section>
+
+          <!-- ---------- the city: the Observer subject broadcasting ---------- -->
+          <section class="mapcard" id="mapCard" aria-label="Live map">
+            <div class="mapwrap">
+              <svg id="map" viewBox="0 0 720 420" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Simulated Hyderabad street map showing the driver moving along the routed roads">
+                <g id="terrain"></g>
+                <g id="roads"></g>
+                <g id="pois"></g>
+                <g id="ambient"></g>
+                <g id="routelayer"></g>
+                <g id="car">
+                  <circle class="pulse" r="15"></circle>
+                  <rect class="shadow" x="-9" y="-5" width="19" height="11" rx="3.5"></rect>
+                  <rect class="body" x="-9" y="-6" width="18" height="12" rx="3.5"></rect>
+                  <rect class="glass" x="0" y="-4" width="6" height="8" rx="1.5"></rect>
+                  <rect class="lamp" x="7.4" y="-4.4" width="2" height="2" rx="1"></rect>
+                  <rect class="lamp" x="7.4" y="2.4" width="2" height="2" rx="1"></rect>
+                </g>
+              </svg>
+            </div>
+
+            <div class="hud" aria-label="Trip telemetry">
+              <span class="hud__item"><span class="hud__k">ETA</span><span class="hud__v" id="hudEta">--</span></span>
+              <span class="hud__item"><span class="hud__k">Dist</span><span class="hud__v" id="hudKm">--</span></span>
+              <span class="hud__item"><span class="hud__k">Speed</span><span class="hud__v" id="hudSpeed">0 km/h</span></span>
+              <span class="hud__item hud__item--road"><span class="hud__k">On</span><span class="hud__v" id="hudRoad">--</span></span>
+              <span class="hud__item hud__item--meter" id="hudMeterWrap" hidden><span class="hud__k">Meter</span><span class="hud__v" id="hudMeter">Rs.0</span></span>
+              <span class="hud__status" id="hudStatus" data-status="IDLE">idle</span>
+            </div>
+
+            <div class="maptools">
+              <button class="mapbtn" id="btnSubs" type="button" aria-expanded="false" aria-controls="obsPanel" title="Who is subscribed to the driver's GPS">
+                <svg><use href="#i-route"/></svg><span id="subsCount">6</span> listening <span class="ptag" data-p="OBSERVER">Observer</span>
+              </button>
+              <button class="mapbtn mapbtn--icon" id="btnView" type="button" title="Show the whole city" aria-label="Show the whole city" aria-pressed="false">
+                <svg><use href="#i-expand"/></svg>
+              </button>
+              <button class="mapbtn mapbtn--icon" id="btnTraffic" type="button" aria-pressed="true" title="City traffic is decoration only - switch it off for a calmer map" aria-label="Toggle city traffic">
+                <svg><use href="#i-book"/></svg>
+              </button>
+            </div>
+
+            <section class="subs" id="obsPanel" aria-label="GPS subscribers" hidden>
+              <div class="subs__hd">
+                <b>GPS subscribers</b>
+                <button class="iconbtn iconbtn--sm" id="subsClose" type="button" aria-label="Close"><svg><use href="#i-close"/></svg></button>
+              </div>
+              <p class="subs__note">Untick one to unsubscribe it &mdash; even mid-ride.</p>
+              <div class="obsgrid" id="observers"></div>
+            </section>
+
+            <div class="safety" id="safetyCard" role="alertdialog" aria-labelledby="safetyTitle" hidden>
+              <span class="safety__ico"><svg><use href="#i-safety"/></svg></span>
+              <b id="safetyTitle">Are you okay?</b>
+              <span id="safetyText"></span>
+              <div class="safety__row">
+                <button class="btn btn--ghost" id="btnSafeOk" type="button">I'm okay</button>
+                <button class="btn btn--danger" id="btnSos" type="button">SOS</button>
+              </div>
+            </div>
+
+            <div class="toasts toasts--map" id="mapToasts" aria-live="polite"></div>
+
+            <section class="lifebar" id="lifeCard" aria-label="Trip progress">
+              <div class="lifebar__hd">
+                <span class="lifebar__title">Trip progress <span class="ptag" data-p="STATE">State</span></span>
+                <span class="lifebar__cls mono" id="stateClass">no active ride</span>
+              </div>
+              <div class="lifecycle" id="lifecycle"></div>
+            </section>
+          </section>
+        </div>
+      </section>
+      <!-- ==================== ACTIVITY ==================== -->
+      <section class="screen" data-screen="activity" hidden>
+        <div class="screenhead">
+          <div>
+            <h2 class="screenhead__title">Your trips</h2>
+            <p class="screenhead__sub">Every ride you have taken, newest first.</p>
+          </div>
+          <div class="segmented" id="activityFilter">
+            <button class="segmented__b" data-f="all" type="button" aria-pressed="true">All</button>
+            <button class="segmented__b" data-f="completed" type="button" aria-pressed="false">Completed</button>
+            <button class="segmented__b" data-f="cancelled" type="button" aria-pressed="false">Cancelled</button>
+          </div>
+        </div>
+        <div class="statrow" id="activityStats"></div>
+        <div class="card"><div class="triplist" id="tripList"></div></div>
+      </section>
+
+      <!-- ==================== WALLET ==================== -->
+      <section class="screen" data-screen="wallet" hidden>
+        <div class="screenhead">
+          <div>
+            <h2 class="screenhead__title">Wallet &amp; payments</h2>
+            <p class="screenhead__sub">Four payment SDKs, one <code>pay()</code> call.</p>
+          </div>
+        </div>
+
+        <div class="walletgrid">
+          <section class="balancecard">
+            <span class="balancecard__k">RideFlow Wallet</span>
+            <div class="balancecard__v" id="walletBalance">Rs.0</div>
+            <span class="balancecard__k">Add money</span>
+            <div class="topuprow" id="topUpRow"></div>
+          </section>
+
+          <section class="card">
+            <div class="card__hd">
+              <h3 class="card__title">Payment methods <span class="ptag" data-p="ADAPTER">Adapter</span></h3>
+              <span class="card__meta">One adapter class each</span>
+            </div>
+            <div class="methodlist" id="methodList"></div>
+          </section>
+        </div>
+
+        <section class="card">
+          <div class="card__hd"><h3 class="card__title">Wallet activity</h3></div>
+          <div class="txnlist" id="txnList"></div>
+        </section>
+      </section>
+
+      <!-- ==================== OFFERS ==================== -->
+      <section class="screen" data-screen="offers" hidden>
+        <div class="screenhead">
+          <div>
+            <h2 class="screenhead__title">Offers &amp; promo codes</h2>
+            <p class="screenhead__sub">Each code wraps your fare in one more Decorator.</p>
+          </div>
+        </div>
+
+        <section class="card">
+          <div class="promoapply">
+            <input id="promoInput" type="text" placeholder="Type a code, e.g. HYD20" maxlength="14" aria-label="Promo code">
+            <button class="btn btn--go" id="promoApply" type="button">Apply</button>
+          </div>
+          <div class="promoactive" id="promoActive" hidden></div>
+        </section>
+
+        <div class="offergrid" id="offerGrid"></div>
+      </section>
+
+      <!-- ==================== SAVED PLACES ==================== -->
+      <section class="screen" data-screen="saved" hidden>
+        <div class="screenhead">
+          <div>
+            <h2 class="screenhead__title">Saved places</h2>
+            <p class="screenhead__sub">One-tap shortcuts on the booking screen.</p>
+          </div>
+        </div>
+
+        <section class="card">
+          <div class="card__hd"><h3 class="card__title">Your shortcuts</h3></div>
+          <div class="savedlist" id="savedList"></div>
+          <div class="savedadd">
+            <input id="savedLabel" type="text" placeholder="Label, e.g. College" maxlength="18" aria-label="Shortcut label">
+            <select id="savedPlace" aria-label="Place"></select>
+            <button class="btn btn--go" id="savedAdd" type="button">Save place</button>
+          </div>
+        </section>
+
+        <section class="card">
+          <div class="card__hd">
+            <h3 class="card__title">Every place in the city</h3>
+            <span class="card__meta">Tap to set as drop</span>
+          </div>
+          <div class="zonegrid" id="zoneGrid"></div>
+        </section>
+      </section>
+
+      <!-- ==================== SAFETY ==================== -->
+      <section class="screen" data-screen="safety" hidden>
+        <div class="screenhead">
+          <div>
+            <h2 class="screenhead__title">Safety</h2>
+            <p class="screenhead__sub">Every trip is watched live by <code>SafetyMonitorObserver</code>.</p>
+          </div>
+        </div>
+
+        <div class="safetygrid">
+          <section class="sosbox">
+            <span class="sosbox__ico"><svg><use href="#i-sos"/></svg></span>
+            <h3>Emergency SOS</h3>
+            <p>Shares your live location and car details with 112 and your trusted contacts.</p>
+            <button class="btn btn--danger btn--lg" id="sosBtn" type="button">Send SOS</button>
+          </section>
+
+          <section class="card">
+            <div class="card__hd"><h3 class="card__title">Trusted contacts</h3></div>
+            <div class="contactlist" id="contactList"></div>
+          </section>
+        </div>
+
+        <section class="card">
+          <div class="card__hd">
+            <h3 class="card__title">Safety events <span class="ptag" data-p="OBSERVER">Observer</span></h3>
+            <span class="card__meta">Speeding, long stops, detours</span>
+          </div>
+          <div class="alertlist" id="alertList"></div>
+        </section>
+      </section>
+
+      <!-- ==================== PROFILE ==================== -->
+      <section class="screen" data-screen="profile" hidden>
+        <div class="screenhead">
+          <div>
+            <h2 class="screenhead__title">Your account</h2>
+            <p class="screenhead__sub">One <code>SessionManager</code> &mdash; every screen reads the same account.</p>
+          </div>
+        </div>
+
+        <section class="profilehero">
+          <span class="ava ava--xl" id="profileAva">--</span>
+          <div class="profilehero__mid">
+            <h3 class="profilehero__name" id="profileName">Rider</h3>
+            <p class="profilehero__meta" id="profileMeta"></p>
+          </div>
+        </section>
+
+        <div class="statrow" id="profileStats"></div>
+
+        <div class="profilegrid">
+          <section class="card">
+            <div class="card__hd"><h3 class="card__title">Personal details</h3></div>
+            <div class="formgrid">
+              <label class="field">
+                <span class="field__label">Full name</span>
+                <input id="profNameInput" type="text" maxlength="32">
+              </label>
+              <label class="field">
+                <span class="field__label">Email</span>
+                <input id="profEmailInput" type="email" maxlength="48">
+              </label>
+              <label class="field">
+                <span class="field__label">Mobile &middot; not editable in the demo</span>
+                <input id="profPhoneInput" type="text" disabled>
+              </label>
+              <label class="field">
+                <span class="field__label">UPI ID</span>
+                <input id="profVpaInput" type="text" disabled>
+              </label>
+            </div>
+            <div class="card__actions">
+              <button class="btn btn--go" id="profSave" type="button">Save changes</button>
+            </div>
+          </section>
+
+          <section class="card">
+            <div class="card__hd"><h3 class="card__title">Session</h3></div>
+            <p class="cardnote">Signing out clears the account; the <code>SessionManager</code> instance itself stays &mdash; it is a Singleton.</p>
+            <div class="card__actions card__actions--stack">
+              <button class="btn btn--ghost btn--block" id="btnSignOut" type="button">
+                <svg class="btn__ico"><use href="#i-logout"/></svg> Sign out
+              </button>
+              <button class="btn btn--ghost btn--block btn--warn" id="btnWipe" type="button">
+                <svg class="btn__ico"><use href="#i-trash"/></svg> Erase demo data
+              </button>
+            </div>
+          </section>
+        </div>
+      </section>
+
+      <!-- ==================== SETTINGS ==================== -->
+      <section class="screen" data-screen="settings" hidden>
+        <div class="screenhead">
+          <div>
+            <h2 class="screenhead__title">Settings</h2>
+            <p class="screenhead__sub">Saved on this device and kept after a reload.</p>
+          </div>
+        </div>
+
+        <section class="card">
+          <div class="card__hd"><h3 class="card__title">Appearance</h3></div>
+          <div class="themecards" id="themePick">
+            <button class="themecard" data-theme="auto" type="button" aria-pressed="true">
+              <span class="themecard__art themecard__art--auto"><i></i><i></i></span><b>System</b><span>Follows your device</span>
+            </button>
+            <button class="themecard" data-theme="light" type="button" aria-pressed="false">
+              <span class="themecard__art themecard__art--light"><i></i><i></i></span><b>Light</b><span>Bright and clean</span>
+            </button>
+            <button class="themecard" data-theme="dark" type="button" aria-pressed="false">
+              <span class="themecard__art themecard__art--dark"><i></i><i></i></span><b>Dark</b><span>Easy at night</span>
+            </button>
+          </div>
+        </section>
+
+        <section class="card">
+          <div class="card__hd"><h3 class="card__title">Preferences</h3></div>
+          <div class="switchlist" id="switchList"></div>
+        </section>
+
+        <section class="card">
+          <div class="card__hd"><h3 class="card__title">About</h3></div>
+          <div class="kvlist" id="aboutList"></div>
+        </section>
+      </section>
+
+      <!-- ==================== PATTERN REFERENCE ==================== -->
+      <section class="screen" data-screen="patterns" hidden>
+        <div class="screenhead">
+          <div>
+            <h2 class="screenhead__title">How the app is built</h2>
+            <p class="screenhead__sub">Seven patterns and three real-world fixes. Open a card for the problem, the fix and the real code.</p>
+          </div>
+        </div>
+
+        <!-- ---------- REAL-WORLD PROBLEMS ---------- -->
+        <section class="fixes" aria-label="Three real-world problems and their fixes">
+          <article class="fix">
+            <span class="fix__n">1</span>
+            <h3 class="fix__t">Drivers cancel on you</h3>
+            <span class="ptag" data-p="STATE">State</span>
+            <p class="fix__p"><b>Problem</b> 84% of riders were pushed to cancel &mdash; and paid the fee.</p>
+            <p class="fix__f"><b>Fix</b> <code>RematchingState</code> finds a new driver at the same fare. You pay Rs.0.</p>
+            <p class="fix__try">Try: Your trip &rsaquo; Test &rsaquo; <em>Driver cancels</em></p>
+          </article>
+          <article class="fix">
+            <span class="fix__n">2</span>
+            <h3 class="fix__t">Fares you can't trust</h3>
+            <span class="ptag" data-p="DECORATOR">Decorator</span>
+            <p class="fix__p"><b>Problem</b> 3&ndash;4&times; festival surges; claims of prices set by phone model.</p>
+            <p class="fix__f"><b>Fix</b> Two guards wrap every rule: surge capped at the legal 2&times;, device ignored.</p>
+            <p class="fix__try">Try: Pricing rule &rsaquo; <em>Festival surge &times;3</em></p>
+          </article>
+          <article class="fix">
+            <span class="fix__n">3</span>
+            <h3 class="fix__t">No help when a trip goes wrong</h3>
+            <span class="ptag" data-p="OBSERVER">Observer</span>
+            <p class="fix__p"><b>Problem</b> No alert when a cab leaves its route or stops for long.</p>
+            <p class="fix__f"><b>Fix</b> <code>SafetyMonitorObserver</code> asks &ldquo;Are you okay?&rdquo; with one-tap SOS.</p>
+            <p class="fix__try">Try: Your trip &rsaquo; Test &rsaquo; <em>Detour</em></p>
+          </article>
+        </section>
+        <p class="fixes__src">Sources: LocalCircles survey (Dec 2024), CCPA notices (2025), MoRTH Motor Vehicle Aggregator
+           Guidelines 2025, NCW app-cab guidelines (2026). Full notes in README.md.</p>
+        <!-- ---------- FACTORY ---------- -->
+        <details class="pat">
+          <summary class="pat__sum">
+            <span class="pat__tag pt-factory">Creational</span>
+            <span class="pat__name">Factory<small>js/patterns/factory.js</small></span>
+            <span class="pat__body">One class owns object creation. Callers name <em>what</em> they want; they never learn
+               <em>how</em> it is built.</span>
+          </summary>
+          <div class="pat__in">
+            <div class="pat__qa">
+              <div class="qa">
+                <span class="qa__q">Where it runs</span>
+                <p class="qa__a">Every row in <em>Choose a ride</em> was produced by <code>VehicleFactory.available()</code>,
+                   and booking calls <code>VehicleFactory.create("SUV")</code>.</p>
+              </div>
+              <div class="qa">
+                <span class="qa__q">What it replaces</span>
+                <p class="qa__a">A chain of <code>if (type === "BIKE") new Bike()</code> repeated in every screen that
+                   needs a vehicle.</p>
+              </div>
+              <div class="qa">
+                <span class="qa__q">See it live</span>
+                <p class="qa__a">E-Rick and Prime were added after the app shipped: one class and one registry line
+                   each. The picker drew them without being edited.</p>
+              </div>
+            </div>
+            <div class="code">
+              <div class="code__hd">factory.js &mdash; abstract product, concrete products, factory</div>
+              <pre data-src="src-factory"></pre>
+            </div>
+          </div>
+        </details>
+
+        <!-- ---------- STRATEGY ---------- -->
+        <details class="pat">
+          <summary class="pat__sum">
+            <span class="pat__tag pt-strategy">Behavioural</span>
+            <span class="pat__name">Strategy<small>js/patterns/strategy.js</small></span>
+            <span class="pat__body">Interchangeable algorithms behind one method. The object using them can be handed a
+               different one while the program is running.</span>
+          </summary>
+          <div class="pat__in">
+            <div class="pat__qa">
+              <div class="qa">
+                <span class="qa__q">Where it runs</span>
+                <p class="qa__a">The <em>Pricing rule</em> picker. <code>FareCalculator</code> holds one
+                   <code>FareStrategy</code> and asks it to <code>calculate()</code>.</p>
+              </div>
+              <div class="qa">
+                <span class="qa__q">What it replaces</span>
+                <p class="qa__a">A single <code>calculateFare()</code> that grows a new <code>if</code> branch for every
+                   festival offer and never shrinks.</p>
+              </div>
+              <div class="qa">
+                <span class="qa__q">See it live</span>
+                <p class="qa__a">Switch to <em>Surge pricing</em>. Same trip, same vehicle &mdash; the fare breakdown
+                   rebuilds with different lines, and no calling code changed.</p>
+              </div>
+            </div>
+            <div class="code">
+              <div class="code__hd">strategy.js &mdash; the interface, two of the eight rules, the context</div>
+              <pre data-src="src-strategy"></pre>
+            </div>
+          </div>
+        </details>
+
+        <!-- ---------- DECORATOR ---------- -->
+        <details class="pat">
+          <summary class="pat__sum">
+            <span class="pat__tag pt-decorator">Structural</span>
+            <span class="pat__name">Decorator<small>js/patterns/decorator.js</small></span>
+            <span class="pat__body">A wrapper that is the same type as the thing it wraps, so wrappers stack &mdash; and
+               the object underneath never finds out.</span>
+          </summary>
+          <div class="pat__in">
+            <div class="pat__qa">
+              <div class="qa">
+                <span class="qa__q">Where it runs</span>
+                <p class="qa__a">Twice. The <em>Extras</em> and any promo code each wrap the fare in one more layer that
+                   adds a line. Then two guards wrap the whole stack to keep every fare legal.</p>
+              </div>
+              <div class="qa">
+                <span class="qa__q">What it replaces</span>
+                <p class="qa__a">A class per combination &mdash; five extras across eight rules is hundreds of
+                   subclasses &mdash; or the same <code>if</code> block and the same legal check copy-pasted into every
+                   rule.</p>
+              </div>
+              <div class="qa">
+                <span class="qa__q">See it live</span>
+                <p class="qa__a">Pick <em>Festival surge &times;3</em>: the rule asks for 3x and
+                   <code>SurgeCapGuard</code> trims it to the legal 2x. Then tick <em>Child seat</em> &mdash; one more row,
+                   and <code>FareCalculator</code> still thinks it holds one plain strategy.</p>
+              </div>
+            </div>
+            <div class="code">
+              <div class="code__hd">decorator.js &mdash; an add-on, a promo code, and the two legal guards</div>
+              <pre data-src="src-decorator"></pre>
+            </div>
+          </div>
+        </details>
+
+        <!-- ---------- OBSERVER ---------- -->
+        <details class="pat">
+          <summary class="pat__sum">
+            <span class="pat__tag pt-observer">Behavioural</span>
+            <span class="pat__name">Observer<small>js/patterns/observer.js</small></span>
+            <span class="pat__body">A subject announces that something changed; any number of subscribers react. The
+               subject never learns who they are.</span>
+          </summary>
+          <div class="pat__in">
+            <div class="pat__qa">
+              <div class="qa">
+                <span class="qa__q">Where it runs</span>
+                <p class="qa__a">The driver's GPS. <code>DriverLocationPublisher</code> emits a fix about twelve times a
+                   second; six observers act on it.</p>
+              </div>
+              <div class="qa">
+                <span class="qa__q">What it replaces</span>
+                <p class="qa__a">GPS code that directly calls the map, the ETA label, the fare meter, the safety monitor,
+                   the logger and the push service &mdash; and breaks if any of them is removed.</p>
+              </div>
+              <div class="qa">
+                <span class="qa__q">See it live</span>
+                <p class="qa__a">Book a ride, then untick <em>EtaPanelObserver</em> while the car is moving. The ETA
+                   freezes; the car keeps driving, the meter keeps counting.</p>
+              </div>
+            </div>
+            <div class="code">
+              <div class="code__hd">observer.js &mdash; subject, observer, and the wiring</div>
+              <pre data-src="src-observer"></pre>
+            </div>
+          </div>
+        </details>
+
+        <!-- ---------- STATE ---------- -->
+        <details class="pat">
+          <summary class="pat__sum">
+            <span class="pat__tag pt-state">Behavioural</span>
+            <span class="pat__name">State<small>js/patterns/state.js</small></span>
+            <span class="pat__body">Each stage of the ride is its own class holding the behaviour that is legal at that
+               stage. The ride delegates instead of deciding.</span>
+          </summary>
+          <div class="pat__in">
+            <div class="pat__qa">
+              <div class="qa">
+                <span class="qa__q">Where it runs</span>
+                <p class="qa__a">The ride lifecycle under the map. The class under the current stage is the actual
+                   object the ride is holding at that moment.</p>
+              </div>
+              <div class="qa">
+                <span class="qa__q">What it replaces</span>
+                <p class="qa__a">The same <code>if (status === ...)</code> ladder copy-pasted into <code>cancel()</code>,
+                   <code>next()</code>, <code>canRate()</code> and every other method.</p>
+              </div>
+              <div class="qa">
+                <span class="qa__q">See it live</span>
+                <p class="qa__a"><code>ArrivedState</code> (the trip OTP) and <code>RematchingState</code> were added last,
+                   one class each. Wait for <em>Ride in progress</em> and Cancel disables itself, because
+                   <code>InProgressState.canCancel</code> is false.</p>
+              </div>
+            </div>
+            <div class="code">
+              <div class="code__hd">state.js &mdash; the state interface, two states, and the context</div>
+              <pre data-src="src-state"></pre>
+            </div>
+          </div>
+        </details>
+
+        <!-- ---------- ADAPTER ---------- -->
+        <details class="pat">
+          <summary class="pat__sum">
+            <span class="pat__tag pt-adapter">Structural</span>
+            <span class="pat__name">Adapter<small>js/patterns/adapter.js</small></span>
+            <span class="pat__body">Someone else's interface is the wrong shape and you cannot change it. A small class
+               translates their call into yours.</span>
+          </summary>
+          <div class="pat__in">
+            <div class="pat__qa">
+              <div class="qa">
+                <span class="qa__q">Where it runs</span>
+                <p class="qa__a">The payment picker. UPI counts in paise, the card network wants authorise-then-capture,
+                   the wallet throws when it is short, and cash has no SDK at all.</p>
+              </div>
+              <div class="qa">
+                <span class="qa__q">What it replaces</span>
+                <p class="qa__a">A <code>switch (method)</code> inside the payment code that has to remember four argument
+                   shapes, two units and one exception.</p>
+              </div>
+              <div class="qa">
+                <span class="qa__q">See it live</span>
+                <p class="qa__a">Spend your wallet below the fare and book anyway. The console shows
+                   <code>ledger.debit()</code> throwing and the adapter quietly falling back to UPI &mdash; the gateway
+                   never knew.</p>
+              </div>
+            </div>
+            <div class="code">
+              <div class="code__hd">adapter.js &mdash; the adaptee, the target interface, the adapter</div>
+              <pre data-src="src-adapter"></pre>
+            </div>
+          </div>
+        </details>
+
+        <!-- ---------- FACADE ---------- -->
+        <details class="pat">
+          <summary class="pat__sum">
+            <span class="pat__tag pt-facade">Structural</span>
+            <span class="pat__name">Facade<small>js/patterns/facade.js</small></span>
+            <span class="pat__body">One simple door in front of a complicated building. The button says
+               <code>bookRide()</code> and knows nothing about what happens behind it.</span>
+          </summary>
+          <div class="pat__in">
+            <div class="pat__qa">
+              <div class="qa">
+                <span class="qa__q">Where it runs</span>
+                <p class="qa__a">The Book button. One call fans out to twelve steps across the geo, matching, pricing,
+                   decorating, tracking and payment subsystems.</p>
+              </div>
+              <div class="qa">
+                <span class="qa__q">What it replaces</span>
+                <p class="qa__a">A click handler that has to know all seven subsystems <em>and</em> the order to call them
+                   in.</p>
+              </div>
+              <div class="qa">
+                <span class="qa__q">See it live</span>
+                <p class="qa__a">Open the console, filter to <em>FACADE</em> and book. Two lines. Clear the filter to see
+                   everything those two lines set in motion.</p>
+              </div>
+            </div>
+            <div class="code">
+              <div class="code__hd">facade.js &mdash; the one method the interface calls</div>
+              <pre data-src="src-facade"></pre>
+            </div>
+          </div>
+        </details>
+
+        <!-- ---------- SINGLETON ---------- -->
+        <details class="pat">
+          <summary class="pat__sum">
+            <span class="pat__tag pt-singleton">Creational</span>
+            <span class="pat__name">Singleton<small>js/core/dispatchLog.js &middot; js/core/session.js</small></span>
+            <span class="pat__body">Exactly one instance, shared by everything. Ask for it a hundred times and you get the
+               same object back every time.</span>
+          </summary>
+          <div class="pat__in">
+            <div class="pat__qa">
+              <div class="qa">
+                <span class="qa__q">Where it runs</span>
+                <p class="qa__a">Twice. <code>DispatchLog</code> is the console &mdash; every pattern writes to it.
+                   <code>SessionManager</code> is your account, wallet, saved places and trip history &mdash; nine screens
+                   read it.</p>
+              </div>
+              <div class="qa">
+                <span class="qa__q">What it replaces</span>
+                <p class="qa__a">Each module quietly making its own instance, so you sign in on one screen and are still a
+                   stranger on the next.</p>
+              </div>
+              <div class="qa">
+                <span class="qa__q">See it live</span>
+                <p class="qa__a">Book a ride, then open Activity and Wallet. The trip and the debit are already there,
+                   because all three screens hold the same object.</p>
+              </div>
+            </div>
+            <div class="code">
+              <div class="code__hd">dispatchLog.js &mdash; the instance guard</div>
+              <pre data-src="src-singleton"></pre>
+            </div>
+          </div>
+        </details>
+
+        <footer class="foot">
+          <span>RideFlow &mdash; built for a Design Patterns course.</span>
+          <span>Open <code>index.html</code> in any browser. No build step, no dependencies.</span>
+        </footer>
+      </section>
+
+    </main>
   </div>
-</header>
 
-<!-- ============================ THE APP ============================
-     Laptop: three columns that fit one screen - ride | map | lab.
-     Phone: the map stays pinned on top, everything else scrolls
-     beneath it, and the guided demo docks in its own strip.        -->
-<main class="app" id="app">
+  <!-- ==================== THE LAB DRAWER: guided demo + console ==================== -->
+  <aside class="dock" id="dock" aria-label="Guided demo and dispatch console" hidden>
 
-  <!-- ---------- 1. the rider's phone: plan a ride, then follow it ---------- -->
-  <section class="panel sheet" id="sheet" aria-label="Ride">
-    <div class="tabs" role="tablist">
-      <button class="tab" id="tabPlan" type="button" role="tab" aria-selected="true" aria-controls="viewPlan">
-        <span class="tab__n">1</span>Plan
-      </button>
-      <button class="tab" id="tabTrip" type="button" role="tab" aria-selected="false" aria-controls="viewTrip">
-        <span class="tab__n">2</span>Trip
-      </button>
-      <span class="sr-only" id="stateNow" aria-live="polite">no active ride</span>
-    </div>
-
-    <!-- PLAN: Factory, Strategy, Decorator, Facade -->
-    <div class="view" id="viewPlan" role="tabpanel" aria-labelledby="tabPlan">
-      <div class="route-row">
-        <div class="field">
-          <label class="field__label" for="pickup">Pickup</label>
-          <select id="pickup"></select>
-        </div>
-        <button class="swap" id="swap" type="button" title="Swap pickup and drop" aria-label="Swap pickup and drop">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M7 4v16M7 20l-3-3M7 20l3-3M17 20V4M17 4l-3 3M17 4l3 3"/>
-          </svg>
-        </button>
-        <div class="field">
-          <label class="field__label" for="drop">Drop</label>
-          <select id="drop"></select>
-        </div>
-      </div>
-
-      <div class="field">
-        <span class="field__label">Vehicle <span class="ptag" data-p="FACTORY">Factory</span></span>
-        <div class="vgrid" id="vehicles"></div>
-      </div>
-
-      <div class="field">
-        <label class="field__label" for="strategy">Price <span class="ptag" data-p="STRATEGY">Strategy</span><span class="ptag" data-p="DECORATOR">Decorator</span></label>
-        <select id="strategy">
-          <option value="STANDARD">Standard fare</option>
-          <option value="SURGE">Surge &times;1.8 (peak hour)</option>
-          <option value="FESTIVAL">Festival surge &times;3 (capped by law)</option>
-          <option value="NIGHT">Night fare (+25%)</option>
-          <option value="PASS">RidePass (-20%)</option>
-          <option value="POOL">Shared pool (split fare)</option>
-        </select>
-      </div>
-
-      <div class="receipt" id="receipt">
-        <div class="receipt__strategy" id="receiptStrategy"></div>
-        <div class="receipt__lines" id="receiptLines"></div>
-      </div>
-
-      <button class="btn btn--go" id="btnBook" type="button">Book ride</button>
-    </div>
-
-    <!-- TRIP: State -->
-    <div class="view" id="viewTrip" role="tabpanel" aria-labelledby="tabTrip" hidden>
-      <div class="triphead">
-        <h3 class="triphead__t" id="stateLabel">No ride yet</h3>
-        <span class="ptag" data-p="STATE">State</span>
-      </div>
-      <div class="dcard" id="driverCard" hidden></div>
-      <div class="lifecycle" id="lifecycle"></div>
-      <div class="rematch" id="rematchNote" hidden></div>
-
-      <div class="tripfare" id="tripFare"></div>
-      <button class="btn btn--go" id="btnAgain" type="button" hidden>Plan another ride</button>
-
-      <button class="btn btn--ghost" id="btnCancel" type="button" disabled>Cancel ride</button>
-      <div class="cancelask" id="cancelAsk" hidden>
-        <span class="cancelask__q">Why cancel?</span>
-        <button class="btn btn--ghost cancelask__opt" id="btnCancelPlans" type="button">
-          I changed my plans <small id="cancelFeeNote"></small>
-        </button>
-        <button class="btn btn--ghost cancelask__opt" id="btnCancelAsked" type="button">
-          The driver asked me to <small>Free &middot; driver is penalised</small>
-        </button>
-        <button class="linkbtn" id="btnCancelKeep" type="button">Keep my ride</button>
-      </div>
-
-      <div class="demo" id="simulate">
-        <span class="field__label">Simulate a problem</span>
-        <div class="demo__row">
-          <button class="btn btn--sim" id="btnDriverCancel" type="button" disabled title="The driver cancels after accepting">Driver cancels</button>
-          <button class="btn btn--sim" id="btnStop" type="button" disabled title="The car stops for 4 minutes with no red light">Long stop</button>
-          <button class="btn btn--sim" id="btnDetour" type="button" disabled title="The driver leaves the planned route">Detour</button>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- ---------- 2. the city: the Observer subject broadcasting ---------- -->
-  <section class="panel stage" id="stage" aria-label="Live map">
-    <div class="panel__hd">
-      <h2 class="panel__title">Map <span class="ptag" data-p="OBSERVER">Observer</span></h2>
-      <span class="panel__via" id="viaLine">Hyderabad</span>
-      <button class="minibtn" id="btnTraffic" type="button" aria-pressed="true"
-              title="The other cars are decoration only - switch them off for a calmer map">Traffic: on</button>
-    </div>
-    <div class="mapwrap">
-      <svg id="map" viewBox="0 0 720 420" role="img" aria-label="Simulated Hyderabad street map showing the driver moving along the routed roads">
-        <g id="terrain"></g>
-        <g id="roads"></g>
-        <g id="pois"></g>
-        <g id="ambient"></g>
-        <g id="routelayer"></g>
-        <g id="car">
-          <circle class="pulse" r="15"></circle>
-          <rect class="shadow" x="-9" y="-5" width="19" height="11" rx="3.5"></rect>
-          <rect class="body" x="-9" y="-6" width="18" height="12" rx="3.5"></rect>
-          <rect class="glass" x="0" y="-4" width="6" height="8" rx="1.5"></rect>
-          <rect class="lamp" x="7.4" y="-4.4" width="2" height="2" rx="1"></rect>
-          <rect class="lamp" x="7.4" y="2.4" width="2" height="2" rx="1"></rect>
-        </g>
-      </svg>
-      <div class="hud" aria-label="Trip telemetry">
-        <span class="hud__item"><span class="hud__k">ETA</span><span class="hud__v" id="hudEta">--</span></span>
-        <span class="hud__item"><span class="hud__k">Dist</span><span class="hud__v" id="hudKm">--</span></span>
-        <span class="hud__item"><span class="hud__k">Speed</span><span class="hud__v" id="hudSpeed">0 km/h</span></span>
-        <span class="hud__item hud__item--road"><span class="hud__k">On</span><span class="hud__v" id="hudRoad">--</span></span>
-        <span class="hud__status" id="hudStatus" data-status="IDLE">idle</span>
-      </div>
-      <div class="toasts" id="toasts" aria-live="polite"></div>
-      <div class="safety" id="safetyCard" role="alertdialog" aria-labelledby="safetyTitle" hidden>
-        <b id="safetyTitle">Are you okay?</b>
-        <span id="safetyText"></span>
-        <div class="safety__row">
-          <button class="btn btn--sim" id="btnSafeOk" type="button">I'm okay</button>
-          <button class="btn btn--sos" id="btnSos" type="button">SOS</button>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- ---------- 3. who is listening to the driver's GPS ---------- -->
-  <section class="panel obs" id="obsPanel" aria-label="GPS subscribers">
-    <div class="obs__hd">
-      <span class="panel__title">Subscribers <span class="ptag" data-p="OBSERVER">Observer</span></span>
-      <span class="obs__hint">Untick one to unsubscribe it</span>
-    </div>
-    <div class="obsgrid" id="observers"></div>
-  </section>
-
-  <!-- ---------- 4. the lab: guided-demo narration + the dispatch console ---------- -->
-  <section class="lab" id="lab" aria-label="Guided demo and console">
-
-    <aside class="tour" id="tour" aria-label="Guided demo" hidden>
+    <section class="tour" id="tour" aria-label="Guided demo" hidden>
       <div class="tour__bar" aria-hidden="true"><span id="tourBar"></span></div>
       <div class="tour__hd">
         <span class="tour__count" id="tourCount"></span>
@@ -216,315 +1004,30 @@
         <button class="tour__btn" id="tourRestart" type="button" hidden>Run again</button>
         <button class="tour__btn" id="tourExit" type="button">Exit</button>
       </div>
-    </aside>
+    </section>
 
     <section class="term" id="term">
       <div class="term__hd">
-        <span class="term__title">Console <span class="ptag ptag--dark" data-p="SINGLETON">Singleton</span></span>
+        <span class="term__title">Dispatch console <span class="ptag ptag--dark" data-p="SINGLETON">Singleton</span></span>
         <span class="term__live"><span class="term__led"></span>live</span>
+        <button class="iconbtn iconbtn--sm" id="dockClose" type="button" aria-label="Close console"><svg><use href="#i-close"/></svg></button>
+      </div>
+      <div class="term__filters" id="filters">
+        <button class="filter filter--clear" id="btnClear" type="button">Clear</button>
       </div>
       <div class="term__body" id="terminal"></div>
-      <div class="term__ft" id="filters">
-        <button class="filter" id="btnClear" type="button">CLEAR</button>
-      </div>
     </section>
-  </section>
-</main>
+  </aside>
 
-<!-- ============================ REFERENCE ============================ -->
-<section class="ref">
-  <div class="wrap ref__in">
+  <div class="toasts" id="toasts" aria-live="polite"></div>
 
-    <div class="ref__lede">
-      <span class="eyebrow">How the app is built</span>
-      <h2>Six patterns, one booking flow</h2>
-      <p>Open any pattern to see the problem it solves, where it runs above, and its real code.</p>
-    </div>
-
-    <!-- ---------- REAL-WORLD PROBLEMS ---------- -->
-    <details class="pat">
-      <summary class="pat__sum">
-        <span class="pat__tag pt-problem">Real-world problems</span>
-        <h3 class="pat__name">What riders complain about<small>Uber, Ola, Rapido &mdash; and the fixes here</small></h3>
-        <p class="pat__body">Three complaints from surveys, regulators and the 2025 rules, each fixed with a
-           pattern. Try them with <em>Simulate a problem</em> on the Trip tab.</p>
-      </summary>
-      <div class="pat__in">
-        <div class="pat__qa">
-        <div class="qa">
-          <span class="qa__q">1 &middot; Drivers cancel after accepting &mdash; State</span>
-          <p class="qa__a">A LocalCircles survey found 84% of app-cab users had been pushed into
-             cancelling, so the <em>rider</em> paid the fee. Here a driver cancel sends the ride into a new
-             <code>RematchingState</code>: same fare, a different driver, Rs.0 for the rider and a
-             penalty for the driver. Riders can also cancel with <em>"the driver asked me to"</em> at no
-             cost. Every other cancellation fee is 10% of the fare, capped at Rs.100, as the guidelines set.</p>
-        </div>
-        <div class="qa">
-          <span class="qa__q">2 &middot; Fares you cannot trust &mdash; Decorator</span>
-          <p class="qa__a">Festival surges of 3x-4x, charges missing from the quote, and an alleged (and
-             denied) iPhone-vs-Android price gap. Every pricing rule is wrapped by
-             <code>FairInputGuard</code> (the device never reaches the rule) and
-             <code>SurgeCapGuard</code> (at most 2x, never below 50%). The upfront quote is what is
-             charged &mdash; even after a detour.</p>
-        </div>
-        <div class="qa">
-          <span class="qa__q">3 &middot; Safety during the trip &mdash; Observer</span>
-          <p class="qa__a">The NCW's 2026 guidelines ask for route-deviation alerts and checks on long
-             stops. <code>SafetyMonitorObserver</code> is a fifth subscriber to the driver's GPS: it raises
-             <em>"Are you okay?"</em> after 3 minutes stood still or 0.8 km off the route, with an SOS that
-             sends the car details and live location. Nothing else in the app changed to add it.</p>
-        </div>
-        </div>
-        <div class="code">
-        <div class="code__hd">state.js &mdash; the new stage a driver cancellation leads to</div>
-        <pre data-src="src-rematch"></pre>
-      </div>
-      </div>
-    </details>
-
-    <!-- ---------- FACTORY ---------- -->
-    <details class="pat">
-      <summary class="pat__sum">
-        <span class="pat__tag pt-factory">Creational</span>
-        <h3 class="pat__name">Factory<small>js/patterns/factory.js</small></h3>
-        <p class="pat__body">One class owns object creation. Callers name <em>what</em> they want;
-           they never learn <em>how</em> it is built.</p>
-      </summary>
-      <div class="pat__in">
-        <div class="pat__qa">
-        <div class="qa">
-          <span class="qa__q">Where it runs</span>
-          <p class="qa__a">Every vehicle tile in the picker was produced by
-             <code>VehicleFactory.available()</code>, and booking calls
-             <code>VehicleFactory.create("SUV")</code>.</p>
-        </div>
-        <div class="qa">
-          <span class="qa__q">What it replaces</span>
-          <p class="qa__a">A chain of <code>if (type === "BIKE") new Bike()</code> repeated in
-             every screen that needs a vehicle.</p>
-        </div>
-        <div class="qa">
-          <span class="qa__q">See it live</span>
-          <p class="qa__a">Click a different vehicle. The console prints the exact class the
-             factory built and the fare rates it carries.</p>
-        </div>
-        </div>
-        <div class="code">
-        <div class="code__hd">factory.js &mdash; abstract product, concrete products, factory</div>
-        <pre data-src="src-factory"></pre>
-      </div>
-      </div>
-    </details>
-
-    <!-- ---------- STRATEGY ---------- -->
-    <details class="pat">
-      <summary class="pat__sum">
-        <span class="pat__tag pt-strategy">Behavioural</span>
-        <h3 class="pat__name">Strategy<small>js/patterns/strategy.js</small></h3>
-        <p class="pat__body">Interchangeable algorithms behind one method. The object using them
-           can be handed a different one while the program is running.</p>
-      </summary>
-      <div class="pat__in">
-        <div class="pat__qa">
-        <div class="qa">
-          <span class="qa__q">Where it runs</span>
-          <p class="qa__a">The pricing dropdown. <code>FareCalculator</code> holds one
-             <code>FareStrategy</code> and asks it to <code>calculate()</code>.</p>
-        </div>
-        <div class="qa">
-          <span class="qa__q">What it replaces</span>
-          <p class="qa__a">A single <code>calculateFare()</code> that grows a new
-             <code>if</code> branch for every festival offer and never shrinks.</p>
-        </div>
-        <div class="qa">
-          <span class="qa__q">See it live</span>
-          <p class="qa__a">Switch to <em>Surge pricing</em>. Same trip, same vehicle &mdash; the
-             receipt rebuilds itself with different line items, and no calling code changed.</p>
-        </div>
-        </div>
-        <div class="code">
-        <div class="code__hd">strategy.js &mdash; the interface, two of the five rules, the context</div>
-        <pre data-src="src-strategy"></pre>
-      </div>
-      </div>
-    </details>
-
-    <!-- ---------- OBSERVER ---------- -->
-    <details class="pat">
-      <summary class="pat__sum">
-        <span class="pat__tag pt-observer">Behavioural</span>
-        <h3 class="pat__name">Observer<small>js/patterns/observer.js</small></h3>
-        <p class="pat__body">A subject announces that something changed; any number of subscribers
-           react. The subject never learns who they are.</p>
-      </summary>
-      <div class="pat__in">
-        <div class="pat__qa">
-        <div class="qa">
-          <span class="qa__q">Where it runs</span>
-          <p class="qa__a">The driver's GPS. <code>DriverLocationPublisher</code> emits a fix about
-             eleven times a second; five observers act on it, including the safety monitor.</p>
-        </div>
-        <div class="qa">
-          <span class="qa__q">What it replaces</span>
-          <p class="qa__a">GPS code that directly calls the map, the ETA label, the logger and the
-             push service &mdash; and breaks if any of them is removed.</p>
-        </div>
-        <div class="qa">
-          <span class="qa__q">See it live</span>
-          <p class="qa__a">Book a ride, then untick <em>EtaPanelObserver</em> while the car is
-             moving. The ETA freezes; the car keeps driving. That is the decoupling, visible.</p>
-        </div>
-        </div>
-        <div class="code">
-        <div class="code__hd">observer.js &mdash; subject, observer, and the wiring</div>
-        <pre data-src="src-observer"></pre>
-      </div>
-      </div>
-    </details>
-
-    <!-- ---------- STATE ---------- -->
-    <details class="pat">
-      <summary class="pat__sum">
-        <span class="pat__tag pt-state">Behavioural</span>
-        <h3 class="pat__name">State<small>js/patterns/state.js</small></h3>
-        <p class="pat__body">Each stage of the ride is its own class holding the behaviour that is
-           legal at that stage. The ride delegates instead of deciding.</p>
-      </summary>
-      <div class="pat__in">
-        <div class="pat__qa">
-        <div class="qa">
-          <span class="qa__q">Where it runs</span>
-          <p class="qa__a">The lifecycle panel. The label on the right of each row is the actual
-             class the ride is holding at that moment.</p>
-        </div>
-        <div class="qa">
-          <span class="qa__q">What it replaces</span>
-          <p class="qa__a">The same <code>if (status === ...)</code> ladder copy-pasted into
-             <code>cancel()</code>, <code>next()</code>, <code>canRate()</code> and every other method.</p>
-        </div>
-        <div class="qa">
-          <span class="qa__q">See it live</span>
-          <p class="qa__a">Cancel during <em>Driver arriving</em> &mdash; allowed, with a fee. Press
-             <em>Driver cancels</em> and the ride moves to <code>RematchingState</code> instead of dying.
-             Wait for <em>Ride in progress</em> and both buttons disable themselves, because
-             <code>InProgressState</code> says so.</p>
-        </div>
-        </div>
-        <div class="code">
-        <div class="code__hd">state.js &mdash; the state interface, two states, and the context</div>
-        <pre data-src="src-state"></pre>
-      </div>
-      </div>
-    </details>
-
-    <!-- ---------- FACADE ---------- -->
-    <details class="pat">
-      <summary class="pat__sum">
-        <span class="pat__tag pt-facade">Structural</span>
-        <h3 class="pat__name">Facade<small>js/patterns/facade.js</small></h3>
-        <p class="pat__body">One simple door in front of a complicated building. The button says
-           <code>bookRide()</code> and knows nothing about what happens behind it.</p>
-      </summary>
-      <div class="pat__in">
-        <div class="pat__qa">
-        <div class="qa">
-          <span class="qa__q">Where it runs</span>
-          <p class="qa__a">The Book ride button. One call fans out to seven steps across the geo,
-             matching, pricing, tracking and payment subsystems.</p>
-        </div>
-        <div class="qa">
-          <span class="qa__q">What it replaces</span>
-          <p class="qa__a">A click handler that has to know all five subsystems <em>and</em> the
-             correct order to call them in.</p>
-        </div>
-        <div class="qa">
-          <span class="qa__q">See it live</span>
-          <p class="qa__a">Filter the console to <em>FACADE</em> and book. Two lines. Then clear the
-             filter to see everything those two lines set in motion.</p>
-        </div>
-        </div>
-        <div class="code">
-        <div class="code__hd">facade.js &mdash; the one method the interface calls</div>
-        <pre data-src="src-facade"></pre>
-      </div>
-      </div>
-    </details>
-
-    <!-- ---------- DECORATOR ---------- -->
-    <details class="pat">
-      <summary class="pat__sum">
-        <span class="pat__tag pt-decorator">Structural</span>
-        <h3 class="pat__name">Decorator<small>js/patterns/decorator.js</small></h3>
-        <p class="pat__body">Wrap an object in another with the same interface, adding one duty around
-           the call. The caller cannot tell, and the wrapped object never changes.</p>
-      </summary>
-      <div class="pat__in">
-        <div class="pat__qa">
-        <div class="qa">
-          <span class="qa__q">Where it runs</span>
-          <p class="qa__a">Every pricing rule. The facade hands the calculator
-             <code>regulated(rule)</code> &mdash; the rule inside <code>FairInputGuard</code> and
-             <code>SurgeCapGuard</code>. The receipt shows the chain.</p>
-        </div>
-        <div class="qa">
-          <span class="qa__q">What it replaces</span>
-          <p class="qa__a">The legal cap copied into every strategy (one forgets, one fine), or an
-             <code>if</code> ladder creeping back into <code>FareCalculator</code>.</p>
-        </div>
-        <div class="qa">
-          <span class="qa__q">See it live</span>
-          <p class="qa__a">Pick <em>Festival surge &times;3</em>. The rule asks for 3x; the receipt gains a
-             green <em>Surge capped at 2x</em> line and the console prints a <em>DECORATOR</em> correction.</p>
-        </div>
-        </div>
-        <div class="code">
-        <div class="code__hd">decorator.js &mdash; the base wrapper and the legal cap</div>
-        <pre data-src="src-decorator"></pre>
-      </div>
-      </div>
-    </details>
-
-    <!-- ---------- SINGLETON ---------- -->
-    <details class="pat">
-      <summary class="pat__sum">
-        <span class="pat__tag pt-singleton">Creational &middot; bonus</span>
-        <h3 class="pat__name">Singleton<small>js/core/dispatchLog.js</small></h3>
-        <p class="pat__body">Exactly one instance, shared by everything. Ask for it a hundred
-           times and you get the same object back every time.</p>
-      </summary>
-      <div class="pat__in">
-        <div class="pat__qa">
-        <div class="qa">
-          <span class="qa__q">Where it runs</span>
-          <p class="qa__a">The dispatch console itself. Six pattern files write to it and the UI
-             reads from it &mdash; they must all be pointing at one log.</p>
-        </div>
-        <div class="qa">
-          <span class="qa__q">What it replaces</span>
-          <p class="qa__a">Each module quietly making its own log, so the console shows a fraction
-             of what actually happened.</p>
-        </div>
-        <div class="qa">
-          <span class="qa__q">See it live</span>
-          <p class="qa__a">Every line in the console is proof &mdash; six separate files wrote
-             into one shared list.</p>
-        </div>
-        </div>
-        <div class="code">
-        <div class="code__hd">dispatchLog.js &mdash; the instance guard</div>
-        <pre data-src="src-singleton"></pre>
-      </div>
-      </div>
-    </details>
-
+  <!-- ==================== MODAL SHEET ==================== -->
+  <div class="sheetwrap" id="sheetWrap" hidden>
+    <div class="sheetscrim" id="sheetScrim"></div>
+    <div class="sheet" id="sheet" role="dialog" aria-modal="true"></div>
   </div>
-</section>
 
-<footer class="wrap foot">
-  <span>RideFlow &mdash; ride-booking app built for a Design Patterns course.</span>
-  <span>Problem sources: LocalCircles surveys, CCPA notices, MoRTH Aggregator Guidelines 2025, NCW 2026 guidelines.</span>
-  <span>Open <code>index.html</code> in any browser. No build step, no dependencies.</span>
-</footer>
+</div>
 
 <!-- ================= code samples shown in the reference ================= -->
 
@@ -547,26 +1050,43 @@ class SuvCab extends Vehicle {
   get label() { return "SUV"; }   get baseFare() { return 90; }  get perKm() { return 22; }
 }
 
-// 3. The factory: the ONLY place in the app where a vehicle is constructed.
+// 3. The two added AFTER the app shipped. One class each - and the
+//    two registry lines below. Nothing else in the app was touched.
+class ERickshaw  extends Vehicle { get label() { return "E-Rick"; } /* ... */ }
+class PrimeSedan extends Vehicle { get label() { return "Prime";  } /* ... */ }
+
+// 4. The factory: the ONLY place in the app where a vehicle is constructed.
 class VehicleFactory {
-  static registry = { BIKE: Bike, AUTO: Auto, SEDAN: SedanCab, SUV: SuvCab };
+  static registry = {
+    BIKE: Bike, ERICK: ERickshaw, AUTO: Auto,
+    SEDAN: SedanCab, SUV: SuvCab, PRIME: PrimeSedan,
+  };
 
   static create(type) {
     const VehicleClass = VehicleFactory.registry[type];
     if (!VehicleClass) throw new Error("VehicleFactory cannot build " + type);
     return new VehicleClass();
   }
+
+  // The picker draws itself from this, so a new category appears
+  // on screen without the UI being edited either.
+  static available() {
+    return Object.keys(VehicleFactory.registry).map(VehicleFactory.create);
+  }
 }
 
-// 4. Callers look like this. Launching an e-rickshaw tomorrow adds one
-//    class and one registry line - this call site never changes.
-const vehicle = VehicleFactory.create("SUV");
+const vehicle = VehicleFactory.create("PRIME");
 </script>
 
 <script type="text/plain" id="src-strategy">
-// 1. The interface every pricing rule implements.
+// 1. The interface every pricing rule implements. Note the split:
+//    a rule writes only ITS rows. Fees and tax are done once, here.
 class FareStrategy {
-  calculate(trip) { throw new Error("not implemented"); }
+  get platformFee() { return 9; }
+
+  lineItems(trip) { throw new Error("not implemented"); }
+
+  calculate(trip) { return this.finalise(this.lineItems(trip), this.platformFee); }
 
   rideCost(trip) {                       // shared by all rules
     return trip.vehicle.baseFare
@@ -575,26 +1095,35 @@ class FareStrategy {
   }
 }
 
-// 2. Two of the five rules. Each is closed, testable, and independent.
+// 2. Two of the eight rules. Each is closed, testable, independent.
 class StandardFare extends FareStrategy {
-  calculate(trip) {
-    return this.finalise([{ label: "Ride cost", amount: this.rideCost(trip) }]);
+  lineItems(trip) {
+    return [
+      { label: "Base fare",              amount: trip.vehicle.baseFare },
+      { label: `Distance ${trip.km} km`, amount: trip.vehicle.perKm * trip.km },
+    ];
   }
 }
 
 class SurgePricingFare extends FareStrategy {
   constructor(multiplier = 1.8) { super(); this.multiplier = multiplier; }
 
-  calculate(trip) {
+  lineItems(trip) {
     const base = this.rideCost(trip);
-    return this.finalise([
+    return [
       { label: "Ride cost", amount: base },
       { label: "Surge x" + this.multiplier, amount: base * (this.multiplier - 1) },
-    ]);
+    ];
   }
 }
 
-// 3. The context. Note there is no if-else about pricing anywhere in it.
+// 3. A rule can change the shared behaviour without touching it.
+class RidePassFare extends FareStrategy {
+  get platformFee() { return 0; }        // subscribers pay no fee
+  lineItems(trip) { /* ... */ }
+}
+
+// 4. The context. Note there is no if-else about pricing anywhere in it.
 class FareCalculator {
   constructor(strategy) { this.strategy = strategy; }
 
@@ -603,8 +1132,62 @@ class FareCalculator {
   calculate(trip) { return this.strategy.calculate(trip); }
 }
 
-// 4. What the pricing dropdown does when you change it:
+// 5. What the pricing picker does when you change it:
 calculator.setStrategy(new SurgePricingFare(1.8));
+</script>
+
+<script type="text/plain" id="src-decorator">
+// 1. An add-on IS a FareStrategy and HOLDS a FareStrategy.
+//    That single fact is what lets wrappers stack without limit.
+class FareDecorator extends FareStrategy {
+  constructor(inner) { super(); this.inner = inner; }
+
+  // The whole pattern: take their rows, append mine, hand the lot back.
+  lineItems(trip) {
+    const rows = this.inner.lineItems(trip);
+    rows.push({ label: this.addOnLabel, amount: this.charge(trip) });
+    return rows;
+  }
+}
+
+class ChildSeatAddOn extends FareDecorator {
+  get addOnLabel() { return "Child seat"; }
+  charge()         { return 40; }
+}
+
+// 2. A promo code is just an add-on with a negative charge. Same base
+//    class, same stack, no special case - the sign the abstraction fits.
+class PromoCodeDecorator extends FareDecorator {
+  charge(trip) { return -Math.min(this.percentOf(trip), this.promo.cap); }
+}
+
+// 3. Guards: the same trick, enforcing a rule instead of adding a row.
+//    Only vehicle, distance and time may reach a pricing rule...
+class FairInputGuard extends FareGuard {
+  calculate(trip) {
+    const { vehicle, km, minutes } = trip;             // device, etc. are dropped
+    return this.inner.calculate({ vehicle, km, minutes });
+  }
+}
+
+//    ...and the 2025 guidelines: at most 2x the base fare, never under 50%.
+class SurgeCapGuard extends FareGuard {
+  calculate(trip) {
+    const quote = this.inner.calculate(trip);
+    const base  = this.rideCost(trip);
+    const fare  = sumOfRideLines(quote);               // extras sit outside the band
+    if (fare > base * 2) return withCorrection(quote, base * 2 - fare, "Surge capped at 2x");
+    return quote;                                      // already legal - untouched
+  }
+}
+
+// 4. Building the stack. Any order, any depth, decided at runtime.
+let rule = new SurgePricingFare(3);
+rule = new ChildSeatAddOn(rule);
+rule = new PromoCodeDecorator(rule, { code: "HYD20", value: 20, cap: 80 });
+rule = new FairInputGuard(new SurgeCapGuard(rule));
+
+calculator.setStrategy(rule);     // it cannot tell the difference
 </script>
 
 <script type="text/plain" id="src-observer">
@@ -634,19 +1217,27 @@ class EtaPanelObserver extends LocationObserver {
   update(fix) { this.showEta(fix); }        // ETA, distance, speed, road name
 }
 
-// 4. Wiring - and the checkboxes above call exactly these two methods.
+// Added months later to answer a real safety complaint. It needed one
+// subscribe() call - the GPS code was never opened, no observer was told.
+class SafetyMonitorObserver extends LocationObserver {
+  update(fix) {
+    if (fix.leg !== "TO_DROP") return;      // the rider is in the car
+    if (fix.stillSec >= 180)  this.onAlert("Your car has been stopped for 3 min");
+    if (fix.offRouteKm >= 0.8) this.onAlert("Your car is off the planned route");
+  }
+}
+
+// 4. Wiring - and the checkboxes under the map call exactly these two methods.
 publisher.subscribe(new MapMarkerObserver(moveCar));
 publisher.subscribe(new EtaPanelObserver(showTelemetry));
+publisher.subscribe(new SafetyMonitorObserver(askAreYouOkay));
 
 // 5. Where the car actually IS comes from traffic.js, which accelerates,
-//    brakes for bends and sits at red lights. The subject just relays it -
-//    it does not drive, and it does not know who is listening.
-motion.step(dtSeconds);
-
+//    brakes for bends and sits at red lights. The subject just relays it.
 publisher.notify({
   leg, progress, point, heading,
-  road: "PVNR Expressway", roadClass: "highway", status: "CRUISING",
-  remainingKm, etaMin, speedKmph,
+  road: "PVNR Expressway", status: "CRUISING",
+  remainingKm, etaMin, speedKmph, stillSec, offRouteKm,
 });
 </script>
 
@@ -668,18 +1259,28 @@ class ArrivingState extends RideState {
     ride.publisher.startTracking({ path: ride.legs.toPickup, leg: "TO_PICKUP",
                                    onArrive: () => this.next(ride) });
   }
-  next(ride)         { ride.transitionTo(new InProgressState()); }
-  cancel(ride, why)  { riderCancels(ride, why, "ArrivingState"); }   // 10% fee, or free if the driver asked
-  driverCancel(ride) { driverWalksAway(ride, "ArrivingState"); }     // -> RematchingState
+  next(ride)           { ride.transitionTo(new ArrivedState()); }
+  cancel(ride, reason) { riderCancels(ride, reason);  }   // 10% fee, max Rs.100
+  driverCancel(ride)   { driverWalksAway(ride); }         // -> RematchingState
 }
 
-// 3. A state that refuses - it simply does not override cancel().
+// 3. A state added LAST - the driver waiting at the kerb with a trip
+//    OTP. It cost one class and one edited line (ArrivingState.next).
+class ArrivedState extends RideState {
+  get label()     { return "Driver waiting at pickup"; }
+  get canCancel() { return true; }
+
+  onEnter(ride) { ride.otp = TripOtpService.issue(); }
+  next(ride)    { ride.transitionTo(new InProgressState()); }
+}
+
+// 4. A state that refuses - it simply does not override cancel().
 class InProgressState extends RideState {
   get canCancel() { return false; }
   next(ride) { ride.transitionTo(new CompletedState()); }
 }
 
-// 4. The context. No if-else, no status string - it swaps the object.
+// 5. The context. No if-else, no status string - it swaps the object.
 class Ride {
   transitionTo(state) {
     this.state = state;
@@ -687,110 +1288,113 @@ class Ride {
     state.onEnter(this);
   }
 
-  cancel() { this.state.cancel(this); }        // delegation, not decision
-  next()   { this.state.next(this); }
+  cancel(reason) { this.state.cancel(this, reason); }    // delegation, not decision
+  next()         { this.state.next(this); }
 
   get canCancel() { return this.state.canCancel; }
 }
 </script>
 
+<script type="text/plain" id="src-adapter">
+// 1. THE ADAPTEES - three third-party SDKs we do not control.
+//    Different names, different arguments, different units,
+//    different failure behaviour. Pretend they are three packages.
+class UpiRailSdk {
+  collect(vpa, paise) { return { status: "SUCCESS", rrn: "UPI..." }; }
+}
+
+class CardNetworkApi {
+  authorise({ cardToken, amount }) { return { authCode: "AUTH-..." }; }
+  capture(authCode)                { return { captureId: "CAP..." }; }
+}
+
+class WalletLedger {
+  debit(rupees) {                                   // throws, not returns
+    if (balance < rupees) throw new Error("Wallet short by Rs." + short);
+    return session.spend(rupees, "Ride fare");
+  }
+}
+
+// 2. THE TARGET - the only shape our app wants to see.
+class PaymentMethod {
+  pay(rupees, rideId) { throw new Error("not implemented"); }
+}
+
+// 3. THE ADAPTERS - small on purpose. Translating is all they may do.
+class UpiAdapter extends PaymentMethod {
+  pay(rupees, rideId) {
+    const res = this.sdk.collect(this.vpa, Math.round(rupees * 100));  // -> paise
+    return { txnId: res.rrn, method: "UPI", amount: rupees };
+  }
+}
+
+class CardAdapter extends PaymentMethod {
+  pay(rupees, rideId) {
+    const auth = this.api.authorise({ cardToken: this.token, amount: rupees });
+    const cap  = this.api.capture(auth.authCode);      // two calls, one method
+    return { txnId: cap.captureId, method: this.label, amount: rupees };
+  }
+}
+
+class WalletAdapter extends PaymentMethod {
+  pay(rupees, rideId) {
+    try {
+      return { txnId: this.ledger.debit(rupees).id, method: "Wallet", amount: rupees };
+    } catch (err) {                     // their exception, our return value
+      return PAYMENT_METHODS.get("UPI").pay(rupees, rideId);
+    }
+  }
+}
+
+// 4. The gateway holds ONE PaymentMethod and makes ONE kind of call.
+//    It does not know that UPI counts in paise.
+class PaymentGateway {
+  use(method)  { this.method = method; }
+  charge(amount, rideId) { return this.method.pay(amount, rideId); }
+}
+</script>
+
 <script type="text/plain" id="src-facade">
-// The five subsystems are built once, inside the facade, and never
-// escape it. The UI holds a reference to the facade and nothing else.
+// The subsystems are built once, inside the facade, and never escape
+// it. Every screen holds a reference to the facade and nothing else.
 class RideBookingFacade {
   constructor({ pushToast, onRideUpdate }) {
     this.geo           = new GeoService();
     this.matching      = new DriverMatchingService(this.geo);
     this.payments      = new PaymentGateway();
     this.notifications = new NotificationService(pushToast);
-    this.calculator    = new FareCalculator(FARE_STRATEGIES.STANDARD());
+    this.calculator    = new FareCalculator(regulated(FARE_STRATEGIES.STANDARD()));
     this.publisher     = new DriverLocationPublisher();
+  }
+
+  // STRATEGY meets DECORATOR - the only place that knows they meet.
+  rebuildStrategy() {
+    const base = FARE_STRATEGIES[this.baseStrategyKey]();
+    this.calculator.setStrategy(regulated(decorateFare(base, this.addOnKeys, this.promo)));
   }
 
   bookRide({ pickupId, dropId, vehicleType }) {
     const pickup  = findLocation(pickupId);
     const drop    = findLocation(dropId);
 
-    const vehicle = VehicleFactory.create(vehicleType);            // FACTORY
+    const vehicle = VehicleFactory.create(vehicleType);              // FACTORY
     const trip    = this.geo.route(pickup, drop, vehicle);
-    const quote   = this.calculator.calculate({ vehicle, ...trip }); // STRATEGY
+    const quote   = this.calculator.calculate({ vehicle, ...trip }); // STRATEGY + DECORATOR
 
     const ride = new Ride({
       id: "RIDE-" + Date.now(), pickup, drop, vehicle, quote,
-      publisher: this.publisher,                                   // OBSERVER
-      services:  { matching: this.matching, payments: this.payments },
+      publisher: this.publisher,                                     // OBSERVER
+      services:  { matching: this.matching, payments: this.payments }, // ADAPTER inside
     });
 
     this.notifications.send("Looking for a driver near you...");
-    ride.transitionTo(new RequestedState());                       // STATE
+    ride.transitionTo(new RequestedState());                         // STATE
     return ride;
   }
 }
 
 // The entire user interface talks to the app through this one line.
 facade.bookRide({ pickupId, dropId, vehicleType });
-</script>
-
-<script type="text/plain" id="src-rematch">
-// The driver walked away. The rider did nothing wrong, so the ride
-// does not die: the driver is penalised and matching starts again.
-function driverWalksAway(ride, stage) {
-  const fee = cancellationFee(ride.quote.total);       // 10% of fare, max Rs.100
-  ride.services.matching.penalise(ride.driver, fee, "cancelled an accepted ride");
-  ride.walkedAway.push(ride.driver);
-  ride.driver = null;
-
-  if (ride.walkedAway.length > MAX_REMATCHES) {
-    ride.transitionTo(new CancelledState("Ride closed - you have not been charged.", 0));
-    return;
-  }
-  ride.transitionTo(new RematchingState());
-}
-
-// One new class is the whole new stage. No if-else elsewhere learnt about it.
-class RematchingState extends RideState {
-  get label()     { return "Finding you another driver"; }
-  get canCancel() { return true; }                    // and free: not the rider's fault
-
-  onEnter(ride) { ride.after(1200, () => this.next(ride)); }
-
-  next(ride) { assignDriver(ride); }                  // anyone but the drivers who left;
-                                                      // ride.quote is never touched
-  cancel(ride) {
-    ride.transitionTo(new CancelledState("Cancelled while re-matching - no fee.", 0));
-  }
-}
-</script>
-
-<script type="text/plain" id="src-decorator">
-// 1. Same interface as every strategy; forwards to the one it wraps.
-class FareStrategyDecorator extends FareStrategy {
-  constructor(inner) { super(); this.inner = inner; }
-  get name()      { return this.inner.name; }          // looks exactly like the rule
-  calculate(trip) { return this.inner.calculate(trip); }
-}
-
-// 2. Only vehicle, distance and time may reach a pricing rule.
-class FairInputGuard extends FareStrategyDecorator {
-  calculate(trip) {
-    const { vehicle, km, minutes } = trip;              // device, etc. are dropped
-    return this.inner.calculate({ vehicle, km, minutes });
-  }
-}
-
-// 3. The 2025 guidelines: at most 2x the base fare, never under 50%.
-class SurgeCapGuard extends FareStrategyDecorator {
-  calculate(trip) {
-    const quote = this.inner.calculate(trip);
-    const base  = this.rideCost(trip);
-    const fare  = sumOfFareLines(quote);
-    if (fare > base * 2) return withCorrection(quote, base * 2 - fare, "Surge capped at 2x");
-    return quote;                                       // already legal - untouched
-  }
-}
-
-// 4. Every rule goes in wrapped. No strategy changed to make room.
-calculator.setStrategy(new FairInputGuard(new SurgeCapGuard(new SurgePricingFare(3))));
 </script>
 
 <script type="text/plain" id="src-singleton">
@@ -821,6 +1425,24 @@ DispatchLog._instance = null;
 // Proof that it works:
 DispatchLog.getInstance() === DispatchLog.getInstance();   // true
 new DispatchLog()         === DispatchLog.getInstance();   // also true
+
+// The SAME guard, doing the job that matters in a real app: who is
+// signed in, the wallet, the saved places and the trip history.
+class SessionManager {
+  constructor() {
+    if (SessionManager._instance) return SessionManager._instance;
+    this.user = null;
+    SessionManager._instance = this;
+    this.load();                          // from localStorage
+  }
+
+  static getInstance() {
+    if (!SessionManager._instance) SessionManager._instance = new SessionManager();
+    return SessionManager._instance;
+  }
+}
+
+const session = () => SessionManager.getInstance();
 </script>
 
 <!-- ================= application scripts, in dependency order ================= -->
@@ -828,13 +1450,18 @@ new DispatchLog()         === DispatchLog.getInstance();   // also true
 <script src="js/core/clock.js"></script>
 <script src="js/core/geo.js"></script>
 <script src="js/core/traffic.js"></script>
-<script src="js/core/services.js"></script>
+<script src="js/core/session.js"></script>
 <script src="js/patterns/factory.js"></script>
 <script src="js/patterns/strategy.js"></script>
 <script src="js/patterns/decorator.js"></script>
+<script src="js/patterns/adapter.js"></script>
+<script src="js/core/services.js"></script>
 <script src="js/patterns/observer.js"></script>
 <script src="js/patterns/state.js"></script>
 <script src="js/patterns/facade.js"></script>
+<script src="js/ui/router.js"></script>
+<script src="js/ui/auth.js"></script>
+<script src="js/ui/screens.js"></script>
 <script src="js/app.js"></script>
 <script src="js/ui/tour.js"></script>
 </body>

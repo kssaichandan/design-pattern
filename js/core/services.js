@@ -1,8 +1,8 @@
 /* ============================================================
    THE SUBSYSTEMS
    ------------------------------------------------------------
-   Four independent services with nothing to do with each other.
-   Booking a ride needs all four, in the right order, with the
+   Independent services with nothing to do with each other.
+   Booking a ride needs all of them, in the right order, with the
    right arguments - which is exactly the mess the Facade pattern
    in facade.js exists to hide from the UI.
    ============================================================ */
@@ -26,11 +26,12 @@ class GeoService {
   pickupLeg(driverAt, pickup) {
     const toPickup = buildRoute(driverAt, pickup);
     const toPickupKm = roadKm(toPickup);
+    const rush = session().prefs.fastDemo ? 0.5 : 1;
     return {
       toPickup,
       toPickupKm,
       // Demo timing: only the CLOCK is compressed, the speeds stay real.
-      toPickupSeconds: Math.min(11, Math.max(5, 3 + toPickupKm * 0.7)),
+      toPickupSeconds: rush * Math.min(11, Math.max(5, 3 + toPickupKm * 0.7)),
     };
   }
 
@@ -75,27 +76,65 @@ class GeoService {
   }
 }
 
+/* ------------------------------------------------------------
+   2. The fleet, and the service that picks someone out of it.
+   ------------------------------------------------------------ */
+
+/**
+ * The driver roster. Ratings and trip counts are what a real
+ * partner dashboard would hold; the app only ever reads them.
+ */
+const DRIVER_POOL = [
+  { name: "Ramesh Kumar",    rating: 4.9, trips: 4182, since: 2019, langs: ["Telugu", "Hindi"] },
+  { name: "Sunitha Reddy",   rating: 4.8, trips: 2760, since: 2021, langs: ["Telugu", "English"] },
+  { name: "Imran Shaikh",    rating: 4.7, trips: 6015, since: 2017, langs: ["Urdu", "Hindi", "Telugu"] },
+  { name: "Vijay Malothu",   rating: 4.9, trips: 1188, since: 2022, langs: ["Telugu", "Hindi"] },
+  { name: "Priya Nagireddy", rating: 5.0, trips:  903, since: 2023, langs: ["Telugu", "English"] },
+  { name: "Anil Teegala",    rating: 4.6, trips: 7734, since: 2016, langs: ["Telugu"] },
+  { name: "Farhan Qureshi",  rating: 4.8, trips: 3391, since: 2020, langs: ["Urdu", "Hindi"] },
+  { name: "Lakshmi Devi",    rating: 4.9, trips: 2044, since: 2021, langs: ["Telugu", "Hindi"] },
+  { name: "Naveen Chowdary", rating: 4.7, trips: 5210, since: 2018, langs: ["Telugu", "English"] },
+  { name: "Salma Begum",     rating: 4.8, trips: 1637, since: 2022, langs: ["Urdu", "Telugu"] },
+  { name: "Rajesh Goud",     rating: 4.5, trips: 8890, since: 2015, langs: ["Telugu", "Hindi"] },
+  { name: "Kavitha Rao",     rating: 4.9, trips: 3072, since: 2020, langs: ["Telugu", "English"] },
+  { name: "Mohan Yadav",     rating: 4.6, trips: 6423, since: 2017, langs: ["Telugu", "Hindi"] },
+  { name: "Zubair Ali",      rating: 4.8, trips: 2915, since: 2021, langs: ["Urdu", "Hindi", "English"] },
+  { name: "Srinivas Rao",    rating: 4.7, trips: 9104, since: 2014, langs: ["Telugu"] },
+  { name: "Deepika Sharma",  rating: 5.0, trips:  612, since: 2024, langs: ["Hindi", "English"] },
+  { name: "Karthik Varma",   rating: 4.8, trips: 4507, since: 2019, langs: ["Telugu", "English"] },
+  { name: "Ayesha Fatima",   rating: 4.9, trips: 1854, since: 2022, langs: ["Urdu", "Telugu"] },
+  { name: "Bhaskar Reddy",   rating: 4.5, trips: 7218, since: 2016, langs: ["Telugu", "Hindi"] },
+  { name: "Ganesh Mudiraj",  rating: 4.7, trips: 3966, since: 2019, langs: ["Telugu"] },
+  { name: "Nikhil Bandari",  rating: 4.8, trips: 2288, since: 2021, langs: ["Telugu", "English"] },
+  { name: "Rehana Sultana",  rating: 4.9, trips: 1425, since: 2023, langs: ["Urdu", "Hindi"] },
+  { name: "Suresh Babu",     rating: 4.6, trips: 8341, since: 2015, langs: ["Telugu", "Tamil"] },
+  { name: "Manjula Prasad",  rating: 4.8, trips: 2671, since: 2020, langs: ["Telugu", "English"] },
+  { name: "Yousuf Khan",     rating: 4.7, trips: 5583, since: 2018, langs: ["Urdu", "Hindi", "Telugu"] },
+  { name: "Pavan Kalyan G.", rating: 4.9, trips: 1093, since: 2023, langs: ["Telugu", "English"] },
+  { name: "Shanthi Kumari",  rating: 5.0, trips:  788, since: 2024, langs: ["Telugu"] },
+  { name: "Abdul Rahman",    rating: 4.6, trips: 6970, since: 2016, langs: ["Urdu", "Hindi"] },
+];
+
+/** What each class of vehicle on this fleet actually is. */
+const FLEET_MODELS = {
+  BIKE:  ["Honda Activa 6G", "TVS Jupiter", "Bajaj Pulsar 150", "Hero Splendor+", "Suzuki Access 125"],
+  ERICK: ["Mahindra Treo", "Piaggio Ape E-City", "YC Electric Yatri", "Kinetic Safar"],
+  AUTO:  ["Bajaj RE Compact", "Piaggio Ape City", "TVS King Duramax", "Atul Gem"],
+  SEDAN: ["Maruti Dzire", "Hyundai Aura", "Honda Amaze", "Tata Tigor", "Maruti Ciaz"],
+  SUV:   ["Toyota Innova Crysta", "Maruti Ertiga", "Mahindra Marazzo", "Kia Carens", "Renault Triber"],
+  PRIME: ["Toyota Camry Hybrid", "Skoda Slavia", "Honda City ZX", "Hyundai Verna", "VW Virtus"],
+};
+
+/** Colours a fleet actually comes in - printed on the driver card. */
+const FLEET_COLOURS = ["White", "Silver", "Grey", "Black", "Blue", "Beige", "Red"];
+
 /** 2. Finds a nearby driver who owns the right kind of vehicle. */
 class DriverMatchingService {
   constructor(geo) {
     this.geo = geo;
-    this.pool = [
-      { name: "Ramesh K.",  rating: 4.9, trips: 4182 },
-      { name: "Sunitha R.", rating: 4.8, trips: 2760 },
-      { name: "Imran S.",   rating: 4.7, trips: 6015 },
-      { name: "Vijay M.",   rating: 4.9, trips: 1188 },
-      { name: "Priya N.",   rating: 5.0, trips:  903 },
-      { name: "Anil T.",    rating: 4.6, trips: 7734 },
-      { name: "Farhan Q.",  rating: 4.8, trips: 3391 },
-    ];
-
-    // What each class of vehicle on this fleet actually is.
-    this.models = {
-      BIKE:  ["Honda Activa", "TVS Jupiter", "Bajaj Pulsar"],
-      AUTO:  ["Bajaj RE", "Piaggio Ape", "TVS King"],
-      SEDAN: ["Maruti Dzire", "Hyundai Aura", "Honda Amaze", "Tata Tigor"],
-      SUV:   ["Toyota Innova", "Maruti Ertiga", "Mahindra Marazzo"],
-    };
+    this.pool = DRIVER_POOL;
+    this.models = FLEET_MODELS;
+    this.recent = [];        // last few matched, so the same face is not reused
 
     // Cancellations on record per driver - the accountability half of
     // "you won't pay when the driver walks away".
@@ -110,30 +149,42 @@ class DriverMatchingService {
   }
 
   /**
-   * @param {string[]} exclude  drivers who already walked away from THIS
-   *                            ride - never offer the rider the same one.
-   * @returns the driver, or null when nobody suitable is left.
+   * Picks someone who has not driven the last three rides, and never
+   * anyone in `exclude` - the drivers who already walked away from
+   * THIS ride. Returns null when nobody suitable is left.
    */
-  findDriver(vehicle, pickup, exclude = []) {
+  pickPerson(exclude = []) {
     const free = this.pool.filter((p) => !exclude.includes(p.name));
-    if (!free.length) {
+    if (!free.length) return null;
+    const fresh = free.filter((p) => !this.recent.includes(p.name));
+    const from = fresh.length ? fresh : free;
+    const person = from[Math.floor(Math.random() * from.length)];
+    this.recent.push(person.name);
+    if (this.recent.length > 3) this.recent.shift();
+    return person;
+  }
+
+  findDriver(vehicle, pickup, exclude = []) {
+    const person = this.pickPerson(exclude);
+    if (!person) {
       log("SYSTEM", "DriverMatchingService: no free driver left nearby.");
       return null;
     }
 
-    const person = free[Math.floor(Math.random() * free.length)];
     const models = this.models[vehicle.code] || ["Unmarked"];
     const at = this.geo.randomPointNear(pickup);
 
-    // Distance by ROAD from where this driver is parked - the same
-    // leg the car will actually drive, so the card and the map agree.
+    // Distance by ROAD from where this driver is parked - the same leg
+    // the car will actually drive, so the card and the map agree.
     const leg = this.geo.pickupLeg(at, pickup);
 
     const driver = {
       ...person,
       vehicle,
       model: models[Math.floor(Math.random() * models.length)],
+      colour: FLEET_COLOURS[Math.floor(Math.random() * FLEET_COLOURS.length)],
       plate: this.plateFor(),
+      phone: "+91 9" + String(100000000 + Math.floor(Math.random() * 899999999)),
       at,
       awayKm: leg.toPickupKm,
       leg,
@@ -142,7 +193,7 @@ class DriverMatchingService {
     log(
       "SYSTEM",
       `DriverMatchingService: matched {{${driver.name}}} (${driver.rating}*, ${driver.trips} trips) ` +
-      `in a ${driver.model} - ${driver.plate}, ${driver.awayKm} km away by road`
+      `in a ${driver.colour} ${driver.model} - ${driver.plate}, ${driver.awayKm} km away by road`
     );
     return driver;
   }
@@ -168,18 +219,30 @@ class DriverMatchingService {
  * rider who cancels and to a driver who cancels after accepting.
  */
 function cancellationFee(fare) {
-  return Math.min(100, Math.round(fare * 0.10));
+  return Math.min(100, Math.max(0, Math.round(fare * 0.10)));
 }
 
-/** 3. Takes the money when the trip ends. */
+/**
+ * 3. Takes the money when the trip ends.
+ *
+ * It no longer knows HOW to charge anything. It holds a
+ * PaymentMethod (see patterns/adapter.js) and asks that to do it,
+ * so adding a provider never touches this class.
+ */
 class PaymentGateway {
+  constructor(method) {
+    this.method = method || PAYMENT_METHODS.default();
+  }
+
+  use(method) {
+    const from = this.method ? this.method.label : "none";
+    this.method = method;
+    log("ADAPTER", `PaymentGateway now holds {{${method.label}}} (was ${from}) - identical pay() call either way`);
+  }
+
   charge(amount, rideId) {
-    const receipt = {
-      txnId: `TXN${Date.now().toString().slice(-8)}`,
-      method: "UPI - default account",
-      amount,
-    };
-    log("SYSTEM", `PaymentGateway: charged Rs.${amount} for ${rideId} - ${receipt.txnId}`);
+    const receipt = this.method.pay(amount, rideId);
+    log("SYSTEM", `PaymentGateway: Rs.${amount} for ${rideId} via ${receipt.method} - ${receipt.txnId}`);
     return receipt;
   }
 }
@@ -188,9 +251,19 @@ class PaymentGateway {
 class NotificationService {
   constructor(pushToast) {
     this.pushToast = pushToast;
+    this.muted = false;
   }
-  send(text) {
-    this.pushToast(text);
+  send(text, kind) {
+    if (!this.muted) this.pushToast(text, kind);
     log("SYSTEM", `NotificationService: "${text.replace(/<[^>]+>/g, "")}"`);
+  }
+}
+
+/** 5. A one-time code the driver has to read off the rider's phone. */
+class TripOtpService {
+  static issue() {
+    const code = String(1000 + Math.floor(Math.random() * 8999));
+    log("SYSTEM", `TripOtpService: trip OTP {{${code}}} issued - the driver cannot start without it`);
+    return code;
   }
 }

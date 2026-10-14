@@ -28,9 +28,8 @@ function tourSelect(id, value) {
 }
 
 function tourVehicle(code) {
-  const card = [...document.querySelectorAll(".vcard")]
-    .find((c) => c.querySelector(".vcard__name").textContent.toUpperCase() === code);
-  if (card) card.click();
+  const row = document.querySelector('.vrow[data-veh="' + code + '"]');
+  if (row) row.click();
 }
 
 const rideKey = () => (ui.ride ? ui.ride.state.key : null);
@@ -61,6 +60,7 @@ const TOUR_STEPS = [
     look: "The outlined part is what each stage is about.",
     async run() {
       $("btnClear").click();
+      document.querySelectorAll("[data-addon]:checked").forEach((c) => c.click());
       tourSelect("pickup", TOUR_ROUTE.pickup);
       tourSelect("drop", TOUR_ROUTE.drop);
       tourSelect("strategy", "STANDARD");
@@ -148,11 +148,11 @@ const TOUR_STEPS = [
     title: "A driver accepts",
     file: "js/patterns/state.js",
     view: "trip",
-    focus: ["#lifecycle", "#driverCard"],
+    focus: ["#lifeCard", "#driverCard"],
     filter: "STATE",
     hold: true,
     body: () => `The ride swaps its state object: <b>${driverName("a driver")}</b> is assigned, so it now holds <code>DriverAssignedState</code>.`,
-    look: "The current stage shows the class the ride holds.",
+    look: "Trip progress names the class the ride now holds.",
     waitFor: () => rideKey() === "DriverAssignedState",
   },
 
@@ -161,12 +161,12 @@ const TOUR_STEPS = [
     title: "Problem 1: the driver cancels",
     file: "js/patterns/state.js",
     view: "trip",
-    focus: ["#rematchNote", "#lifecycle"],
+    focus: ["#rematchNote", "#lifeCard"],
     filter: "STATE",
     hold: true,
     problem: "84% of riders were pushed into cancelling &mdash; and paid the fee.",
     body: () => `<b>Fix:</b> a new <code>RematchingState</code> finds another driver. You pay <b>Rs.0</b>; the fare stays <b>${fare()}</b>.`,
-    look: "Stage 1 now reads RematchingState.",
+    look: "Trip progress (top right) now reads RematchingState.",
     async run(t) {
       await t.until(() => rideKey() === "ArrivingState");
       await t.sleep(1300);                      // let the car visibly set off first
@@ -180,9 +180,9 @@ const TOUR_STEPS = [
     title: "The new driver drives in",
     file: "js/patterns/observer.js",
     view: "trip",
-    focus: ["#map", "#obsPanel"],
+    focus: ["#mapCard", "#obsPanel"],
     filter: "OBSERVER",
-    body: () => `${driverName("The driver")}'s phone sends ~12 GPS updates a second to <b>5 subscribers</b> that never know about each other.`,
+    body: () => `${driverName("The driver")}'s phone sends ~12 GPS updates a second to <b>6 subscribers</b> that never know about each other.`,
     look: "The car moves; untick a subscriber later to silence just that one.",
     async run(t) {
       await t.until(() => rideKey() === "ArrivingState");
@@ -192,14 +192,30 @@ const TOUR_STEPS = [
 
   {
     tag: "STATE",
+    title: "Your driver is at the kerb",
+    file: "js/patterns/state.js",
+    view: "trip",
+    focus: ["#otpCard", "#lifeCard"],
+    filter: "STATE",
+    hold: true,
+    body: `<code>ArrivedState</code> issued a trip OTP; the ride can't start until you share it. This whole step was one class, added last.`,
+    look: "The four digits on the Trip tab. I'll press Start ride next.",
+    waitFor: () => rideKey() === "ArrivedState",
+  },
+
+  {
+    tag: "STATE",
     title: "You're aboard",
     file: "js/patterns/state.js",
     view: "trip",
-    focus: ["#lifecycle", "#btnCancel"],
+    focus: ["#lifeCard", "#btnCancel"],
     filter: "STATE",
     hold: true,
     body: `<code>InProgressState</code> says <code>canCancel</code> is false, so the Cancel button disables itself.`,
-    look: "Cancel ride is now greyed out.",
+    look: "Cancel is now greyed out.",
+    async run() {
+      if (rideKey() === "ArrivedState") $("btnStart").click();
+    },
     waitFor: () => rideKey() === "InProgressState",
   },
 
@@ -208,11 +224,11 @@ const TOUR_STEPS = [
     title: "Problem 3: the car leaves the route",
     file: "js/patterns/observer.js",
     view: "trip",
-    focus: ["#map", "#term"],
+    focus: ["#mapCard", "#term"],
     filter: "OBSERVER",
     hold: true,
     problem: "No alert when a cab strays from its route (NCW, 2026).",
-    body: `<b>Fix:</b> a 5th subscriber, <code>SafetyMonitorObserver</code>, saw the red detour and asked <b>&ldquo;Are you okay?&rdquo;</b>`,
+    body: `<b>Fix:</b> one more subscriber, <code>SafetyMonitorObserver</code>, saw the red detour and asked <b>&ldquo;Are you okay?&rdquo;</b>`,
     look: "Console: DETOUR ALERT. I'll answer “I'm okay” next.",
     async run(t) {
       await t.sleep(1200);
@@ -226,10 +242,10 @@ const TOUR_STEPS = [
     title: "Trip done",
     file: "js/patterns/state.js",
     view: "trip",
-    focus: ["#tripFare", "#lifecycle", "#term"],
+    focus: ["#tripFare", "#lifeCard", "#term"],
     filter: "ALL",
-    body: () => `<code>CompletedState</code> charged <b>${fare()}</b> &mdash; the quoted fare, even after the ${ui.ride ? ui.ride.detourKm : 0} km detour.`,
-    look: "Console: one charge, and no cancellation fee for you.",
+    body: () => `<code>CompletedState</code> charged <b>${fare()}</b> through the payment <b>Adapter</b> &mdash; the quoted fare, even after the ${ui.ride ? ui.ride.detourKm : 0} km detour.`,
+    look: "Console: one charge, and no cancellation fee for you. The trip is already in Activity.",
     async run() {
       if (visible("safetyCard")) $("btnSafeOk").click();
     },
@@ -250,6 +266,7 @@ const TOUR_STEPS = [
              <dt>Facade</dt><dd>booked in one call</dd>
              <dt>State</dt><dd>ran the ride, re-matched it</dd>
              <dt>Observer</dt><dd>moved the car, caught the detour</dd>
+             <dt>Adapter</dt><dd>charged the fare</dd>
            </dl>`,
     look: `Try it yourself: Cancel &rarr; &ldquo;The driver asked me to&rdquo; is free.`,
   },
@@ -258,7 +275,7 @@ const TOUR_STEPS = [
 /** How each tag is shown on the card. */
 const TOUR_LABEL = {
   TOUR: "Guided demo", SINGLETON: "Singleton", FACTORY: "Factory", STRATEGY: "Strategy",
-  DECORATOR: "Decorator", FACADE: "Facade", STATE: "State", OBSERVER: "Observer",
+  DECORATOR: "Decorator", FACADE: "Facade", STATE: "State", OBSERVER: "Observer", ADAPTER: "Adapter",
 };
 
 /* ============================================================
@@ -343,6 +360,9 @@ const Tour = {
     SimClock.rate = TOUR_RATE;
     this.syncClock();
     document.body.classList.add("is-touring");
+    if (typeof Sheet !== "undefined") Sheet.close();
+    router.go("home");
+    toggleDock(true);
     $("tour").hidden = false;
     $("tour").classList.remove("is-paused");
     $("tourPause").textContent = "Pause";
@@ -385,6 +405,7 @@ const Tour = {
     document.querySelectorAll(".tour-focus").forEach((n) => n.classList.remove("tour-focus"));
     document.querySelectorAll(".is-dim").forEach((n) => n.classList.remove("is-dim"));
     document.querySelectorAll(".pchip.is-current").forEach((n) => n.classList.remove("is-current"));
+    toggleSubs(false);
     applyFilter("ALL");
     $("btnTour").disabled = !!(ui.ride && !ui.ride.state.isFinal);
     $("tourPause").hidden = true;
@@ -453,7 +474,9 @@ const Tour = {
     document.querySelectorAll(".pchip").forEach((c) =>
       c.classList.toggle("is-current", c.dataset.tag === step.tag));
 
-    this.point(phase === "working" && step.focusFirst ? step.focusFirst : step.focus);
+    const focus = phase === "working" && step.focusFirst ? step.focusFirst : step.focus;
+    toggleSubs((focus || []).includes("#obsPanel"));
+    this.point(focus);
   },
 
   /** Make the stage's elements glow, and bring them into view. */
@@ -464,34 +487,23 @@ const Tour = {
     this.spotlight(nodes);
     if (!nodes.length) return;
 
-    const docked = window.innerWidth < 1024;
-    if (!docked) {
-      // Laptop: everything is on one screen - only nudge inside a scrolling panel.
-      nodes.forEach((n) => n.scrollIntoView({ block: "nearest", behavior: "smooth" }));
-      return;
-    }
-
-    // Phone / tablet: the map is pinned on top (phone) and this card is
-    // docked at the bottom. Scroll the stage's element into the space
-    // between them. The pinned map itself never needs scrolling to.
-    const stage = $("stage");
-    const pinned = getComputedStyle(stage).position === "sticky";
-    const targets = nodes.filter((n) => !(pinned && stage.contains(n)) && n.offsetParent !== null);
-    if (!targets.length) return;
-    const top = pinned ? stage.getBoundingClientRect().height : 0;
-    const free = window.innerHeight - top - $("tour").offsetHeight - 20;
-
-    // Show every highlighted part together if they fit; otherwise the first one.
-    const rects = targets.map((n) => n.getBoundingClientRect());
-    const unionTop = Math.min(...rects.map((r) => r.top));
-    const unionBottom = Math.max(...rects.map((r) => r.bottom));
-    const from = unionBottom - unionTop <= free ? unionTop : rects[0].top;
-    window.scrollTo({ top: Math.max(0, window.scrollY + from - top - 10), behavior: "smooth" });
+    // Bring every highlighted part into view inside whichever panel
+    // scrolls (on a phone, the page itself) - but only if it is not
+    // already fully visible, so the screen does not jump for nothing.
+    nodes.filter((n) => n.offsetParent !== null).forEach((n, i) => {
+      const r = n.getBoundingClientRect();
+      const box = scrollBox(n);
+      const v = box ? box.getBoundingClientRect() : { top: 0, bottom: window.innerHeight };
+      const tourCard = window.innerWidth < 900 && !$("tour").hidden ? $("tour").getBoundingClientRect().height + 80 : 0;
+      const fits = r.top >= v.top + 4 && r.bottom <= v.bottom - 4 - (box ? 0 : tourCard);
+      if (!fits && i === 0) n.scrollIntoView({ block: r.height > (v.bottom - v.top) * 0.8 ? "start" : "center", behavior: "smooth" });
+    });
   },
 
   /** Fade back every panel this stage is not about (all of them come back afterwards). */
+  spotlightPanels: ["#ridePanel", "#mapCard", "#term"],
   spotlight(nodes) {
-    const panels = ["#sheet", "#stage", "#obsPanel", "#term"]
+    const panels = this.spotlightPanels
       .map((sel) => document.querySelector(sel)).filter(Boolean);
     panels.forEach((panel) => {
       const relevant = !nodes.length || nodes.some((n) => panel.contains(n) || n.contains(panel));
@@ -516,13 +528,6 @@ document.addEventListener("DOMContentLoaded", () => {
   $("tourRestart").addEventListener("click", () => { Tour.close(); Tour.start(); });
   $("tourExit").addEventListener("click", () => Tour.exit());
 
-  // Reserve exactly the docked card's height at the bottom of the page.
-  if (window.ResizeObserver) {
-    new ResizeObserver(() => {
-      document.body.style.setProperty("--tour-h", $("tour").offsetHeight + "px");
-    }).observe($("tour"));
-  }
-
   // Presenter keys: -> next, P pause, Esc exit.
   document.addEventListener("keydown", (e) => {
     if (!Tour.running || e.target.tagName === "SELECT") return;
@@ -531,3 +536,12 @@ document.addEventListener("DOMContentLoaded", () => {
     else if (e.key === "Escape") Tour.exit();
   });
 });
+
+/** The nearest ancestor that scrolls, or null when the page itself does. */
+function scrollBox(node) {
+  for (let el = node.parentElement; el && el !== document.body; el = el.parentElement) {
+    const o = getComputedStyle(el).overflowY;
+    if ((o === "auto" || o === "scroll") && el.scrollHeight > el.clientHeight) return el;
+  }
+  return null;
+}

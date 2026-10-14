@@ -16,15 +16,53 @@ const KM_PER_PX = 0.05;
    1. LANDMARKS the rider can pick
    ------------------------------------------------------------ */
 
+/**
+ * Every pickup / drop the rider can choose, grouped by zone so the
+ * picker can show them the way a real app does. `major` decides
+ * whether the map prints a name next to the dot - label all 29 and
+ * the city turns into unreadable soup.
+ */
 const LOCATIONS = [
-  { id: "kukatpally",   name: "Kukatpally",       kind: "suburb",   x:  95, y:  95 },
-  { id: "hitech",       name: "Hitech City",      kind: "business", x: 250, y: 175 },
-  { id: "gachibowli",   name: "Gachibowli",       kind: "business", x: 170, y: 300 },
-  { id: "jubilee",      name: "Jubilee Hills",    kind: "suburb",   x: 395, y: 120 },
-  { id: "secunderabad", name: "Secunderabad Stn", kind: "rail",     x: 560, y:  95 },
-  { id: "charminar",    name: "Charminar",        kind: "heritage", x: 470, y: 330 },
-  { id: "airport",      name: "RGIA Airport",     kind: "airport",  x: 630, y: 375 },
+  /* ---- west: the IT corridor ---- */
+  { id: "miyapur",      name: "Miyapur Metro",      zone: "West",      area: "Miyapur X Roads",        kind: "rail",     major: true,  x:  70, y:  60 },
+  { id: "kukatpally",   name: "Kukatpally",         zone: "West",      area: "Y Junction, KPHB",       kind: "suburb",   major: true,  x:  95, y:  95 },
+  { id: "kphb",         name: "KPHB Colony",        zone: "West",      area: "Phase 3, Road No. 1",    kind: "suburb",   major: false, x: 120, y: 128 },
+  { id: "kondapur",     name: "Kondapur",           zone: "West",      area: "Botanical Garden Rd",    kind: "suburb",   major: false, x: 205, y: 148 },
+  { id: "hitech",       name: "Hitech City",        zone: "West",      area: "Cyber Towers",           kind: "business", major: true,  x: 250, y: 175 },
+  { id: "madhapur",     name: "Madhapur",           zone: "West",      area: "Ayyappa Society",        kind: "business", major: false, x: 272, y: 200 },
+  { id: "gachibowli",   name: "Gachibowli",         zone: "West",      area: "DLF Circle",             kind: "business", major: true,  x: 170, y: 300 },
+  { id: "findistrict",  name: "Financial District", zone: "West",      area: "Gate 3, Wells Fargo",    kind: "business", major: false, x: 135, y: 330 },
+  { id: "nanakramguda", name: "Nanakramguda",       zone: "West",      area: "Wipro Circle",           kind: "business", major: false, x: 200, y: 320 },
+  { id: "manikonda",    name: "Manikonda",          zone: "West",      area: "Lanco Hills Rd",         kind: "suburb",   major: false, x: 255, y: 290 },
+
+  /* ---- central ---- */
+  { id: "jubilee",      name: "Jubilee Hills",      zone: "Central",   area: "Road No. 36 Check Post", kind: "suburb",   major: true,  x: 395, y: 120 },
+  { id: "banjara",      name: "Banjara Hills",      zone: "Central",   area: "Road No. 12",            kind: "suburb",   major: false, x: 412, y: 175 },
+  { id: "necklace",     name: "Necklace Road",      zone: "Central",   area: "Sanjeevaiah Park gate",  kind: "leisure",  major: false, x: 438, y: 158 },
+  { id: "punjagutta",   name: "Punjagutta",         zone: "Central",   area: "Metro Pillar A-742",     kind: "suburb",   major: false, x: 410, y: 205 },
+  { id: "begumpet",     name: "Begumpet",           zone: "Central",   area: "Prakash Nagar",          kind: "suburb",   major: false, x: 545, y: 152 },
+  { id: "ameerpet",     name: "Ameerpet Metro",     zone: "Central",   area: "Interchange, Gate 2",    kind: "rail",     major: true,  x: 396, y: 224 },
+  { id: "lakdikapul",   name: "Lakdikapul",         zone: "Central",   area: "Assembly Rd",            kind: "suburb",   major: false, x: 425, y: 245 },
+  { id: "nampally",     name: "Nampally Station",   zone: "Central",   area: "Platform 1 entrance",    kind: "rail",     major: false, x: 445, y: 268 },
+  { id: "abids",        name: "Abids",              zone: "Central",   area: "GPO Circle",             kind: "market",   major: false, x: 466, y: 262 },
+
+  /* ---- old city ---- */
+  { id: "golconda",     name: "Golconda Fort",      zone: "Old City",  area: "Balahisar Gate",         kind: "heritage", major: true,  x: 330, y: 258 },
+  { id: "mehdipatnam",  name: "Mehdipatnam",        zone: "Old City",  area: "Rethibowli Junction",    kind: "market",   major: false, x: 365, y: 272 },
+  { id: "attapur",      name: "Attapur",            zone: "Old City",  area: "Pillar No. 176",         kind: "suburb",   major: false, x: 400, y: 332 },
+  { id: "charminar",    name: "Charminar",          zone: "Old City",  area: "Laad Bazaar corner",     kind: "heritage", major: true,  x: 470, y: 330 },
+
+  /* ---- north + east ---- */
+  { id: "secunderabad", name: "Secunderabad Stn",   zone: "North",     area: "Platform 10, west exit", kind: "rail",     major: true,  x: 560, y:  95 },
+  { id: "paradise",     name: "Paradise Circle",    zone: "North",     area: "Sardar Patel Rd",        kind: "market",   major: false, x: 585, y: 118 },
+  { id: "uppal",        name: "Uppal",              zone: "East",      area: "Uppal X Roads",          kind: "suburb",   major: false, x: 620, y: 210 },
+  { id: "dilsukhnagar", name: "Dilsukhnagar",       zone: "East",      area: "Bus Stop, Chaitanyapuri",kind: "market",   major: false, x: 560, y: 300 },
+  { id: "lbnagar",      name: "LB Nagar",           zone: "East",      area: "Ring Road Junction",     kind: "suburb",   major: false, x: 600, y: 330 },
+  { id: "airport",      name: "RGIA Airport",       zone: "South",     area: "Departures, Terminal 1", kind: "airport",  major: true,  x: 630, y: 375 },
 ];
+
+/** The zones, in the order the picker should list them. */
+const ZONES = ["West", "Central", "Old City", "North", "East", "South"];
 
 const findLocation = (id) => LOCATIONS.find((l) => l.id === id);
 
@@ -127,6 +165,53 @@ const NAMED_ROADS = [
 
   { name: "Kukatpally Main", cls: "arterial", points: [
     { x:  95, y:  95 }, { x: 104, y: 160 }, { x: 128, y: 214 }, { x: 170, y: 260 }, { x: 170, y: 300 } ] },
+
+  /* ---- roads added when the city grew past seven landmarks ---- */
+
+  { name: "Miyapur Rd", cls: "arterial", points: [
+    { x:  70, y:  60 }, { x:  82, y:  76 }, { x:  95, y:  95 } ] },
+
+  { name: "KPHB Main", cls: "arterial", points: [
+    { x:  95, y:  95 }, { x: 120, y: 128 }, { x: 166, y: 128 } ] },
+
+  { name: "Kondapur Rd", cls: "arterial", points: [
+    { x: 205, y: 148 }, { x: 232, y: 160 }, { x: 250, y: 175 } ] },
+
+  { name: "Madhapur Link", cls: "arterial", points: [
+    { x: 250, y: 175 }, { x: 272, y: 200 }, { x: 280, y: 236 }, { x: 286, y: 268 } ] },
+
+  { name: "Nanakramguda Rd", cls: "arterial", points: [
+    { x: 135, y: 330 }, { x: 170, y: 300 } ] },
+
+  { name: "Wipro Circle Rd", cls: "arterial", points: [
+    { x: 135, y: 330 }, { x: 200, y: 320 }, { x: 255, y: 290 }, { x: 286, y: 268 } ] },
+
+  { name: "Mehdipatnam Rd", cls: "arterial", points: [
+    { x: 365, y: 272 }, { x: 380, y: 250 }, { x: 396, y: 224 } ] },
+
+  { name: "Golconda Rd", cls: "arterial", points: [
+    { x: 330, y: 258 }, { x: 365, y: 272 } ] },
+
+  { name: "Attapur Rd", cls: "arterial", points: [
+    { x: 365, y: 272 }, { x: 400, y: 332 }, { x: 436, y: 336 }, { x: 470, y: 330 } ] },
+
+  { name: "Punjagutta Rd", cls: "arterial", points: [
+    { x: 412, y: 175 }, { x: 410, y: 205 }, { x: 396, y: 224 } ] },
+
+  { name: "Nampally Rd", cls: "arterial", points: [
+    { x: 425, y: 245 }, { x: 445, y: 268 }, { x: 466, y: 262 } ] },
+
+  { name: "Dilsukhnagar Rd", cls: "arterial", points: [
+    { x: 522, y: 296 }, { x: 560, y: 300 }, { x: 600, y: 330 } ] },
+
+  { name: "Uppal Rd", cls: "arterial", points: [
+    { x: 606, y: 190 }, { x: 620, y: 210 }, { x: 608, y: 262 }, { x: 560, y: 300 } ] },
+
+  { name: "Paradise Rd", cls: "arterial", points: [
+    { x: 560, y:  95 }, { x: 585, y: 118 }, { x: 596, y: 132 } ] },
+
+  { name: "Begumpet Rd", cls: "arterial", points: [
+    { x: 545, y: 152 }, { x: 544, y: 172 } ] },
 ];
 
 /* ---------- a jittered minor-street grid, kept out of the water ---------- */
@@ -198,7 +283,9 @@ class RoadNetwork {
     this.adj = new Map();       // nodeId -> [{ to, cost, km, cls, name }]
     this.edges = [];            // flattened, for drawing
     this._ids = new Map();
+    this.accessLanes = [];
     this._build(roads);
+    this._addAccessLanes(LOCATIONS);
   }
 
   _nodeId(pt) {
@@ -241,6 +328,49 @@ class RoadNetwork {
         const p = at(ts[k]), q = at(ts[k + 1]);
         if (Math.hypot(q.x - p.x, q.y - p.y) < 1.5) continue;
         this._link(this._nodeId(p), this._nodeId(q), seg.cls, seg.name);
+      }
+    });
+  }
+
+  /**
+   * Landmarks are points the city planner picked, not junctions the
+   * road grid happened to produce, so several of them land mid-block
+   * with one way in and one way out. A car leaving a dead end has to
+   * drive back out the way it came, which is how a 1.6 km hop across
+   * Banjara Hills turned into a 12 km loop.
+   *
+   * Real cities solve this with access lanes - the short bit of road
+   * between a building and the nearest through road. This does the
+   * same: every landmark gets welded to the three nearest junctions
+   * inside `maxPx`, skipping any hop that would cross the lake. The
+   * lanes are kept in `accessLanes` so the map can draw them; a route
+   * must never run over ground with no road painted on it.
+   */
+  _addAccessLanes(places, maxPx = 46, wanted = 3) {
+    this.accessLanes = [];
+
+    places.forEach((place) => {
+      const home = this._nodeId(place);
+      const linked = new Set((this.adj.get(home) || []).map((e) => e.to));
+
+      const near = this.nodes
+        .map((n, i) => ({ i, d: Math.hypot(n.x - place.x, n.y - place.y) }))
+        .filter((c) => c.i !== home && c.d < maxPx)
+        .sort((p, q) => p.d - q.d);
+
+      let ways = linked.size;
+      for (const cand of near) {
+        if (ways >= wanted) break;
+        if (linked.has(cand.i)) continue;
+
+        const n = this.nodes[cand.i];
+        const mid = { x: (n.x + place.x) / 2, y: (n.y + place.y) / 2 };
+        if (inWater(mid)) continue;
+
+        this._link(home, cand.i, "street", "");
+        this.accessLanes.push({ a: { x: place.x, y: place.y }, b: { x: n.x, y: n.y } });
+        linked.add(cand.i);
+        ways += 1;
       }
     });
   }
@@ -317,6 +447,11 @@ class RoadNetwork {
 }
 
 const CITY = new RoadNetwork(ROADS);
+
+/* The access lanes the network had to invent are real streets too - put
+   them back in the drawing list so no route runs over unpainted ground. */
+CITY.accessLanes.forEach((lane) =>
+  ROADS.push({ name: "", cls: "street", points: [lane.a, lane.b] }));
 
 /* ------------------------------------------------------------
    5. A ROUTE ALONG THOSE ROADS

@@ -2,13 +2,15 @@
    PATTERN 4 - STATE  (behavioural)
    ------------------------------------------------------------
    PROBLEM: a ride passes through Requested -> Driver assigned ->
-   Arriving -> In progress -> Completed, and can be Cancelled from
-   some of those but not all. Coded with flags it becomes:
+   Arriving -> Waiting at pickup -> In progress -> Completed, and
+   can be cancelled from some of those but not all. Coded with
+   flags it becomes:
 
        cancelRide() {
          if (status === "REQUESTED")            refund(100);
          else if (status === "ASSIGNED")        refund(100);
          else if (status === "ARRIVING")        refund(80);
+         else if (status === "WAITING")         refund(60);
          else if (status === "IN_PROGRESS")     alert("too late");
          else if (status === "COMPLETED")       alert("already over");
          ...same ladder repeated in every other method...
@@ -18,14 +20,16 @@
    canRate(), showButtons()... and one missed branch is a live bug.
 
    SOLUTION: turn each status into its own class holding the
-   behaviour legal in that status. The Ride just forwards the call
-   to whichever state object it currently holds. Adding a
-   "Driver waiting" state means writing one class, not hunting
-   through ten if-else ladders.
+   behaviour legal in that status. The Ride forwards the call to
+   whichever state object it currently holds.
 
-   Watch it in the app: the Cancel button disables itself the moment
-   the ride enters InProgressState - because the state says so, not
-   because the button has rules of its own.
+   PROOF THE PATTERN PAYS: two states were added after everything
+   else worked, and each cost one class plus a line in the state
+   before it:
+     - ArrivedState: the driver waiting at the kerb with a trip OTP.
+     - RematchingState: the driver cancelled on you, so the ride
+       finds another one at the same fare and you pay nothing.
+   No ladder to hunt through, no other file touched.
    ============================================================ */
 
 /* ---------- the state interface ---------- */
@@ -33,7 +37,7 @@
 class RideState {
   get key()       { throw new Error("not implemented"); }
   get label()     { throw new Error("not implemented"); }
-  get step()      { return 0; }      // position on the lifecycle timeline
+  get step()      { return 0; }       // position on the lifecycle timeline
   get canCancel() { return false; }
   get isFinal()   { return false; }
 
@@ -42,6 +46,9 @@ class RideState {
 
   /** Is the rider in the car? Safety monitoring only matters then. */
   get riderOnboard() { return false; }
+
+  /** What the big status line on the tracking screen should say. */
+  get hint()      { return ""; }
 
   /** What the rider would pay to cancel right now. */
   cancelFee(ride) { return 0; }
@@ -121,6 +128,7 @@ function driverWalksAway(ride, stage) {
   ride.services.matching.penalise(driver, fee, "cancelled an accepted ride");
   ride.walkedAway.push(driver);
   ride.driver = null;
+  ride.otp = null;
 
   log("STATE", `{{${stage}}} allows driverCancel() - ${driver.name} walked away. Rider pays Rs.0.`);
 
@@ -137,6 +145,7 @@ function driverWalksAway(ride, stage) {
 class RequestedState extends RideState {
   get key()       { return "RequestedState"; }
   get label()     { return "Searching for a driver"; }
+  get hint()      { return "Matching you with drivers nearby"; }
   get step()      { return 0; }
   get canCancel() { return true; }
 
@@ -146,19 +155,17 @@ class RequestedState extends RideState {
     ride.after(900 + Math.random() * 1800, () => this.next(ride));
   }
 
-  next(ride) {
-    assignDriver(ride);
-  }
+  next(ride) { assignDriver(ride); }
 
   cancel(ride) {
-    log("STATE", `{{RequestedState}} allows cancel() - no driver committed yet, nothing to charge.`);
+    log("STATE", "{{RequestedState}} allows cancel() - no driver committed yet, nothing to charge.");
     ride.transitionTo(new CancelledState("Cancelled before a driver was assigned - no fee.", 0));
   }
 }
 
 /**
- * NEW STAGE - the answer to "the driver cancelled on me". Adding it
- * took this one class and two lines in the states that lead here; no
+ * Added after the app worked - the answer to "the driver cancelled on
+ * me". One class, plus two lines in the states that lead here; no
  * if-else anywhere else in the app had to learn about it.
  */
 class RematchingState extends RideState {
@@ -168,6 +175,7 @@ class RematchingState extends RideState {
   }
   get key()       { return "RematchingState"; }
   get label()     { return "Finding you another driver"; }
+  get hint()      { return "Same fare - you won't be charged"; }
   get step()      { return 0; }
   get canCancel() { return true; }     // free - none of this is the rider's fault
 
@@ -180,12 +188,10 @@ class RematchingState extends RideState {
     ride.after(900 + Math.random() * 1200, () => this.next(ride));
   }
 
-  next(ride) {
-    assignDriver(ride);
-  }
+  next(ride) { assignDriver(ride); }
 
   cancel(ride) {
-    log("STATE", `{{RematchingState}} allows cancel() - a driver let the rider down, so no fee.`);
+    log("STATE", "{{RematchingState}} allows cancel() - a driver let the rider down, so no fee.");
     ride.transitionTo(new CancelledState("Cancelled while re-matching - no fee.", 0));
   }
 }
@@ -193,6 +199,7 @@ class RematchingState extends RideState {
 class DriverAssignedState extends RideState {
   get key()       { return "DriverAssignedState"; }
   get label()     { return "Driver assigned"; }
+  get hint()      { return "Your driver accepted the trip"; }
   get step()      { return 1; }
   get canCancel() { return true; }
   get canDriverCancel() { return true; }
@@ -201,27 +208,21 @@ class DriverAssignedState extends RideState {
 
   onEnter(ride) {
     ride.notifyUi({
-      toast: `<b>${ride.driver.name}</b> accepted &middot; ${ride.driver.model} &middot; ${ride.driver.plate}`,
+      toast: `<b>${ride.driver.name}</b> accepted &middot; ${ride.driver.colour} ${ride.driver.model} &middot; ${ride.driver.plate}`,
     });
     ride.after(700 + Math.random() * 900, () => this.next(ride));
   }
 
-  next(ride) {
-    ride.transitionTo(new ArrivingState());
-  }
+  next(ride) { ride.transitionTo(new ArrivingState()); }
 
-  cancel(ride, reason) {
-    riderCancels(ride, reason, "DriverAssignedState");
-  }
-
-  driverCancel(ride) {
-    driverWalksAway(ride, "DriverAssignedState");
-  }
+  cancel(ride, reason) { riderCancels(ride, reason, "DriverAssignedState"); }
+  driverCancel(ride)   { driverWalksAway(ride, "DriverAssignedState"); }
 }
 
 class ArrivingState extends RideState {
   get key()       { return "ArrivingState"; }
   get label()     { return "Driver on the way to you"; }
+  get hint()      { return "Head to your pickup point"; }
   get step()      { return 2; }
   get canCancel() { return true; }
   get canDriverCancel() { return true; }
@@ -240,28 +241,55 @@ class ArrivingState extends RideState {
     });
   }
 
+  next(ride) { ride.transitionTo(new ArrivedState()); }
+
+  cancel(ride, reason) { riderCancels(ride, reason, "ArrivingState"); }
+  driverCancel(ride)   { driverWalksAway(ride, "ArrivingState"); }
+}
+
+/**
+ * The driver is at the kerb and the trip cannot start until the rider
+ * reads out a four digit code - which is how a real app stops a driver
+ * picking up the wrong person.
+ */
+class ArrivedState extends RideState {
+  get key()       { return "ArrivedState"; }
+  get label()     { return "Driver waiting at pickup"; }
+  get hint()      { return "Share the trip OTP with your driver"; }
+  get step()      { return 3; }
+  get canCancel() { return true; }
+  get canDriverCancel() { return true; }
+
+  cancelFee(ride) { return cancellationFee(ride.quote.total); }
+
+  onEnter(ride) {
+    ride.otp = TripOtpService.issue();
+    ride.notifyUi({ toast: `Driver has arrived. Trip OTP <b>${ride.otp}</b>` });
+
+    // A driver will not sit there forever; if the rider never taps
+    // "Start", the state moves the ride on by itself.
+    ride.after(9000, () => this.next(ride));
+  }
+
   next(ride) {
-    ride.notifyUi({ toast: "Driver has arrived at pickup." });
+    log("STATE", `{{ArrivedState}} verified OTP ${ride.otp} - handing over to InProgressState`);
     ride.transitionTo(new InProgressState());
   }
 
-  cancel(ride, reason) {
-    riderCancels(ride, reason, "ArrivingState");
-  }
-
-  driverCancel(ride) {
-    driverWalksAway(ride, "ArrivingState");
-  }
+  cancel(ride, reason) { riderCancels(ride, reason, "ArrivedState"); }
+  driverCancel(ride)   { driverWalksAway(ride, "ArrivedState"); }
 }
 
 class InProgressState extends RideState {
   get key()       { return "InProgressState"; }
   get label()     { return "Ride in progress"; }
-  get step()      { return 3; }
+  get hint()      { return "On the way to your drop"; }
+  get step()      { return 4; }
   get canCancel() { return false; }   // you cannot cancel a moving ride
   get riderOnboard() { return true; }
 
   onEnter(ride) {
+    ride.startedAt = Date.now();
     ride.publisher.startTracking({
       path: ride.legs.toDrop,
       distanceKm: ride.legs.toDropKm,
@@ -272,25 +300,29 @@ class InProgressState extends RideState {
     });
   }
 
-  next(ride) {
-    ride.transitionTo(new CompletedState());
-  }
+  next(ride) { ride.transitionTo(new CompletedState()); }
 }
 
 class CompletedState extends RideState {
   get key()     { return "CompletedState"; }
   get label()   { return "Trip completed"; }
-  get step()    { return 4; }
+  get hint()    { return "Thanks for riding with RideFlow"; }
+  get step()    { return 5; }
   get isFinal() { return true; }
 
   onEnter(ride) {
     // The upfront quote IS the bill: not re-priced at drop-off, even if
-    // the driver took a longer way round.
+    // the driver took a longer way round. The gateway holds whichever
+    // payment ADAPTER the rider picked.
     const receipt = ride.services.payments.charge(ride.quote.total, ride.id);
+    ride.receipt = receipt;
     if (ride.detourKm) {
       log("STATE", `{{CompletedState}} - driver detoured ${ride.detourKm} km; rider still pays the locked fare, not a rupee more.`);
     }
-    ride.notifyUi({ toast: `Trip complete. <b>Rs.${ride.quote.total}</b> charged (your upfront fare) - ${receipt.method}` });
+    ride.notifyUi({
+      toast: `Trip complete. <b>Rs.${ride.quote.total}</b> charged (your upfront fare) &middot; ${receipt.method}`,
+      finished: true,
+    });
   }
 }
 
@@ -302,13 +334,19 @@ class CancelledState extends RideState {
   }
   get key()     { return "CancelledState"; }
   get label()   { return "Ride cancelled"; }
+  get hint()    { return this.reason; }
   get step()    { return -1; }
   get isFinal() { return true; }
 
   onEnter(ride) {
     ride.publisher.stopTracking();
-    if (this.fee > 0) ride.services.payments.charge(this.fee, ride.id + " (cancellation)");
-    ride.notifyUi({ toast: this.reason });
+    ride.cancelFee = this.fee;
+
+    // A fee is money, so it goes through the same payment ADAPTER the
+    // completed ride would have used. Nothing here knows which one.
+    if (this.fee > 0) ride.receipt = ride.services.payments.charge(this.fee, ride.id + " (cancellation)");
+
+    ride.notifyUi({ toast: this.reason, finished: true });
   }
 }
 
@@ -322,6 +360,10 @@ class Ride {
     this.history = [];
     this.walkedAway = [];          // drivers who cancelled on this ride
     this.detourKm = 0;
+    this.otp = null;
+    this.receipt = null;
+    this.cancelFee = 0;
+    this.createdAt = Date.now();
   }
 
   /**
@@ -347,7 +389,7 @@ class Ride {
   get canCancel()       { return this.state ? this.state.canCancel : false; }
   get canDriverCancel() { return this.state ? this.state.canDriverCancel : false; }
   get riderOnboard()    { return this.state ? this.state.riderOnboard : false; }
-  get cancelFee()       { return this.state ? this.state.cancelFee(this) : 0; }
+  get feeToCancel()     { return this.state ? this.state.cancelFee(this) : 0; }
 
   /** Run `fn` later - but only if the ride is still in the state that asked.
       Uses the simulation clock, so the guided demo can slow or pause it. */
@@ -368,4 +410,41 @@ class Ride {
   notifyUi(payload) {
     if (this.onUpdate) this.onUpdate(this, payload);
   }
+
+  /** The row the Activity screen stores once the ride is over. */
+  toTripRecord() {
+    const cancelled = this.state.key === "CancelledState";
+    const lastDriver = this.driver || this.walkedAway[this.walkedAway.length - 1];
+    return {
+      id: this.id,
+      at: new Date(this.createdAt).toISOString(),
+      pickup: this.pickup.name,
+      drop: this.drop.name,
+      pickupId: this.pickup.id,
+      dropId: this.drop.id,
+      vehicle: this.vehicle.code,
+      driver: lastDriver ? lastDriver.name : "-",
+      plate: lastDriver ? lastDriver.plate : "-",
+      fare: cancelled ? this.cancelFee : this.quote.total,
+      km: cancelled ? 0 : this.km,
+      minutes: cancelled ? 0 : this.minutes,
+      strategy: this.strategyName,
+      payment: this.receipt ? this.receipt.method : "-",
+      status: cancelled ? "cancelled" : "completed",
+      detourKm: this.detourKm,
+      rematched: this.walkedAway.length,
+      rating: 0,
+      tip: 0,
+    };
+  }
 }
+
+/** The lifecycle the UI draws, kept next to the states it names. */
+const RIDE_STEPS = [
+  { label: "Requested",  cls: "RequestedState" },
+  { label: "Assigned",   cls: "DriverAssignedState" },
+  { label: "Arriving",   cls: "ArrivingState" },
+  { label: "At pickup",  cls: "ArrivedState" },
+  { label: "On trip",    cls: "InProgressState" },
+  { label: "Completed",  cls: "CompletedState" },
+];
